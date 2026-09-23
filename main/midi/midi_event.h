@@ -39,12 +39,20 @@ public:
         const size_t currentTail = tail_.load(std::memory_order_relaxed);
         const size_t currentHead = head_.load(std::memory_order_acquire);
 
-        if ((currentTail - currentHead) >= Capacity) {
+        const size_t currentSize = currentTail - currentHead;
+        if (currentSize >= Capacity) {
+            drops_.fetch_add(1, std::memory_order_relaxed);
             return false; // Queue full, drop event to avoid blocking
         }
 
         buffer_[currentTail & (Capacity - 1)] = event;
         tail_.store(currentTail + 1, std::memory_order_release);
+        pushCount_.fetch_add(1, std::memory_order_relaxed);
+
+        size_t newSize = currentSize + 1;
+        size_t currentHwm = highWaterMark_.load(std::memory_order_relaxed);
+        while (newSize > currentHwm && !highWaterMark_.compare_exchange_weak(currentHwm, newSize, std::memory_order_relaxed)) {}
+
         return true;
     }
 
@@ -59,6 +67,7 @@ public:
 
         event = buffer_[currentHead & (Capacity - 1)];
         head_.store(currentHead + 1, std::memory_order_release);
+        popCount_.fetch_add(1, std::memory_order_relaxed);
         return true;
     }
 
@@ -72,10 +81,19 @@ public:
         return head_.load(std::memory_order_relaxed) == tail_.load(std::memory_order_relaxed);
     }
 
+    uint32_t getPushCount() const { return pushCount_.load(std::memory_order_relaxed); }
+    uint32_t getPopCount() const { return popCount_.load(std::memory_order_relaxed); }
+    uint32_t getDrops() const { return drops_.load(std::memory_order_relaxed); }
+    uint32_t getHighWaterMark() const { return static_cast<uint32_t>(highWaterMark_.load(std::memory_order_relaxed)); }
+
 private:
     MidiEvent buffer_[Capacity];
-    std::atomic<size_t> head_;
-    std::atomic<size_t> tail_;
+    std::atomic<size_t> head_{0};
+    std::atomic<size_t> tail_{0};
+    std::atomic<uint32_t> pushCount_{0};
+    std::atomic<uint32_t> popCount_{0};
+    std::atomic<uint32_t> drops_{0};
+    std::atomic<size_t> highWaterMark_{0};
 };
 
 } // namespace pocketpan::midi

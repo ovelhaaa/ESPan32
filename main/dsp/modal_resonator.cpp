@@ -45,12 +45,20 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
     // At damping = 1: 5% of nominal T60 (fast physical decay)
     const float dampingScale = 1.0f - 0.95f * currentDamping_;
 
+    // Bank normalization: energy-based scaling across defined modes
+    // Prevents multi-mode summation from exploding headroom
+    float sumGainSq = 0.0f;
+    for (size_t i = 0; i < modeCount_; ++i) {
+        sumGainSq += (presetModes_[i].gain * presetModes_[i].gain);
+    }
+    const float bankNorm = (sumGainSq > 0.001f) ? (1.0f / std::sqrt(sumGainSq)) : 1.0f;
+
     activeModeCount_ = 0;
 
     for (size_t i = 0; i < modeCount_; ++i) {
         const auto& def = presetModes_[i];
 
-        // Mode frequency with detune splitting
+        // Mode frequency with detune splitting (detune applied strictly once)
         const float modeFreq = fundamentalFrequencyHz_ * def.ratio * (1.0f + def.detune);
 
         // Nyquist handling: do NOT clamp to 0.48*fs!
@@ -85,7 +93,13 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
         // y[n] = gain * x[n] + a1 * y[n-1] + a2 * y[n-2]
         modes_[i].a1 = 2.0f * r * std::cos(w);
         modes_[i].a2 = -r * r;
-        modes_[i].gain = modeGain;
+
+        // Filter normalization:
+        // Impulse response of 2-pole resonator: h[n] = (b0 / sin(w)) * r^n * sin(w*(n+1))
+        // Setting b0 = sin(w) * modeGain * bankNorm normalizes the attack envelope peak to
+        // exactly modeGain * bankNorm, INDEPENDENT of frequency w and INDEPENDENT of T60 decay!
+        const float filterNorm = std::sin(w);
+        modes_[i].gain = modeGain * filterNorm * bankNorm;
     }
 }
 
@@ -98,6 +112,11 @@ float ModalResonatorBank::processSample(float excitation) {
         auto& m = modes_[i];
         // 2nd-order direct form IIR resonant filter
         float y = m.gain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
+
+        // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
+        if (std::abs(y) > 2.0f) {
+            y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
+        }
 
         // Denormal flushing
         if (std::abs(y) < kMinDenormal) {

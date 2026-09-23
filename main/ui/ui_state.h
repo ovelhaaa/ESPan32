@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+#include "hardware/board_config.h"
 
 namespace pocketpan::ui {
 
@@ -11,7 +11,7 @@ enum class UiScreenMode : uint8_t {
 };
 
 struct UiState {
-    UiScreenMode mode = UiScreenMode::Status;
+    UiScreenMode mode = board::ui::kDefaultMidiDiagnostic ? UiScreenMode::MidiDiagnostic : UiScreenMode::Status;
 
     // Preset & note status
     char presetName[16] = "PAN";
@@ -27,7 +27,18 @@ struct UiState {
     uint8_t activeVoices = 0;
     uint8_t maxVoices = 8;
     float cpuLoadPercent = 0.0f;
-    uint32_t underruns = 0;
+    uint32_t avgBlockTimeUs = 0;
+    uint32_t maxBlockTimeUs = 0;
+    uint32_t deadlineMisses = 0;
+    uint32_t writeTimeouts = 0;
+    uint32_t txErrors = 0;
+    uint32_t shortWrites = 0;
+
+    // MIDI Queue diagnostics
+    uint32_t midiPushCount = 0;
+    uint32_t midiPopCount = 0;
+    uint32_t midiDrops = 0;
+    uint32_t midiHighWater = 0;
 
     // BLE status
     bool bleConnected = false;

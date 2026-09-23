@@ -22,27 +22,30 @@ void Exciter::reset() {
 void Exciter::trigger(float velocity) {
     const float v = std::clamp(velocity, 0.01f, 1.0f);
 
-    // 1. Strike amplitude: perceptual curve (quadratic/exponential scaling)
-    strikeAmplitude_ = std::pow(v, 1.4f) * 0.25f;
+    // 1. Strike amplitude: calibrated velocity curve
+    // Vel 20 (~0.15) -> ~0.24, Vel 80 (~0.63) -> ~0.63, Vel 127 (1.0) -> 1.0
+    const float minStrikeGain = 0.15f;
+    const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * std::pow(v, 1.25f);
+    strikeAmplitude_ = strikeGain * 0.80f;
 
     // 2. Transient hardness: high velocity yields a shorter, sharper impulse
-    // Soft strike (low v): ~12 samples (soft finger pad)
+    // Soft strike (low v): ~14 samples (soft finger pad / rounded mallet)
     // Hard strike (high v): ~3 samples (hard strike / knuckle)
-    const float durationSamples = 12.0f - 9.0f * v;
-    impulseSamples_ = std::max<uint32_t>(2U, static_cast<uint32_t>(durationSamples));
+    const float durationSamples = 14.0f - 11.0f * v;
+    impulseSamples_ = std::max<uint32_t>(3U, static_cast<uint32_t>(durationSamples));
 
-    // 3. Noise burst: duration ~4 ms to 10 ms
-    const float burstSeconds = 0.004f + 0.006f * (1.0f - v);
+    // 3. Noise burst: duration ~3 ms to 8 ms
+    const float burstSeconds = 0.003f + 0.005f * (1.0f - v);
     noiseSamples_ = static_cast<uint32_t>(burstSeconds * sampleRate_);
 
     // 4. Brightness / Cutoff frequency:
-    // Low velocity: ~600 Hz (warm, rounded thud)
-    // High velocity: ~11,000 Hz (bright, crisp acoustic strike)
-    const float cutoffHz = 600.0f + 10400.0f * (v * v);
+    // Low velocity: ~700 Hz (warm, rounded thud)
+    // High velocity: ~12,000 Hz (bright, crisp acoustic strike)
+    const float cutoffHz = 700.0f + 11300.0f * (v * v);
     const float w = (2.0f * kPi * cutoffHz) / sampleRate_;
     filterCoeff_ = std::clamp(1.0f - std::exp(-w), 0.01f, 0.99f);
 
-    noiseGain_ = strikeAmplitude_ * (0.30f + 0.35f * v);
+    noiseGain_ = strikeAmplitude_ * (0.04f + 0.06f * v);
 
     sampleIndex_ = 0;
     filterState_ = 0.0f;
@@ -63,20 +66,20 @@ float Exciter::processSample() {
 
     float output = 0.0f;
 
-    // 1. Shaped impulse component (half-sine bell window)
+    // 1. Shaped impulse component (half-sine bell window normalized to unit integral)
+    // Ensures physical momentum conservation across different mallet hardnesses
     if (sampleIndex_ < impulseSamples_) {
         const float phase = (kPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_);
         const float window = std::sin(phase);
-        output += strikeAmplitude_ * window;
+        const float norm = (kPi * 0.5f) / static_cast<float>(impulseSamples_);
+        output += strikeAmplitude_ * window * norm;
     }
 
-    // 2. Filtered noise burst component with exponential decay
+    // 2. Filtered noise burst component with decay
     if (sampleIndex_ < noiseSamples_) {
         const float rawNoise = nextNoise();
-        // 1-pole lowpass filter for exciter mallet brightness
         filterState_ += filterCoeff_ * (rawNoise - filterState_);
 
-        // Linear/exponential decay across the noise burst duration
         const float env = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(noiseSamples_));
         output += filterState_ * noiseGain_ * (env * env);
     }

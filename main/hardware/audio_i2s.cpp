@@ -53,22 +53,16 @@ bool AudioI2S::init(AudioRenderCallback callback, void* userData) {
     }
 
     // 3. Configure standard Philips I2S 48kHz, 32-bit slot, stereo
-    i2s_std_config_t std_cfg = {
-        .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(board::audio::kSampleRate),
-        .slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_STEREO),
-        .gpio_cfg = {
-            .mclk = I2S_GPIO_UNUSED, // MCLK is held LOW separately on GPIO10 for PCM5102 PLL
-            .bclk = static_cast<gpio_num_t>(board::audio::i2s::kBclkGpio),
-            .ws   = static_cast<gpio_num_t>(board::audio::i2s::kLrckGpio),
-            .dout = static_cast<gpio_num_t>(board::audio::i2s::kDoutGpio),
-            .din  = I2S_GPIO_UNUSED,
-            .invert_flags = {
-                .mclk_inv = false,
-                .bclk_inv = false,
-                .ws_inv = false,
-            },
-        },
-    };
+    i2s_std_config_t std_cfg{};
+    std_cfg.clk_cfg.sample_rate_hz = board::audio::kSampleRate;
+    std_cfg.clk_cfg.clk_src = I2S_CLK_SRC_DEFAULT;
+    std_cfg.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_256;
+    std_cfg.slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_STEREO);
+    std_cfg.gpio_cfg.mclk = I2S_GPIO_UNUSED; // MCLK is held LOW separately on GPIO10 for PCM5102 PLL
+    std_cfg.gpio_cfg.bclk = static_cast<gpio_num_t>(board::audio::i2s::kBclkGpio);
+    std_cfg.gpio_cfg.ws   = static_cast<gpio_num_t>(board::audio::i2s::kLrckGpio);
+    std_cfg.gpio_cfg.dout = static_cast<gpio_num_t>(board::audio::i2s::kDoutGpio);
+    std_cfg.gpio_cfg.din  = I2S_GPIO_UNUSED;
 
     err = i2s_channel_init_std_mode(txHandle_, &std_cfg);
     if (err != ESP_OK) {
@@ -206,6 +200,9 @@ void AudioI2S::audioTaskLoop() {
         uint32_t processTimeUs = static_cast<uint32_t>(tRenderDone - tStart);
 
         // Update real-time profiling stats
+        if (processTimeUs > static_cast<uint32_t>(blockBudgetUs)) {
+            stats_.deadlineMisses++;
+        }
         if (processTimeUs > stats_.maxBlockTimeUs) {
             stats_.maxBlockTimeUs = processTimeUs;
         }
@@ -223,9 +220,10 @@ void AudioI2S::audioTaskLoop() {
         esp_err_t err = i2s_channel_write(txHandle_, txBuffer_, bytesPerBlock, &bytesWritten, txTimeoutTicks);
 
         if (err != ESP_OK) {
-            stats_.txErrors++;
             if (err == ESP_ERR_TIMEOUT) {
-                stats_.underruns++;
+                stats_.writeTimeouts++;
+            } else {
+                stats_.txErrors++;
             }
         } else if (bytesWritten != bytesPerBlock) {
             stats_.shortWrites++;

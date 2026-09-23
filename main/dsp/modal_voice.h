@@ -14,8 +14,11 @@ public:
     void init(float sampleRate);
     void reset();
 
-    // Trigger strike with MIDI note and velocity [0.0, 1.0]
+    // Trigger strike with MIDI note and velocity [0.0, 1.0] (resets filter states for clean attack)
     void trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity);
+
+    // Retrigger same physical note: adds energy to existing vibration without zeroing resonator states
+    void restrike(float velocity);
 
     // Note Off gesture release (does NOT silence natural metal ring-down)
     void release();
@@ -43,6 +46,7 @@ public:
     float getVelocity() const { return velocity_; }
     uint32_t getAge() const { return age_; }
     float getEstimatedEnergy() const { return estimatedEnergy_; }
+    float getLastSample() const { return lastSample_; }
 
 private:
     float sampleRate_ = 48000.0f;
@@ -54,11 +58,13 @@ private:
     float velocity_ = 0.0f;
     uint32_t age_ = 0;
     float estimatedEnergy_ = 0.0f;
+    float lastSample_ = 0.0f;
 
     // Smooth damping (avoids zipper noise)
     float targetDamping_ = 0.0f;
     float currentDamping_ = 0.0f;
     float dampingSmoothCoeff_ = 0.01f;
+    uint32_t dampingUpdateCounter_ = 0; // Per-voice decimation counter (avoids static state sharing)
 
     // Voice stealing crossfade envelope
     bool isStealing_ = false;

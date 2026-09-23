@@ -6,12 +6,22 @@
 namespace pocketpan::dsp {
 
 namespace {
-// Smooth rational soft-clipping function
-inline float softClip(float x) {
-    if (x > 3.0f) return 1.0f;
-    if (x < -3.0f) return -1.0f;
-    // Approximates tanh(x) with low distortion at low levels
-    return x * (27.0f + x * x) / (27.0f + 9.0f * x * x);
+// Safety soft-clipper: 100% linear (0.000% THD) below threshold (0.85),
+// smoothly transitioning into a soft saturation knee only if exceeding headroom.
+inline float safetySoftClip(float x, bool& clipped) {
+    const float kThreshold = 0.85f;
+    if (std::abs(x) <= kThreshold) {
+        clipped = false;
+        return x;
+    }
+    clipped = true;
+    if (x > 0.0f) {
+        const float excess = x - kThreshold;
+        return kThreshold + (1.0f - kThreshold) * std::tanh(excess / (1.0f - kThreshold));
+    } else {
+        const float excess = -x - kThreshold;
+        return -(kThreshold + (1.0f - kThreshold) * std::tanh(excess / (1.0f - kThreshold)));
+    }
 }
 }
 
@@ -23,6 +33,7 @@ void SynthEngine::init(float sampleRate) {
 
 void SynthEngine::reset() {
     allocator_.reset();
+    softClipCount_ = 0;
     std::fill(monoBuffer_, monoBuffer_ + kMaxBlockFrames, 0.0f);
 }
 
@@ -81,8 +92,12 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
             sample = 0.0f;
         }
 
-        // Output soft limiting
-        sample = softClip(sample);
+        // Output safety soft limiting
+        bool clipped = false;
+        sample = safetySoftClip(sample, clipped);
+        if (clipped) {
+            softClipCount_++;
+        }
 
         // Clamp to [-1.0, 1.0] and convert to 32-bit full-scale integer
         const float clamped = std::clamp(sample, -1.0f, 1.0f);

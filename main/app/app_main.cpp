@@ -1,6 +1,9 @@
-#include <cstdint>
-#include <cstring>
-#include <cstdio>
+#include <stdio.h>
+#include <string.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+#include "driver/gpio.h"
 
 #include "hardware/board_config.h"
 #include "hardware/audio_i2s.h"
@@ -11,12 +14,7 @@
 #include "midi/midi_mapping.h"
 #include "ui/ui_state.h"
 #include "ui/ui_renderer.h"
-
-#ifdef ESP_PLATFORM
-#include "esp_log.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_heap_caps.h"
+#include "ui/audio_telemetry.h"
 
 namespace {
 constexpr const char* kTag = "pocket_pan_main";
@@ -26,85 +24,165 @@ pocketpan::hardware::AudioI2S sAudio;
 pocketpan::hardware::Display sDisplay;
 pocketpan::hardware::BleMidi sBleMidi;
 pocketpan::midi::SpscMidiQueue<64> sMidiQueue;
+pocketpan::ui::AudioTelemetryPublisher sTelemetryPub;
 pocketpan::ui::UiState sUiState;
 
-// Real-Time Audio Callback - Runs strictly on Core 0 at high priority
+// Static telemetry state maintained on Core 0
+pocketpan::ui::AudioTelemetrySnapshot sAudioSnapshot{};
+
+// Real-Time Audio Callback - Runs strictly on Core 0 at high priority (zero formatting, zero heap, zero mutex)
 void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames) {
     // 1. Consume all queued MIDI events from Core 1
     pocketpan::midi::MidiEvent ev;
     while (sMidiQueue.pop(ev)) {
         sSynth.handleMidiEvent(ev);
 
-        // Update telemetry for UI (non-blocking)
-        sUiState.lastNoteNumber = ev.data1;
-        sUiState.lastVelocity = ev.data2;
-        sUiState.lastTimestamp13 = ev.timestamp13;
-        sUiState.lastRawBytes[0] = ev.rawBytes[0];
-        sUiState.lastRawBytes[1] = ev.rawBytes[1];
-        sUiState.lastRawBytes[2] = ev.rawBytes[2];
+        // Record raw numeric event data for telemetry (no string formatting on Core 0)
+        sAudioSnapshot.lastNote = ev.data1;
+        sAudioSnapshot.lastVelocity = ev.data2;
+        sAudioSnapshot.lastTimestamp13 = ev.timestamp13;
+        sAudioSnapshot.lastRawBytes[0] = ev.rawBytes[0];
+        sAudioSnapshot.lastRawBytes[1] = ev.rawBytes[1];
+        sAudioSnapshot.lastRawBytes[2] = ev.rawBytes[2];
+        sAudioSnapshot.lastEventType = static_cast<uint8_t>(ev.type);
 
-        const char* name = pocketpan::midi::MidiMapping::noteToName(ev.data1);
-        snprintf(sUiState.rootNoteName, sizeof(sUiState.rootNoteName), "%s", name);
-
-        switch (ev.type) {
-            case pocketpan::midi::MidiEventType::NoteOn:
-                snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "NOTE ON");
-                break;
-            case pocketpan::midi::MidiEventType::NoteOff:
-                snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "NOTE OFF");
-                break;
-            case pocketpan::midi::MidiEventType::PolyPressure:
-                sUiState.lastPressure = ev.data2;
-                snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "POLY AT");
-                break;
-            case pocketpan::midi::MidiEventType::ChannelPressure:
-                sUiState.lastPressure = ev.data1;
-                snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "CH AT");
-                break;
-            case pocketpan::midi::MidiEventType::ControlChange:
-                snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "CC %u", ev.data1);
-                break;
-            default:
-                snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "OTHER");
-                break;
+        if (ev.type == pocketpan::midi::MidiEventType::PolyPressure) {
+            sAudioSnapshot.lastPressure = ev.data2;
+        } else if (ev.type == pocketpan::midi::MidiEventType::ChannelPressure) {
+            sAudioSnapshot.lastPressure = ev.data1;
         }
     }
 
     // 2. Synthesize polyphonic audio block
     sSynth.renderBlock(outInterleaved, frames);
+
+    // 3. Collect and publish atomic snapshot
+    const auto stats = sAudio.getStats();
+    sAudioSnapshot.activeVoices = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
+    sAudioSnapshot.avgBlockTimeUs = stats.avgBlockTimeUs;
+    sAudioSnapshot.maxBlockTimeUs = stats.maxBlockTimeUs;
+    sAudioSnapshot.deadlineMisses = stats.deadlineMisses;
+    sAudioSnapshot.writeTimeouts = stats.writeTimeouts;
+    sAudioSnapshot.txErrors = stats.txErrors;
+    sAudioSnapshot.shortWrites = stats.shortWrites;
+    sAudioSnapshot.cpuLoadPercent = stats.cpuLoadPercent;
+
+    sAudioSnapshot.midiPushCount = sMidiQueue.getPushCount();
+    sAudioSnapshot.midiPopCount = sMidiQueue.getPopCount();
+    sAudioSnapshot.midiDrops = sMidiQueue.getDrops();
+    sAudioSnapshot.midiHighWater = sMidiQueue.getHighWaterMark();
+
+    sTelemetryPub.publish(sAudioSnapshot);
 }
 
 // UI Task - Runs strictly on Core 1 at ~30 Hz
 void uiTaskLoop(void* param) {
     pocketpan::ui::UiRenderer renderer(sDisplay);
 
+    // Configure onboard BOOT button (GPIO0) for toggling between Status and MidiDiagnostic screens
+    gpio_config_t bootBtnCfg = {};
+    bootBtnCfg.pin_bit_mask = (1ULL << pocketpan::board::ui::kBootButtonGpio);
+    bootBtnCfg.mode = GPIO_MODE_INPUT;
+    bootBtnCfg.pull_up_en = GPIO_PULLUP_ENABLE;
+    bootBtnCfg.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    bootBtnCfg.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&bootBtnCfg);
+
+    bool lastBootBtnState = true;
     uint32_t demoTick = 0;
+
     // D Kurd / D Celtic Handpan scale notes: D3, A3, Bb3, C4, D4, E4, F4, A4
     const uint8_t kHandpanScale[] = { 62, 69, 70, 72, 74, 76, 77, 81 };
     const size_t kScaleLen = sizeof(kHandpanScale) / sizeof(kHandpanScale[0]);
     size_t scaleIdx = 0;
 
     while (true) {
-        // Collect real-time telemetry from audio engine
-        const auto stats = sAudio.getStats();
-        sUiState.cpuLoadPercent = stats.cpuLoadPercent;
-        sUiState.underruns = stats.underruns;
-        sUiState.activeVoices = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
+        // 1. Check Boot Button to toggle screens
+        const bool btnPressed = (gpio_get_level(static_cast<gpio_num_t>(pocketpan::board::ui::kBootButtonGpio)) == 0);
+        if (btnPressed && lastBootBtnState) {
+            // Button pressed down: toggle screen mode
+            sUiState.mode = (sUiState.mode == pocketpan::ui::UiScreenMode::Status)
+                                ? pocketpan::ui::UiScreenMode::MidiDiagnostic
+                                : pocketpan::ui::UiScreenMode::Status;
+            ESP_LOGI(kTag, "Screen mode toggled to: %s",
+                     (sUiState.mode == pocketpan::ui::UiScreenMode::MidiDiagnostic) ? "MidiDiagnostic" : "Status");
+        }
+        lastBootBtnState = !btnPressed;
+
+        // 2. Read lock-free telemetry snapshot published from Core 0
+        pocketpan::ui::AudioTelemetrySnapshot snap;
+        if (sTelemetryPub.read(snap)) {
+            sUiState.activeVoices = snap.activeVoices;
+            sUiState.cpuLoadPercent = snap.cpuLoadPercent;
+            sUiState.avgBlockTimeUs = snap.avgBlockTimeUs;
+            sUiState.maxBlockTimeUs = snap.maxBlockTimeUs;
+            sUiState.deadlineMisses = snap.deadlineMisses;
+            sUiState.writeTimeouts = snap.writeTimeouts;
+            sUiState.txErrors = snap.txErrors;
+            sUiState.shortWrites = snap.shortWrites;
+
+            sUiState.lastNoteNumber = snap.lastNote;
+            sUiState.lastVelocity = snap.lastVelocity;
+            sUiState.lastPressure = snap.lastPressure;
+            sUiState.lastTimestamp13 = snap.lastTimestamp13;
+            sUiState.lastRawBytes[0] = snap.lastRawBytes[0];
+            sUiState.lastRawBytes[1] = snap.lastRawBytes[1];
+            sUiState.lastRawBytes[2] = snap.lastRawBytes[2];
+
+            sUiState.midiPushCount = snap.midiPushCount;
+            sUiState.midiPopCount = snap.midiPopCount;
+            sUiState.midiDrops = snap.midiDrops;
+            sUiState.midiHighWater = snap.midiHighWater;
+
+            // Perform note name and event string formatting on Core 1 (outside audio callback)
+            const char* name = pocketpan::midi::MidiMapping::noteToName(snap.lastNote);
+            snprintf(sUiState.rootNoteName, sizeof(sUiState.rootNoteName), "%s", name);
+
+            const auto evType = static_cast<pocketpan::midi::MidiEventType>(snap.lastEventType);
+            switch (evType) {
+                case pocketpan::midi::MidiEventType::NoteOn:
+                    snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "NOTE ON");
+                    break;
+                case pocketpan::midi::MidiEventType::NoteOff:
+                    snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "NOTE OFF");
+                    break;
+                case pocketpan::midi::MidiEventType::PolyPressure:
+                    snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "POLY AT");
+                    break;
+                case pocketpan::midi::MidiEventType::ChannelPressure:
+                    snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "CH AT");
+                    break;
+                case pocketpan::midi::MidiEventType::ControlChange:
+                    snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "CC %u", snap.lastNote);
+                    break;
+                case pocketpan::midi::MidiEventType::PitchBend:
+                    snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "PITCH BEND");
+                    break;
+                default:
+                    snprintf(sUiState.lastEventType, sizeof(sUiState.lastEventType), "NONE");
+                    break;
+            }
+        }
+
         sUiState.bleConnected = sBleMidi.isConnected();
 
-        // Standalone bring-up demo: if BLE is not connected yet, trigger a gentle note every 800ms
+        // 3. Standalone bring-up demo: if BLE is not connected yet, trigger a gentle note every 800ms
         demoTick++;
         if (!sUiState.bleConnected && (demoTick % 25 == 0)) { // ~825 ms
             pocketpan::midi::MidiEvent demoEv;
             demoEv.type = pocketpan::midi::MidiEventType::NoteOn;
             demoEv.data1 = kHandpanScale[scaleIdx];
-            demoEv.data2 = 85; // moderate velocity
+            demoEv.data2 = 75; // moderate acoustic strike
+            demoEv.timestamp13 = 0;
+            demoEv.rawBytes[0] = 0x90;
+            demoEv.rawBytes[1] = demoEv.data1;
+            demoEv.rawBytes[2] = demoEv.data2;
             sMidiQueue.push(demoEv);
 
             scaleIdx = (scaleIdx + 1) % kScaleLen;
         }
 
-        // Render TFT display
+        // 4. Render TFT display
         renderer.render(sUiState);
 
         vTaskDelay(pdMS_TO_TICKS(pocketpan::board::ui::kRefreshPeriodMs));
@@ -138,13 +216,13 @@ extern "C" void app_main(void) {
 
     // 5. Initialize BLE MIDI Central on Core 1
     if (!sBleMidi.begin()) {
-        ESP_LOGW(kTag, "BLE MIDI failed to begin; continuing with standalone engine");
+        ESP_LOGW(kTag, "BLE MIDI Central failed to start advertising/scanning");
     }
 
-    // 6. Launch UI task pinned to Core 1
+    // 6. Start UI Task on Core 1
     xTaskCreatePinnedToCore(
         uiTaskLoop,
-        "ui_tft_task",
+        "ui_task",
         pocketpan::board::ui::kStackBytes,
         nullptr,
         pocketpan::board::ui::kTaskPriority,
@@ -152,7 +230,5 @@ extern "C" void app_main(void) {
         pocketpan::board::ui::kTaskCore // Core 1
     );
 
-    ESP_LOGI(kTag, "System started successfully. Audio on Core 0, UI & BLE on Core 1.");
+    ESP_LOGI(kTag, "Pocket Pan initialization complete. Realtime audio active.");
 }
-
-#endif

@@ -22,27 +22,53 @@ const ble_uuid128_t kMidiServiceUuid = BLE_UUID128_INIT(
 );
 
 // Standard MIDI Characteristic UUID: 7772E5DB-3868-4112-A1A9-F2669D106BF3 (128-bit)
+// Note: byte 4 from MSB is 0x66 (little-endian index 4: 0xf3, 0x6b, 0x10, 0x9d, 0x66...)
 const ble_uuid128_t kMidiCharUuid = BLE_UUID128_INIT(
-    0xf3, 0x6b, 0x10, 0x9d, 0x69, 0xf2, 0xa9, 0xa1,
+    0xf3, 0x6b, 0x10, 0x9d, 0x66, 0xf2, 0xa9, 0xa1,
     0x12, 0x41, 0x68, 0x38, 0xdb, 0xe5, 0x72, 0x77
 );
 
 BleMidi* sInstance = nullptr;
 uint16_t sConnHandle = BLE_HS_CONN_HANDLE_NONE;
 uint16_t sMidiValHandle = 0;
+uint16_t sMidiServiceEndHandle = 0;
+bool sCccdFound = false;
 
 int bleGapEvent(struct ble_gap_event* event, void* arg);
 void startScan();
-
-
 
 // Descriptor write callback after subscribing to notifications
 int onDscWrite(uint16_t conn_handle, const struct ble_gatt_error* error,
                struct ble_gatt_attr* attr, void* arg) {
     if (error->status == 0) {
-        ESP_LOGI(kTag, "Successfully subscribed to BLE MIDI notifications!");
+        ESP_LOGI(kTag, "Successfully subscribed to BLE MIDI notifications via CCCD!");
     } else {
-        ESP_LOGW(kTag, "Failed to subscribe to MIDI notifications: status=%d", error->status);
+        ESP_LOGE(kTag, "Failed to write CCCD notification enable: status=%d", error->status);
+    }
+    return 0;
+}
+
+// Descriptor discovery callback: explicitly discovers 0x2902 CCCD
+int onDscDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
+                   uint16_t chr_val_handle, const struct ble_gatt_dsc* dsc, void* arg) {
+    if (error->status == 0 && dsc) {
+        if (ble_uuid_u16(&dsc->uuid.u) == board::ble::kCccdUuid16) {
+            ESP_LOGI(kTag, "Discovered CCCD (0x2902) handle=%d", dsc->handle);
+            sCccdFound = true;
+            uint8_t notifyEnable[2] = {0x01, 0x00};
+            int rc = ble_gattc_write_flat(conn_handle, dsc->handle, notifyEnable,
+                                          sizeof(notifyEnable), onDscWrite, nullptr);
+            if (rc != 0) {
+                ESP_LOGE(kTag, "Failed to initiate write to CCCD: rc=%d", rc);
+            }
+        }
+    } else if (error->status == BLE_HS_EDONE) {
+        if (!sCccdFound) {
+            ESP_LOGE(kTag, "Error: CCCD (0x2902) not found for MIDI characteristic in range [%d..%d]",
+                     chr_val_handle, sMidiServiceEndHandle);
+        }
+    } else if (error->status != 0) {
+        ESP_LOGE(kTag, "Descriptor discovery error: status=%d", error->status);
     }
     return 0;
 }
@@ -52,13 +78,17 @@ int onCharDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
                     const struct ble_gatt_chr* chr, void* arg) {
     if (error->status == 0 && chr) {
         if (ble_uuid_cmp(&chr->uuid.u, &kMidiCharUuid.u) == 0) {
-            ESP_LOGI(kTag, "Found BLE MIDI Characteristic! val_handle=%d", chr->val_handle);
+            ESP_LOGI(kTag, "Found BLE MIDI Characteristic! def_handle=%d val_handle=%d",
+                     chr->def_handle, chr->val_handle);
             sMidiValHandle = chr->val_handle;
+            sCccdFound = false;
 
-            // Subscribe to notifications by writing 0x0001 to CCCD (val_handle + 1)
-            uint8_t notifyEnable[2] = {0x01, 0x00};
-            ble_gattc_write_flat(conn_handle, chr->val_handle + 1, notifyEnable,
-                                 sizeof(notifyEnable), onDscWrite, nullptr);
+            // Discover descriptors explicitly between val_handle and service end handle
+            int rc = ble_gattc_disc_all_dscs(conn_handle, chr->val_handle, sMidiServiceEndHandle,
+                                            onDscDiscovery, nullptr);
+            if (rc != 0) {
+                ESP_LOGE(kTag, "Failed to start descriptor discovery: rc=%d", rc);
+            }
         }
     }
     return 0;
@@ -71,6 +101,7 @@ int onServiceDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
         if (ble_uuid_cmp(&service->uuid.u, &kMidiServiceUuid.u) == 0) {
             ESP_LOGI(kTag, "Found BLE MIDI Service! start_handle=%d end_handle=%d",
                      service->start_handle, service->end_handle);
+            sMidiServiceEndHandle = service->end_handle;
             // Discover characteristics within this service
             ble_gattc_disc_all_chrs(conn_handle, service->start_handle, service->end_handle,
                                    onCharDiscovery, nullptr);

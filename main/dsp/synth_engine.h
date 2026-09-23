@@ -26,10 +26,13 @@ public:
     const VoiceAllocator& getVoiceAllocator() const { return allocator_; }
 
     void setMasterVolume(float vol);
+    uint32_t getSoftClipCount() const { return softClipCount_; }
+    void resetSoftClipCount() { softClipCount_ = 0; }
 
 private:
     float sampleRate_ = 48000.0f;
     float masterGain_ = 0.85f; // Headroom protection
+    uint32_t softClipCount_ = 0;
 
     VoiceAllocator allocator_;
 

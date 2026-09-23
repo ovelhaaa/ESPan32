@@ -17,7 +17,8 @@ namespace pocketpan::hardware {
 
 struct AudioStats {
     uint32_t blocksProcessed = 0;
-    uint32_t underruns = 0;
+    uint32_t deadlineMisses = 0;
+    uint32_t writeTimeouts = 0;
     uint32_t txErrors = 0;
     uint32_t shortWrites = 0;
     uint32_t maxBlockTimeUs = 0;

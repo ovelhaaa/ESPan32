@@ -37,8 +37,16 @@ public:
 private:
     int findVoiceToSteal() const;
 
+    struct StealDeclickTail {
+        bool active = false;
+        float currentSample = 0.0f;
+        float step = 0.0f;
+        uint16_t samplesLeft = 0;
+    };
+
     float sampleRate_ = 48000.0f;
     ModalVoice voices_[kMaxVoices];
+    StealDeclickTail stealTail_{};
 };
 
 } // namespace pocketpan::dsp

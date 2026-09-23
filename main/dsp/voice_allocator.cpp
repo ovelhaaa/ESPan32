@@ -15,6 +15,7 @@ void VoiceAllocator::reset() {
     for (size_t i = 0; i < kMaxVoices; ++i) {
         voices_[i].reset();
     }
+    stealTail_ = StealDeclickTail{};
 }
 
 int VoiceAllocator::findVoiceToSteal() const {
@@ -47,10 +48,10 @@ int VoiceAllocator::findVoiceToSteal() const {
 }
 
 void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequencyHz) {
-    // 1. If this note is already active, retrigger that voice
+    // 1. If this note is already active, restrike that voice (accumulate energy physically)
     for (size_t i = 0; i < kMaxVoices; ++i) {
         if (voices_[i].isActive() && voices_[i].getMidiNote() == note) {
-            voices_[i].trigger(note, fundamentalFrequencyHz, velocity);
+            voices_[i].restrike(velocity);
             return;
         }
     }
@@ -63,9 +64,17 @@ void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequ
         }
     }
 
-    // 3. All 8 voices active: Steal voice with lowest energy
+    // 3. All 8 voices active: Steal voice with lowest energy using declicked crossfade tail
     int stealIdx = findVoiceToSteal();
     if (stealIdx >= 0 && stealIdx < static_cast<int>(kMaxVoices)) {
+        float residual = voices_[stealIdx].getLastSample();
+        if (std::abs(residual) > 1.0e-5f) {
+            // Apply 32-sample (~0.67ms @ 48kHz) linear declick fade
+            stealTail_.active = true;
+            stealTail_.currentSample = residual;
+            stealTail_.samplesLeft = 32;
+            stealTail_.step = residual / 32.0f;
+        }
         voices_[stealIdx].kill();
         voices_[stealIdx].trigger(note, fundamentalFrequencyHz, velocity);
     }
@@ -103,6 +112,18 @@ void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
 
         for (size_t i = 0; i < frames; ++i) {
             outBuffer[i] += voices_[v].processSample();
+        }
+    }
+
+    // Mix in declick tail if a voice was stolen
+    if (stealTail_.active) {
+        for (size_t i = 0; i < frames && stealTail_.samplesLeft > 0; ++i) {
+            outBuffer[i] += stealTail_.currentSample;
+            stealTail_.currentSample -= stealTail_.step;
+            if (--stealTail_.samplesLeft == 0) {
+                stealTail_.active = false;
+                break;
+            }
         }
     }
 }

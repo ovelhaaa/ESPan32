@@ -31,6 +31,8 @@ void ModalVoice::reset() {
 
     targetDamping_ = 0.0f;
     currentDamping_ = 0.0f;
+    dampingUpdateCounter_ = 0;
+    lastSample_ = 0.0f;
 
     isStealing_ = false;
     stealGain_ = 1.0f;
@@ -53,6 +55,21 @@ void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float v
 
     // Reset filter states for clean attack
     resonators_.reset();
+    resonators_.updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
+    exciter_.trigger(velocity_);
+}
+
+void ModalVoice::restrike(float velocity) {
+    // Physical restrike on the same vibrating metal note:
+    // Retrigger exciter with new velocity WITHOUT zeroing modal resonator energy!
+    velocity_ = velocity;
+    age_ = 0;
+    released_ = false;
+    active_ = true;
+
+    isStealing_ = false;
+    stealGain_ = 1.0f;
+
     resonators_.updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
     exciter_.trigger(velocity_);
 }
@@ -85,9 +102,8 @@ float ModalVoice::processSample() {
     // 1. Damping smoothing filter (avoids zipper noise on aftertouch changes)
     if (std::abs(targetDamping_ - currentDamping_) > 0.0001f) {
         currentDamping_ += dampingSmoothCoeff_ * (targetDamping_ - currentDamping_);
-        // Recalculate coefficients when damping has shifted appreciably
-        static uint32_t decimate = 0;
-        if ((++decimate & 0x1F) == 0) {
+        // Recalculate coefficients when damping has shifted appreciably (per-voice decimation)
+        if ((++dampingUpdateCounter_ & 0x1F) == 0) {
             resonators_.updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
         }
     }
@@ -102,6 +118,7 @@ float ModalVoice::processSample() {
         stealGain_ -= stealDecr_;
         if (stealGain_ <= 0.0f) {
             kill();
+            lastSample_ = 0.0f;
             return 0.0f;
         }
     }
@@ -115,6 +132,7 @@ float ModalVoice::processSample() {
         }
     }
 
+    lastSample_ = output;
     return output;
 }
 

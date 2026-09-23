@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 
 namespace pocketpan::board {
 
@@ -51,8 +52,23 @@ constexpr int kSpiClockHz = 40 * 1000 * 1000; // 40 MHz SPI2
 
 namespace ble {
 // Standard MIDI over BLE UUIDs (MIDI Association Specification)
+// Service: 03B80E5A-EDE8-4B33-A751-6CE34EC4C700
+// Characteristic: 7772E5DB-3868-4112-A1A9-F2669D106BF3
 constexpr const char* kMidiServiceUuid = "03b80e5a-ede8-4b33-a751-6ce34ec4c700";
 constexpr const char* kMidiCharUuid    = "7772e5db-3868-4112-a1a9-f2669d106bf3";
+constexpr uint16_t kCccdUuid16         = 0x2902;
+
+// Little-endian 128-bit byte representation for NimBLE BLE_UUID128_INIT
+constexpr uint8_t kMidiServiceUuidBytes[16] = {
+    0x00, 0xc7, 0xc4, 0x4e, 0xe3, 0x6c, 0x51, 0xa7,
+    0x33, 0x4b, 0xe8, 0xed, 0x5a, 0x0e, 0xb8, 0x03
+};
+
+constexpr uint8_t kMidiCharUuidBytes[16] = {
+    0xf3, 0x6b, 0x10, 0x9d, 0x66, 0xf2, 0xa9, 0xa1,
+    0x12, 0x41, 0x68, 0x38, 0xdb, 0xe5, 0x72, 0x77
+};
+
 constexpr int kTaskCore = 1; // Strictly Core 1 for BLE / NimBLE Host
 } // namespace ble
 
@@ -61,6 +77,12 @@ constexpr uint32_t kRefreshPeriodMs = 33; // ~30 Hz
 constexpr int kTaskCore = 1;              // Core 1
 constexpr uint32_t kTaskPriority = 3;
 constexpr uint32_t kStackBytes = 4096;
+constexpr int kBootButtonGpio = 0;        // Onboard BOOT button toggles diagnostic
+#ifdef CONFIG_POCKETPAN_MIDI_DIAGNOSTIC_DEFAULT
+constexpr bool kDefaultMidiDiagnostic = true;
+#else
+constexpr bool kDefaultMidiDiagnostic = false;
+#endif
 } // namespace ui
 
 } // namespace pocketpan::board
