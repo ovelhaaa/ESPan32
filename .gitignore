@@ -1,0 +1,19 @@
+# ESP-IDF build directory
+build/
+sdkconfig.old
+sdkconfig
+dependencies.lock
+managed_components/
+
+# Test binaries & generated audio
+*.exe
+*.wav
+test_runner
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
