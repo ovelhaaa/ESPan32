@@ -21,6 +21,57 @@ AudioI2S::~AudioI2S() {
     deinit();
 }
 
+// Allocate and configure the I2S TX channel. Factored out so a stalled
+// transport can be torn down and rebuilt without touching the DMA buffer,
+// semaphore or render callback owned by init().
+bool AudioI2S::createTxChannel() {
+    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
+    chan_cfg.dma_desc_num = board::audio::kDmaBufferCount;   // 6 descriptors
+    chan_cfg.dma_frame_num = board::audio::kDmaBufferFrames; // 128 stereo frames (1024 bytes/buffer)
+    chan_cfg.auto_clear = true;
+
+    esp_err_t err = i2s_new_channel(&chan_cfg, &txHandle_, nullptr);
+    if (err != ESP_OK) {
+        ESP_LOGE(kTag, "Failed to allocate I2S TX channel: %s", esp_err_to_name(err));
+        return false;
+    }
+
+    i2s_std_config_t std_cfg{};
+    std_cfg.clk_cfg.sample_rate_hz = board::audio::kSampleRate;
+    std_cfg.clk_cfg.clk_src = I2S_CLK_SRC_DEFAULT;
+    std_cfg.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_256;
+    std_cfg.slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_STEREO);
+    std_cfg.gpio_cfg.mclk = I2S_GPIO_UNUSED; // MCLK is held LOW separately on GPIO10 for PCM5102 PLL
+    std_cfg.gpio_cfg.bclk = static_cast<gpio_num_t>(board::audio::i2s::kBclkGpio);
+    std_cfg.gpio_cfg.ws   = static_cast<gpio_num_t>(board::audio::i2s::kLrckGpio);
+    std_cfg.gpio_cfg.dout = static_cast<gpio_num_t>(board::audio::i2s::kDoutGpio);
+    std_cfg.gpio_cfg.din  = I2S_GPIO_UNUSED;
+
+    err = i2s_channel_init_std_mode(txHandle_, &std_cfg);
+    if (err != ESP_OK) {
+        ESP_LOGE(kTag, "Failed to initialize I2S standard mode: %s", esp_err_to_name(err));
+        i2s_del_channel(txHandle_);
+        txHandle_ = nullptr;
+        return false;
+    }
+    return true;
+}
+
+// Tear the channel down and rebuild it. Called by the audio task only after
+// the transport has produced a run of zero-byte writes, which in IDF means
+// the GDMA never delivered a finished descriptor (bit clock or ISR stalled).
+bool AudioI2S::recoverTxChannel() {
+    if (txHandle_) {
+        i2s_channel_disable(txHandle_);
+        i2s_del_channel(txHandle_);
+        txHandle_ = nullptr;
+    }
+    if (!createTxChannel()) {
+        return false;
+    }
+    return i2s_channel_enable(txHandle_) == ESP_OK;
+}
+
 bool AudioI2S::init(AudioRenderCallback callback, void* userData) {
     if (initialized_) return true;
 
@@ -43,39 +94,12 @@ bool AudioI2S::init(AudioRenderCallback callback, void* userData) {
     gpio_config(&sck_cfg);
     gpio_set_level(static_cast<gpio_num_t>(board::audio::i2s::kMclkGpio), 0);
 
-    // 2. Allocate I2S channel with modern driver/i2s_std.h API
-    i2s_chan_config_t chan_cfg = I2S_CHANNEL_DEFAULT_CONFIG(I2S_NUM_0, I2S_ROLE_MASTER);
-    chan_cfg.dma_desc_num = board::audio::kDmaBufferCount;   // 6 descriptors
-    chan_cfg.dma_frame_num = board::audio::kDmaBufferFrames; // 128 stereo frames (1024 bytes/buffer)
-    chan_cfg.auto_clear = true;
-
-    esp_err_t err = i2s_new_channel(&chan_cfg, &txHandle_, nullptr);
-    if (err != ESP_OK) {
-        ESP_LOGE(kTag, "Failed to allocate I2S TX channel: %s", esp_err_to_name(err));
+    // 2. Allocate and configure the I2S TX channel
+    if (!createTxChannel()) {
         return false;
     }
 
-    // 3. Configure standard Philips I2S 48kHz, 32-bit slot, stereo
-    i2s_std_config_t std_cfg{};
-    std_cfg.clk_cfg.sample_rate_hz = board::audio::kSampleRate;
-    std_cfg.clk_cfg.clk_src = I2S_CLK_SRC_DEFAULT;
-    std_cfg.clk_cfg.mclk_multiple = I2S_MCLK_MULTIPLE_256;
-    std_cfg.slot_cfg = I2S_STD_PHILIPS_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_STEREO);
-    std_cfg.gpio_cfg.mclk = I2S_GPIO_UNUSED; // MCLK is held LOW separately on GPIO10 for PCM5102 PLL
-    std_cfg.gpio_cfg.bclk = static_cast<gpio_num_t>(board::audio::i2s::kBclkGpio);
-    std_cfg.gpio_cfg.ws   = static_cast<gpio_num_t>(board::audio::i2s::kLrckGpio);
-    std_cfg.gpio_cfg.dout = static_cast<gpio_num_t>(board::audio::i2s::kDoutGpio);
-    std_cfg.gpio_cfg.din  = I2S_GPIO_UNUSED;
-
-    err = i2s_channel_init_std_mode(txHandle_, &std_cfg);
-    if (err != ESP_OK) {
-        ESP_LOGE(kTag, "Failed to initialize I2S standard mode: %s", esp_err_to_name(err));
-        i2s_del_channel(txHandle_);
-        txHandle_ = nullptr;
-        return false;
-    }
-
-    // 4. Allocate DMA buffer in internal SRAM (128 frames * 2 channels * 4 bytes = 1024 bytes)
+    // 3. Allocate DMA buffer in internal SRAM (128 frames * 2 channels * 4 bytes = 1024 bytes)
     txBuffer_ = static_cast<int32_t*>(heap_caps_malloc(board::audio::kDmaBufferBytes,
                                                        MALLOC_CAP_INTERNAL | MALLOC_CAP_DMA));
     if (!txBuffer_) {
@@ -112,6 +136,32 @@ bool AudioI2S::start() {
     if (err != ESP_OK) {
         ESP_LOGE(kTag, "Failed to enable I2S channel: %s", esp_err_to_name(err));
         return false;
+    }
+
+    // Warm-up drain check: an enabled but non-clocking TX makes every later
+    // write return ESP_ERR_TIMEOUT with written==0, which is indistinguishable
+    // from a dead DSP in the logs. Fail loudly here instead of silently.
+    size_t warmBytes = 0;
+    esp_err_t warmErr = i2s_channel_write(txHandle_, txBuffer_, board::audio::kDmaBufferBytes,
+                                          &warmBytes, pdMS_TO_TICKS(100));
+    if (warmErr != ESP_OK || warmBytes != board::audio::kDmaBufferBytes) {
+        ESP_LOGW(kTag, "I2S TX DMA did not drain on the warm-up block (err=%s, written=%u/%u); rebuilding channel",
+                 esp_err_to_name(warmErr), static_cast<unsigned>(warmBytes),
+                 static_cast<unsigned>(board::audio::kDmaBufferBytes));
+        if (!recoverTxChannel()) {
+            ESP_LOGE(kTag, "I2S TX channel recovery failed; audio transport is dead");
+        } else {
+            ESP_LOGW(kTag, "I2S TX channel rebuilt; retrying warm-up");
+            warmBytes = 0;
+            warmErr = i2s_channel_write(txHandle_, txBuffer_, board::audio::kDmaBufferBytes,
+                                        &warmBytes, pdMS_TO_TICKS(100));
+            if (warmErr != ESP_OK || warmBytes != board::audio::kDmaBufferBytes) {
+                ESP_LOGE(kTag, "I2S TX still stalled after rebuild (err=%s, written=%u/%u): "
+                               "check BCLK/LRCK wiring and the display SPI2 GDMA coexistence",
+                         esp_err_to_name(warmErr), static_cast<unsigned>(warmBytes),
+                         static_cast<unsigned>(board::audio::kDmaBufferBytes));
+            }
+        }
     }
 
     running_.store(true, std::memory_order_release);
@@ -205,6 +255,11 @@ void AudioI2S::audioTaskLoop() {
 
     uint64_t totalProcessTimeUs = 0;
     uint32_t windowBlocks = 0;
+    // A run of zero-byte writes means the GDMA stopped delivering finished
+    // descriptors (bit clock or ISR stalled). Rebuild the channel once rather
+    // than logging the same timeout forever.
+    uint32_t deadWriteRun = 0;
+    constexpr uint32_t kDeadWriteRecoveryThreshold = 3;
 
     while (running_.load(std::memory_order_acquire)) {
         int64_t tStart = esp_timer_get_time();
@@ -239,20 +294,32 @@ void AudioI2S::audioTaskLoop() {
         size_t bytesWritten = 0;
         esp_err_t err = i2s_channel_write(txHandle_, txBuffer_, bytesPerBlock, &bytesWritten, txTimeoutTicks);
 
-        if (err != ESP_OK) {
+        if (err != ESP_OK || bytesWritten != bytesPerBlock) {
             if (err == ESP_ERR_TIMEOUT) {
                 stats_.writeTimeouts.fetch_add(1, std::memory_order_relaxed);
-            } else {
+            } else if (err != ESP_OK) {
                 stats_.txErrors.fetch_add(1, std::memory_order_relaxed);
+            } else {
+                stats_.shortWrites.fetch_add(1, std::memory_order_relaxed);
             }
+
+            if (err == ESP_ERR_TIMEOUT && bytesWritten == 0 &&
+                ++deadWriteRun >= kDeadWriteRecoveryThreshold) {
+                deadWriteRun = 0;
+                ESP_LOGW(kTag, "I2S TX produced %u consecutive zero-byte writes; rebuilding channel",
+                         static_cast<unsigned>(kDeadWriteRecoveryThreshold));
+                if (!recoverTxChannel()) {
+                    ESP_LOGE(kTag, "I2S TX channel rebuild failed; audio transport is dead");
+                }
+            }
+
             // Never spin tight on transport failure: yield so IDLE0 feeds
             // the WDT and BT/WiFi on Core 0 keep running. The long delay
             // keeps boot alive even under persistent I2S stalls (a 1 ms
             // yield proved insufficient with 100% write timeouts).
             vTaskDelay(pdMS_TO_TICKS(100));
-        } else if (bytesWritten != bytesPerBlock) {
-            stats_.shortWrites.fetch_add(1, std::memory_order_relaxed);
-            vTaskDelay(pdMS_TO_TICKS(100));
+        } else {
+            deadWriteRun = 0;
         }
 
         stats_.blocksProcessed.fetch_add(1, std::memory_order_relaxed);

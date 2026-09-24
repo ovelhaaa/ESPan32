@@ -203,9 +203,10 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
             ESP_LOGI(kTag, "BLE disconnected reason=%d; retry after backoff", event->disconnect.reason);
             sConnHandle = BLE_HS_CONN_HANDLE_NONE;
             if (sInstance) { sInstance->onDisconnectReason(event->disconnect.reason); sInstance->onDisconnected(); }
-            const BaseType_t retryCreated = xTaskCreate(
+            const BaseType_t retryCreated = xTaskCreatePinnedToCore(
                 [](void*) { vTaskDelay(pdMS_TO_TICKS(750)); startScan(); vTaskDelete(nullptr); },
-                "ble_retry", 2048, nullptr, 3, nullptr);
+                "ble_retry", board::ble::kRetryTaskStackBytes, nullptr,
+                board::ble::kRetryTaskPriority, nullptr, board::ble::kTaskCore);
             if (retryCreated != pdPASS) {
                 ESP_LOGW(kTag, "Could not create BLE retry task; scanning immediately");
                 startScan();

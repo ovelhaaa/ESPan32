@@ -1,6 +1,11 @@
 # Target
 CONFIG_IDF_TARGET="esp32s3"
 
+# Flash: TENSTAR TS-ESP32-S3 ships 4 MB flash (the panel reports 2 MB, which
+# truncates the usable region and mismatches the reported part).
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
+
 # System & Clock
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
 CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=240
@@ -17,6 +22,11 @@ CONFIG_SPIRAM_IGNORE_NOTFOUND=y
 CONFIG_BT_ENABLED=y
 CONFIG_BT_NIMBLE_ENABLED=y
 CONFIG_BT_NIMBLE_PINNED_TO_CORE_1=y
+# The BT controller task has priority (configMAX_PRIORITIES - 2) == 23. Pinning
+# it to Core 0 (the default) put it above the priority-12 audio task on the
+# same core, causing deadline misses (DLINE) on every BLE scan/connection
+# event. Keep the whole BT stack on Core 1, away from realtime audio.
+CONFIG_BT_CTRL_PINNED_TO_CORE_1=y
 CONFIG_BT_NIMBLE_ROLE_CENTRAL=y
 CONFIG_BT_NIMBLE_ROLE_OBSERVER=y
 CONFIG_BT_NIMBLE_ROLE_PERIPHERAL=n

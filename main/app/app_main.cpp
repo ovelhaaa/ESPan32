@@ -269,26 +269,30 @@ extern "C" void app_main(void) {
     ESP_LOGI(kTag, "  Hardware: TENSTAR TS-ESP32-S3 (Feather TFT)");
     ESP_LOGI(kTag, "===============================================");
 
-    // 1. Initialize Display on Core 1
-    if (!sDisplay.init()) {
-        ESP_LOGE(kTag, "Failed to initialize ST7789 display");
-    }
-
-    // 2. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
+    // 1. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
 
-    // 3. Connect SPSC lock-free queue to BLE transport
+    // 2. Connect SPSC lock-free queue to BLE transport
     sBleMidi.setQueue(&sBleMidiQueue);
 
-    // 4. Initialize I2S Audio Driver (TX-only, 48kHz, stereo, 32-bit slot, DMA)
+    // 3. Initialize I2S Audio Driver FIRST (TX-only, 48kHz, stereo, 32-bit
+    // slot, DMA). Bringing I2S up before the LCD/SPI2 matters on ESP32-S3:
+    // both blocks share the GDMA controller, and the audio transport must
+    // claim its channel and clock from a clean state. A stalled TX otherwise
+    // manifests as 100% zero-byte writes that look like a dead DSP.
     if (!sAudio.init(audioRenderCallback, nullptr) || !sAudio.start()) {
         ESP_LOGE(kTag, "Fatal: Audio I2S initialization failed!");
         return;
     }
 
-    // 5. Initialize BLE MIDI Central on Core 1
+    // 4. Initialize BLE MIDI Central on Core 1
     if (!sBleMidi.begin()) {
         ESP_LOGW(kTag, "BLE MIDI Central failed to start advertising/scanning");
+    }
+
+    // 5. Initialize Display LAST, after the audio transport owns its GDMA path
+    if (!sDisplay.init()) {
+        ESP_LOGE(kTag, "Failed to initialize ST7789 display");
     }
 
     // 6. Start UI Task on Core 1

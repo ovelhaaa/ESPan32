@@ -46,6 +46,9 @@ private:
     static void audioTaskEntry(void* arg);
     void audioTaskLoop();
 
+    bool createTxChannel();
+    bool recoverTxChannel();
+
     i2s_chan_handle_t txHandle_ = nullptr;
     TaskHandle_t taskHandle_ = nullptr;
     SemaphoreHandle_t stoppedSignal_ = nullptr;

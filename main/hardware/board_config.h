@@ -44,9 +44,13 @@ constexpr int kResetGpio     = 40;
 constexpr int kBacklightGpio = 45;
 constexpr int kPowerGpio     = 21; // TFT_I2C_POWER gate on Adafruit ESP32-S3 TFT Feather
 
-// Display alignment specific to 240x135 ST7789 panel
+// Display alignment specific to the 240x135 ST7789 panel.
+// MADCTL = MV|MY (swap_xy + mirror_y) == Adafruit rotation 1, whose reference
+// offsets are x=rowstart=(320-240)/2=40 and y=colstart2=(240-135)/2=52.
+// Using 53 here shifted the image by one row and exposed an unwritten GRAM
+// line at the top of the panel (random colors).
 constexpr int kGapX = 40;
-constexpr int kGapY = 53;
+constexpr int kGapY = 52;
 constexpr int kSpiClockHz = 40 * 1000 * 1000; // 40 MHz SPI2
 } // namespace tft
 
@@ -70,6 +74,11 @@ constexpr uint8_t kMidiCharUuidBytes[16] = {
 };
 
 constexpr int kTaskCore = 1; // Strictly Core 1 for BLE / NimBLE Host
+// The disconnect-retry task calls back into the NimBLE host (`ble_gap_disc`,
+// `ble_hs_id_infer_auto`) plus ESP_LOG. 2048 bytes overflowed and panicked on
+// the first retry; size it like the host task and keep it off the audio core.
+constexpr uint32_t kRetryTaskStackBytes = 4096;
+constexpr uint32_t kRetryTaskPriority = 3;
 } // namespace ble
 
 namespace ui {
