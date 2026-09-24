@@ -144,6 +144,10 @@ uint32_t VoiceAllocator::getInternalSaturationCount() const {
     return count;
 }
 
+void VoiceAllocator::setInternalSafetySaturation(bool enabled) {
+    for (auto& voice : voices_) voice.setInternalSafetySaturation(enabled);
+}
+
 size_t VoiceAllocator::getActiveVoiceCount() const {
     size_t count = 0;
     for (size_t i = 0; i < kMaxVoices; ++i) {

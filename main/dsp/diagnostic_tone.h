@@ -39,6 +39,15 @@ public:
             const float nextCos = oscCos_ * stepCos - oscSin_ * stepSin;
             oscSin_ = oscSin_ * stepCos + oscCos_ * stepSin;
             oscCos_ = nextCos;
+            // Bound recursive-oscillator numerical drift without per-sample sqrt.
+            if ((++sampleCounter_ & 0xFFFu) == 0) {
+                const float normSq = oscCos_ * oscCos_ + oscSin_ * oscSin_;
+                if (normSq > 0.0f) {
+                    const float norm = 1.0f / std::sqrt(normSq);
+                    oscCos_ *= norm;
+                    oscSin_ *= norm;
+                }
+            }
         }
     }
 private:
@@ -46,5 +55,6 @@ private:
     DiagnosticTone renderedTone_ = DiagnosticTone::Pan;
     float oscCos_ = 1.0f;
     float oscSin_ = 0.0f;
+    uint32_t sampleCounter_ = 0;
 };
 } // namespace pocketpan::dsp

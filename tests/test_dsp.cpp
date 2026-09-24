@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstring>
 #include <iomanip>
+#include <limits>
 
 #include "../main/dsp/modal_mode.h"
 #include "../main/dsp/modal_preset.h"
@@ -66,7 +67,10 @@ struct AudioMetrics {
     float crestFactor = 0.0f;
     uint32_t softClipCount = 0;
     float attackRms = 0.0f;
+    float dcMean = 0.0f;
 };
+
+constexpr float kAttackWindowSeconds = 0.100f;
 
 AudioMetrics computeMetrics(const std::vector<int32_t>& audioStereo, uint32_t softClipCount) {
     AudioMetrics m;
@@ -74,6 +78,7 @@ AudioMetrics computeMetrics(const std::vector<int32_t>& audioStereo, uint32_t so
     if (audioStereo.empty()) return m;
 
     double sumSq = 0.0;
+    double sum = 0.0;
     float maxAbs = 0.0f;
     const size_t numSamples = audioStereo.size();
 
@@ -82,16 +87,31 @@ AudioMetrics computeMetrics(const std::vector<int32_t>& audioStereo, uint32_t so
         float absVal = std::abs(s);
         if (absVal > maxAbs) maxAbs = absVal;
         sumSq += (s * s);
+        sum += s;
     }
 
     m.peak = maxAbs;
     m.rms = static_cast<float>(std::sqrt(sumSq / numSamples));
     m.crestFactor = (m.rms > 1.0e-6f) ? (m.peak / m.rms) : 0.0f;
-    const size_t attackSamples = std::min(numSamples, static_cast<size_t>(48000 * 2 / 5)); // first 100 ms, stereo
+    m.dcMean = static_cast<float>(sum / numSamples);
+    // 100 ms = 4,800 frames = 9,600 interleaved stereo samples at 48 kHz.
+    const size_t attackSamples = std::min(numSamples, static_cast<size_t>(48000 * kAttackWindowSeconds * 2));
     double attackSum = 0.0;
     for (size_t i = 0; i < attackSamples; ++i) { const float s = static_cast<float>(audioStereo[i]) / 2147483647.0f; attackSum += s * s; }
     m.attackRms = static_cast<float>(std::sqrt(attackSum / attackSamples));
     return m;
+}
+
+float goertzelMagnitude(const std::vector<int32_t>& audio, float hz, float sampleRate = 48000.0f) {
+    const size_t frames = audio.size() / 2;
+    const float w = 2.0f * 3.14159265358979323846f * hz / sampleRate;
+    const float coeff = 2.0f * std::cos(w);
+    double s0 = 0.0, s1 = 0.0, s2 = 0.0;
+    for (size_t i = 0; i < frames; ++i) {
+        s0 = static_cast<double>(audio[i * 2]) / 2147483647.0 + coeff * s1 - s2;
+        s2 = s1; s1 = s0;
+    }
+    return static_cast<float>(std::sqrt(s1 * s1 + s2 * s2 - coeff * s1 * s2) / frames);
 }
 
 void testDiagnosticToneSource() {
@@ -104,10 +124,24 @@ void testDiagnosticToneSource() {
     for (auto s : audio) assert(s == 0);
     render(dsp::DiagnosticTone::Sine440);
     auto m440 = computeMetrics(audio, 0); assert(m440.rms > 0.34f && m440.rms < 0.37f);
-    render(dsp::DiagnosticTone::Sine1k); auto m1k = computeMetrics(audio, 0); assert(m1k.rms > 0.34f && m1k.rms < 0.37f);
-    render(dsp::DiagnosticTone::Sine1kMinus12); auto m12 = computeMetrics(audio, 0); assert(std::abs(m12.rms - 0.2511886f / std::sqrt(2.0f)) < 0.003f);
+    assert(goertzelMagnitude(audio, 440.0f) > 0.20f);
+    render(dsp::DiagnosticTone::Sine1k); auto m1k = computeMetrics(audio, 0); assert(m1k.rms > 0.34f && m1k.rms < 0.37f); assert(goertzelMagnitude(audio, 1000.0f) > 0.20f);
+    render(dsp::DiagnosticTone::Sine1kMinus12); auto m12 = computeMetrics(audio, 0); assert(std::abs(m12.rms - 0.2511886f / std::sqrt(2.0f)) < 0.003f); assert(std::abs(m12.peak - 0.2511886f) < 0.003f);
     render(dsp::DiagnosticTone::LeftOnly); bool leftAudible = false; for (size_t i = 0; i < frames; ++i) { assert(audio[i * 2 + 1] == 0); leftAudible |= audio[i * 2] != 0; } assert(leftAudible);
     render(dsp::DiagnosticTone::RightOnly); bool rightAudible = false; for (size_t i = 0; i < frames; ++i) { assert(audio[i * 2] == 0); rightAudible |= audio[i * 2 + 1] != 0; } assert(rightAudible);
+    std::cout << "  -> PASSED!\n";
+}
+
+void testDiagnosticOscillatorLongRun() {
+    std::cout << "[Test 0b] Diagnostic oscillator 30-second stability..." << std::endl;
+    dsp::DiagnosticToneSource source;
+    source.setTone(dsp::DiagnosticTone::Sine440);
+    constexpr size_t kFrames = 48000 * 30;
+    std::vector<int32_t> audio(kFrames * 2);
+    source.render(audio.data(), kFrames, 48000.0f);
+    const auto metrics = computeMetrics(audio, 0);
+    assert(std::isfinite(metrics.rms) && metrics.rms > 0.34f && metrics.rms < 0.37f);
+    assert(goertzelMagnitude(audio, 440.0f) > 0.20f);
     std::cout << "  -> PASSED!\n";
 }
 
@@ -505,6 +539,70 @@ void testResetDiagnosticsAndVoiceReuse() {
 // 9. Generate all 5 required audio WAV files and log table
 struct ScheduledEvent { uint32_t frame; midi::MidiEvent event; };
 
+std::vector<int32_t> renderScheduled(const std::vector<ScheduledEvent>& events, size_t totalFrames,
+                                     bool internalSafetySaturation, AudioMetrics& metrics, uint32_t& modalSat) {
+    constexpr size_t kBlock = 128;
+    dsp::SynthEngine engine; engine.init(48000.0f);
+    engine.setInternalSafetySaturation(internalSafetySaturation);
+    std::vector<int32_t> audio(totalFrames * 2, 0); size_t eventIndex = 0;
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) engine.handleMidiEvent(events[eventIndex++].event);
+        const size_t frames = std::min(kBlock, totalFrames - frame); int32_t block[kBlock * 2]{};
+        engine.renderBlock(block, frames); std::memcpy(&audio[frame * 2], block, frames * 2 * sizeof(int32_t));
+    }
+    metrics = computeMetrics(audio, engine.getSoftClipCount()); modalSat = engine.getModalInternalSaturationCount();
+    return audio;
+}
+
+void testSpectralAndRestrikeSanity() {
+    std::cout << "[Test 9] PAN spectral/restrike/DC sanity..." << std::endl;
+    auto note = [](uint8_t velocity) { midi::MidiEvent e{}; e.type = midi::MidiEventType::NoteOn; e.data1 = 62; e.data2 = velocity; return e; };
+    AudioMetrics singleMetrics; uint32_t singleSat;
+    auto single = renderScheduled({{0, note(90)}}, 96000, true, singleMetrics, singleSat);
+    // Broad probes deliberately do not try to resolve the sub-1 Hz PAN doublet.
+    const float fundamental = goertzelMagnitude(single, 293.665f);
+    const float octave = goertzelMagnitude(single, 2.0f * 293.665f);
+    const float fifth = goertzelMagnitude(single, 3.0f * 293.665f);
+    const float high = goertzelMagnitude(single, 12000.0f);
+    assert(fundamental > 0.001f && octave > 0.001f && fifth > 0.001f);
+    assert(high < fundamental * 0.25f && "PAN must not become high-frequency broadband noise");
+    assert(std::abs(singleMetrics.dcMean) < 0.005f);
+    AudioMetrics double100; uint32_t sat100;
+    renderScheduled({{0, note(80)}, {4800, note(95)}}, 96000, true, double100, sat100);
+    assert(std::isfinite(double100.rms) && double100.peak <= 1.0f && double100.rms > singleMetrics.rms);
+    assert(std::abs(double100.dcMean) < 0.005f);
+    AudioMetrics double250; uint32_t sat250;
+    renderScheduled({{0, note(80)}, {12000, note(95)}}, 96000, true, double250, sat250);
+    assert(std::isfinite(double250.rms) && double250.peak <= 1.0f && double250.rms > singleMetrics.rms);
+    AudioMetrics roll; uint32_t rollSat;
+    std::vector<ScheduledEvent> rollEvents; for (uint32_t f = 0; f <= 43200; f += 3600) rollEvents.push_back({f, note(85)});
+    renderScheduled(rollEvents, 96000, true, roll, rollSat);
+    assert(std::isfinite(roll.rms) && roll.peak <= 1.0f && std::abs(roll.dcMean) < 0.005f);
+    assert(roll.rms < 0.70f && "Roll must not exhibit uncontrolled growth");
+    std::cout << "  spectral f=" << fundamental << " 2f=" << octave << " 3f=" << fifth << " high=" << high
+              << " | restrike RMS 100ms=" << double100.rms << " 250ms=" << double250.rms << " roll=" << roll.rms << "\n";
+}
+
+void saturationAbAudit() {
+    std::cout << "[Test 10] Internal saturation A/B audit..." << std::endl;
+    std::ofstream report("saturation_ab_metrics.md");
+    report << "# Internal modal saturation A/B audit\n\n| Case | Sat On Peak | Sat Off Peak | RMS delta | On ModalSat | Off ModalSat |\n|---|---:|---:|---:|---:|---:|\n";
+    auto note=[](uint8_t n,uint8_t velocity){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=velocity; return e; };
+    const std::vector<std::pair<const char*, std::vector<ScheduledEvent>>> cases = {
+        {"single D3 vel127", {{0,note(62,127)}}}, {"double strike 100ms", {{0,note(62,100)},{4800,note(62,100)}}},
+        {"rapid roll", {{0,note(62,110)},{1800,note(62,110)},{3600,note(62,110)},{5400,note(62,110)},{7200,note(62,110)}}},
+        {"cluster8", {{0,note(62,100)},{0,note(64,100)},{0,note(65,100)},{0,note(67,100)},{0,note(69,100)},{0,note(70,100)},{0,note(72,100)},{0,note(74,100)}}}
+    };
+    for (const auto& entry : cases) {
+        AudioMetrics on, off; uint32_t onSat, offSat;
+        auto onAudio = renderScheduled(entry.second, 96000, true, on, onSat);
+        auto offAudio = renderScheduled(entry.second, 96000, false, off, offSat);
+        double sum = 0.0; for (size_t i=0; i<onAudio.size(); ++i) { const double d=(double(onAudio[i])-offAudio[i])/2147483647.0; sum += d*d; }
+        const float delta = static_cast<float>(std::sqrt(sum/onAudio.size()));
+        report << "| " << entry.first << " | " << on.peak << " | " << off.peak << " | " << delta << " | " << onSat << " | " << offSat << " |\n";
+    }
+}
+
 void generateComparativeWavs() {
     std::cout << "\n[Test 9] Generating scheduled WAV regression fixtures..." << std::endl;
     constexpr float kFs=48000.0f; constexpr size_t kBlock=128;
@@ -543,6 +641,7 @@ int main() {
     std::cout << "=======================================================\n\n";
 
     testDiagnosticToneSource();
+    testDiagnosticOscillatorLongRun();
     testModalFrequency();
     testT60Decay();
     testModeSplitting();
@@ -553,6 +652,8 @@ int main() {
     testGainNormalization();
     testVelocityCalibration();
     testResetDiagnosticsAndVoiceReuse();
+    testSpectralAndRestrikeSanity();
+    saturationAbAudit();
     generateComparativeWavs();
 
     std::cout << "\n=======================================================\n";

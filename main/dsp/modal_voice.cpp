@@ -1,4 +1,5 @@
 #include "modal_voice.h"
+#include "pan_calibration.h"
 #include <algorithm>
 #include <cmath>
 
@@ -12,12 +13,21 @@ void ModalVoice::init(float sampleRate) {
     sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
     exciter_.init(sampleRate_);
     resonators_.init(sampleRate_);
+    // Explicit PAN wiring. The exciter/resonator primitives remain model-neutral.
+    exciter_.setConfig(kPanExciterConfig);
+    resonators_.setConfig(kPanResonatorConfig);
 
     // Smoothing coefficient for damping filter (~20 ms time constant)
     const float tcSeconds = 0.020f;
     dampingSmoothCoeff_ = 1.0f - std::exp(-1.0f / (tcSeconds * sampleRate_));
 
     reset();
+}
+
+void ModalVoice::setInternalSafetySaturation(bool enabled) {
+    ResonatorConfig config = kPanResonatorConfig;
+    config.internalSafetySaturation = enabled;
+    resonators_.setConfig(config);
 }
 
 void ModalVoice::reset() {

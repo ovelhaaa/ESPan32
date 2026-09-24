@@ -48,6 +48,7 @@ public:
     float getEstimatedEnergy() const { return estimatedEnergy_; }
     float getLastSample() const { return lastSample_; }
     uint32_t getInternalSaturationCount() const { return resonators_.getInternalSaturationCount(); }
+    void setInternalSafetySaturation(bool enabled);
 
 private:
     float sampleRate_ = 48000.0f;

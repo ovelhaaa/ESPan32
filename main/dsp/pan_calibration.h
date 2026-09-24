@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dsp_config.h"
+
 namespace pocketpan::dsp {
 
 // Named home for the established PAN voicing; no sonic redesign is implied.
@@ -17,4 +19,19 @@ struct PanCalibration {
 };
 
 inline constexpr PanCalibration kPanCalibration{};
+
+// PAN is a model selection, not a set of implicit DSP defaults. Future models
+// provide their own preset plus these two generic DSP configurations.
+inline constexpr ExciterConfig kPanExciterConfig{
+    kPanCalibration.exciterGain,
+    kPanCalibration.noiseAmount,
+    kPanCalibration.brightnessMinHz,
+    kPanCalibration.brightnessMaxHz,
+};
+
+inline constexpr ResonatorConfig kPanResonatorConfig{
+    kPanCalibration.masterModalGain,
+    kPanCalibration.dampingDepth,
+    true,
+};
 } // namespace pocketpan::dsp

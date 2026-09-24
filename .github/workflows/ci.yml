@@ -16,13 +16,16 @@ jobs:
       - name: Run host tests
         run: ctest --test-dir build-host --output-on-failure
       - name: Publish metrics summary
-        run: cat build-host/test_metrics.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          cat build-host/test_metrics.md >> "$GITHUB_STEP_SUMMARY"
+          cat build-host/saturation_ab_metrics.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: ESPan32-audio-tests
           path: |
             build-host/pan_*.wav
             build-host/test_metrics.md
+            build-host/saturation_ab_metrics.md
           if-no-files-found: error
 
   esp-idf-build:

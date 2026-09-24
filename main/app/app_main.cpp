@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <algorithm>
+#include <atomic>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -31,6 +32,8 @@ pocketpan::midi::SpscMidiQueue<64> sBleMidiQueue;  // NimBLE producer -> audio c
 pocketpan::midi::SpscMidiQueue<16> sDemoMidiQueue; // UI producer -> audio consumer
 pocketpan::ui::AudioTelemetryPublisher sTelemetryPub;
 pocketpan::ui::UiState sUiState;
+// UI/Core 1 requests; audio/Core 0 consumes at the next block boundary.
+std::atomic<bool> sSynthResetRequested{false};
 
 // Static telemetry state maintained on Core 0
 pocketpan::ui::AudioTelemetrySnapshot sAudioSnapshot{};
@@ -38,10 +41,17 @@ uint8_t sTelemetryDivider = 0;
 
 // Real-Time Audio Callback - Runs strictly on Core 0 at high priority (zero formatting, zero heap, zero mutex)
 void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames) {
+    // SynthEngine is owned exclusively by this Core 0 callback.
+    if (sSynthResetRequested.exchange(false, std::memory_order_acq_rel)) {
+        sSynth.killAllVoices();
+    }
+
     // 1. Consume all queued MIDI events from Core 1
     pocketpan::midi::MidiEvent ev;
     auto consume = [&](auto& queue) { while (queue.pop(ev)) {
-        sSynth.handleMidiEvent(ev);
+        // Diagnostic tones own audio TX. MIDI remains visible in telemetry but
+        // intentionally cannot create hidden musical state while diagnostics run.
+        if (sDiagnosticTone.isPan()) sSynth.handleMidiEvent(ev);
 
         // Record raw numeric event data for telemetry (no string formatting on Core 0)
         sAudioSnapshot.lastNote = ev.data1;
@@ -120,6 +130,9 @@ void uiTaskLoop(void* param) {
         if (btnPressed && lastBootBtnState) { pressStartMs = nowMs; longPressHandled = false; }
         if (btnPressed && sUiState.mode == pocketpan::ui::UiScreenMode::AudioDiagnostic &&
             !longPressHandled && nowMs - pressStartMs >= 800) {
+            // Publish PAN then request a Core 0 reset; never mutate SynthEngine here.
+            sDiagnosticTone.setTone(pocketpan::dsp::DiagnosticTone::Pan);
+            sSynthResetRequested.store(true, std::memory_order_release);
             sUiState.mode = pocketpan::ui::UiScreenMode::Status;
             longPressHandled = true;
         }
@@ -129,8 +142,8 @@ void uiTaskLoop(void* param) {
             else {
                 const auto next = static_cast<pocketpan::dsp::DiagnosticTone>((static_cast<uint8_t>(sDiagnosticTone.tone()) + 1) % 7);
                 const bool transition = sDiagnosticTone.isPan() != (next == pocketpan::dsp::DiagnosticTone::Pan);
-                if (transition) sSynth.killAllVoices();
                 sDiagnosticTone.setTone(next);
+                if (transition) sSynthResetRequested.store(true, std::memory_order_release);
             }
         }
         lastBootBtnState = !btnPressed;

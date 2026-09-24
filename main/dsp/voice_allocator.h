@@ -34,6 +34,7 @@ public:
     size_t getActiveVoiceCount() const;
     size_t getActiveStealTailCount() const;
     uint32_t getInternalSaturationCount() const;
+    void setInternalSafetySaturation(bool enabled);
     const ModalVoice& getVoice(size_t index) const { return voices_[index]; }
 
 private:
