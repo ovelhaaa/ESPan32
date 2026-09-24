@@ -39,7 +39,11 @@ public:
             LOAD(avgBlockTimeUs); LOAD(maxBlockTimeUs); LOAD(deadlineMisses); LOAD(writeTimeouts); LOAD(txErrors); LOAD(shortWrites);
             LOAD(cpuLoadPercent); LOAD(midiPushCount); LOAD(midiPopCount); LOAD(midiDrops); LOAD(midiHighWater);
 #undef LOAD
-            if (before==generation_.load(std::memory_order_acquire)) return true;
+            // Keep every payload load before the final sequence observation on
+            // weakly ordered cores (notably ESP32-S3). The first acquire pairs
+            // with publication; this acquire fence supplies the read barrier.
+            std::atomic_thread_fence(std::memory_order_acquire);
+            if (before==generation_.load(std::memory_order_relaxed)) return true;
         }
         return false;
     }

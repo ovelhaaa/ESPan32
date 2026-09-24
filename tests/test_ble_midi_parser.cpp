@@ -19,6 +19,7 @@ struct ReceivedEvent {
 std::vector<ReceivedEvent> gEvents;
 
 void testCallback(void* userData, const MidiEvent& event) {
+    (void)userData;
     ReceivedEvent r;
     r.type = event.type;
     r.channel = event.channel;

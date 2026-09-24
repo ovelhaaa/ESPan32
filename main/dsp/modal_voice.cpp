@@ -49,6 +49,9 @@ void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float v
     age_ = 0;
     released_ = false;
     active_ = true;
+    // A newly allocated voice has not rendered this strike yet. Do not expose
+    // the final sample from its previous lifetime to a subsequent steal.
+    lastSample_ = 0.0f;
 
     isStealing_ = false;
     stealGain_ = 1.0f;

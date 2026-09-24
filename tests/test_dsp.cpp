@@ -431,6 +431,32 @@ void testVelocityCalibration() {
     std::cout << "  -> PASSED: Dynamic velocity range is expressive and controlled!\n";
 }
 
+
+// Diagnostic counters span filter resets, while a reused voice never exposes a
+// stale output sample before its newly triggered strike is rendered.
+void testResetDiagnosticsAndVoiceReuse() {
+    dsp::ModalResonatorBank bank;
+    bank.init(48000.0f);
+    dsp::ModalPreset hot = {"Hot", 1, {{1.0f, 100.0f, 1.0f, 0.0f}}};
+    bank.setPreset(hot);
+    bank.updatePitchAndDamping(440.0f, 0.0f);
+    for (int i = 0; i < 64 && bank.getInternalSaturationCount() == 0; ++i) {
+        bank.processSample(10.0f);
+    }
+    const uint32_t saturationBeforeReset = bank.getInternalSaturationCount();
+    assert(saturationBeforeReset > 0);
+    bank.reset();
+    assert(bank.getInternalSaturationCount() == saturationBeforeReset);
+
+    dsp::ModalVoice voice;
+    voice.init(48000.0f);
+    voice.trigger(62, midi::MidiMapping::noteToHz(62), 1.0f);
+    for (int i = 0; i < 32; ++i) voice.processSample();
+    assert(std::abs(voice.getLastSample()) > 0.0f);
+    voice.trigger(64, midi::MidiMapping::noteToHz(64), 0.8f);
+    assert(voice.getLastSample() == 0.0f);
+}
+
 // 9. Generate all 5 required audio WAV files and log table
 struct ScheduledEvent { uint32_t frame; midi::MidiEvent event; };
 
@@ -476,6 +502,7 @@ int main() {
     testMultiVoiceDamping();
     testGainNormalization();
     testVelocityCalibration();
+    testResetDiagnosticsAndVoiceReuse();
     generateComparativeWavs();
 
     std::cout << "\n=======================================================\n";

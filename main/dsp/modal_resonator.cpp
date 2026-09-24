@@ -13,12 +13,12 @@ constexpr float kMinDenormal = 1.0e-15f;
 
 void ModalResonatorBank::init(float sampleRate) {
     sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
+    internalSaturationCount_ = 0;
     reset();
     setPreset(kPresetPan);
 }
 
 void ModalResonatorBank::reset() {
-    internalSaturationCount_ = 0;
     for (size_t i = 0; i < kMaxModesPerVoice; ++i) {
         modes_[i].z1 = 0.0f;
         modes_[i].z2 = 0.0f;
