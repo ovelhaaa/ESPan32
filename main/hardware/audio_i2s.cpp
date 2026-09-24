@@ -4,6 +4,7 @@
 #include "esp_check.h"
 #include "esp_heap_caps.h"
 #include "esp_log.h"
+#include "esp_task_wdt.h"
 #include "esp_timer.h"
 #include "driver/gpio.h"
 #include <cstring>
@@ -194,7 +195,13 @@ void AudioI2S::audioTaskLoop() {
     // Ceiling(128 / 48000 s) = 2667 us.  A render at that duration has missed
     // the complete block budget; transport failures remain separate counters.
     constexpr int64_t blockBudgetUs = 2667;
-    const TickType_t txTimeoutTicks = pdMS_TO_TICKS(16); // ~16ms max wait before reporting underrun/error
+    // Pacing by DMA: 6x128 frames (~16 ms buffering). Long timeout keeps the
+    // task blocked (yielding to IDLE0/WDT) instead of spinning on errors.
+    const TickType_t txTimeoutTicks = pdMS_TO_TICKS(50);
+
+    // Subscribe self to task WDT (proves liveness; keeps IDLE monitoring on).
+    // Best effort: ignore error if WDT not initialized or already subscribed.
+    (void)esp_task_wdt_add(nullptr);
 
     uint64_t totalProcessTimeUs = 0;
     uint32_t windowBlocks = 0;
@@ -238,13 +245,21 @@ void AudioI2S::audioTaskLoop() {
             } else {
                 stats_.txErrors.fetch_add(1, std::memory_order_relaxed);
             }
+            // Never spin tight on transport failure: yield so IDLE0 feeds
+            // the WDT and BT/WiFi on Core 0 keep running. The long delay
+            // keeps boot alive even under persistent I2S stalls (a 1 ms
+            // yield proved insufficient with 100% write timeouts).
+            vTaskDelay(pdMS_TO_TICKS(100));
         } else if (bytesWritten != bytesPerBlock) {
             stats_.shortWrites.fetch_add(1, std::memory_order_relaxed);
+            vTaskDelay(pdMS_TO_TICKS(100));
         }
 
         stats_.blocksProcessed.fetch_add(1, std::memory_order_relaxed);
+        esp_task_wdt_reset();
     }
 
+    (void)esp_task_wdt_delete(nullptr);
     if (stoppedSignal_) {
         xSemaphoreGive(stoppedSignal_);
     }

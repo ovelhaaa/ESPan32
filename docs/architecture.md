@@ -13,7 +13,7 @@ O ESP32-S3 possui dois núcleos Xtensa LX7 a 240 MHz. A arquitetura isola comple
                │                      ESP32-S3                          │
                │                                                        │
                │   CORE 0: ÁUDIO & DSP (Tempo Real Estrito)             │
-               │   ├── Prioridade: configMAX_PRIORITIES - 2 (23)        │
+                │   ├── Prioridade: 12 (RT acima UI/NimBLE, abaixo LWIP/WiFi/IPC)   │
                │   ├── I2S DMA TX Driver (driver/i2s_std.h)             │
                │   ├── Consumo da fila SPSC lock-free de eventos MIDI   │
                │   ├── Voice Allocator (8 vozes com restrike e steal)   │

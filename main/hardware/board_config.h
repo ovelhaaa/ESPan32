@@ -24,7 +24,7 @@ constexpr int kDinGpio  = 13; // Reserved (RX disabled in MVP)
 
 namespace task {
 constexpr int kCore = 0; // Strictly Core 0 for audio real-time path
-constexpr int kPriority = 23; // High priority (configMAX_PRIORITIES - 2)
+constexpr int kPriority = 12; // RT above UI(3)/NimBLE, below LWIP(18)/WiFi/IPC; 6x128 DMA (~16ms) needs no max prio
 constexpr int kStackBytes = 6144;
 } // namespace task
 } // namespace audio
