@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -23,18 +24,20 @@ pocketpan::dsp::SynthEngine sSynth;
 pocketpan::hardware::AudioI2S sAudio;
 pocketpan::hardware::Display sDisplay;
 pocketpan::hardware::BleMidi sBleMidi;
-pocketpan::midi::SpscMidiQueue<64> sMidiQueue;
+pocketpan::midi::SpscMidiQueue<64> sBleMidiQueue;  // NimBLE producer -> audio consumer
+pocketpan::midi::SpscMidiQueue<16> sDemoMidiQueue; // UI producer -> audio consumer
 pocketpan::ui::AudioTelemetryPublisher sTelemetryPub;
 pocketpan::ui::UiState sUiState;
 
 // Static telemetry state maintained on Core 0
 pocketpan::ui::AudioTelemetrySnapshot sAudioSnapshot{};
+uint8_t sTelemetryDivider = 0;
 
 // Real-Time Audio Callback - Runs strictly on Core 0 at high priority (zero formatting, zero heap, zero mutex)
 void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames) {
     // 1. Consume all queued MIDI events from Core 1
     pocketpan::midi::MidiEvent ev;
-    while (sMidiQueue.pop(ev)) {
+    auto consume = [&](auto& queue) { while (queue.pop(ev)) {
         sSynth.handleMidiEvent(ev);
 
         // Record raw numeric event data for telemetry (no string formatting on Core 0)
@@ -51,12 +54,17 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
         } else if (ev.type == pocketpan::midi::MidiEventType::ChannelPressure) {
             sAudioSnapshot.lastPressure = ev.data1;
         }
-    }
+    }};
+    consume(sBleMidiQueue);
+    consume(sDemoMidiQueue);
 
     // 2. Synthesize polyphonic audio block
     sSynth.renderBlock(outInterleaved, frames);
 
-    // 3. Collect and publish atomic snapshot
+    // 3. Publish at ~47 Hz (one in eight 128-frame blocks), above the 30 Hz UI
+    // rate while avoiding needless cross-core atomic traffic on every block.
+    if (++sTelemetryDivider < 8) return;
+    sTelemetryDivider = 0;
     const auto stats = sAudio.getStats();
     sAudioSnapshot.activeVoices = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
     sAudioSnapshot.avgBlockTimeUs = stats.avgBlockTimeUs;
@@ -67,10 +75,10 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     sAudioSnapshot.shortWrites = stats.shortWrites;
     sAudioSnapshot.cpuLoadPercent = stats.cpuLoadPercent;
 
-    sAudioSnapshot.midiPushCount = sMidiQueue.getPushCount();
-    sAudioSnapshot.midiPopCount = sMidiQueue.getPopCount();
-    sAudioSnapshot.midiDrops = sMidiQueue.getDrops();
-    sAudioSnapshot.midiHighWater = sMidiQueue.getHighWaterMark();
+    sAudioSnapshot.midiPushCount = sBleMidiQueue.getPushCount() + sDemoMidiQueue.getPushCount();
+    sAudioSnapshot.midiPopCount = sBleMidiQueue.getPopCount() + sDemoMidiQueue.getPopCount();
+    sAudioSnapshot.midiDrops = sBleMidiQueue.getDrops() + sDemoMidiQueue.getDrops();
+    sAudioSnapshot.midiHighWater = std::max(sBleMidiQueue.getHighWaterMark(), sDemoMidiQueue.getHighWaterMark());
 
     sTelemetryPub.publish(sAudioSnapshot);
 }
@@ -165,10 +173,18 @@ void uiTaskLoop(void* param) {
         }
 
         sUiState.bleConnected = sBleMidi.isConnected();
+        const auto bleState = sBleMidi.state();
+        const char* bleText = "BLE SCAN";
+        if (bleState == pocketpan::hardware::BleMidiState::Connecting || bleState == pocketpan::hardware::BleMidiState::Connected) bleText = "BLE CONN";
+        else if (bleState == pocketpan::hardware::BleMidiState::DiscoveringService || bleState == pocketpan::hardware::BleMidiState::DiscoveringCharacteristic || bleState == pocketpan::hardware::BleMidiState::DiscoveringCccd) bleText = "BLE DISC";
+        else if (bleState == pocketpan::hardware::BleMidiState::Subscribing) bleText = "BLE SUB";
+        else if (bleState == pocketpan::hardware::BleMidiState::Ready) bleText = "BLE OK";
+        else if (bleState == pocketpan::hardware::BleMidiState::Error) bleText = "BLE ERR";
+        snprintf(sUiState.bleStatus, sizeof(sUiState.bleStatus), "%s", bleText);
 
         // 3. Standalone bring-up demo: if BLE is not connected yet, trigger a gentle note every 800ms
         demoTick++;
-        if (!sUiState.bleConnected && (demoTick % 25 == 0)) { // ~825 ms
+        if (!sBleMidi.isMidiReady() && (demoTick % 25 == 0)) { // ~825 ms
             pocketpan::midi::MidiEvent demoEv;
             demoEv.type = pocketpan::midi::MidiEventType::NoteOn;
             demoEv.data1 = kHandpanScale[scaleIdx];
@@ -177,7 +193,7 @@ void uiTaskLoop(void* param) {
             demoEv.rawBytes[0] = 0x90;
             demoEv.rawBytes[1] = demoEv.data1;
             demoEv.rawBytes[2] = demoEv.data2;
-            sMidiQueue.push(demoEv);
+            sDemoMidiQueue.push(demoEv);
 
             scaleIdx = (scaleIdx + 1) % kScaleLen;
         }
@@ -206,7 +222,7 @@ extern "C" void app_main(void) {
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
 
     // 3. Connect SPSC lock-free queue to BLE transport
-    sBleMidi.setQueue(&sMidiQueue);
+    sBleMidi.setQueue(&sBleMidiQueue);
 
     // 4. Initialize I2S Audio Driver (TX-only, 48kHz, stereo, 32-bit slot, DMA)
     if (!sAudio.init(audioRenderCallback, nullptr) || !sAudio.start()) {

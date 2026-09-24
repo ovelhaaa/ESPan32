@@ -32,6 +32,8 @@ public:
 
     // Real-time voice metrics
     size_t getActiveVoiceCount() const;
+    size_t getActiveStealTailCount() const;
+    uint32_t getInternalSaturationCount() const;
     const ModalVoice& getVoice(size_t index) const { return voices_[index]; }
 
 private:
@@ -46,7 +48,8 @@ private:
 
     float sampleRate_ = 48000.0f;
     ModalVoice voices_[kMaxVoices];
-    StealDeclickTail stealTail_{};
+    StealDeclickTail stealTails_[kMaxVoices]{};
+    size_t nextStealTail_ = 0;
 };
 
 } // namespace pocketpan::dsp

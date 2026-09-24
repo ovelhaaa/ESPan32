@@ -18,8 +18,8 @@ void UiRenderer::renderStatus(const UiState& state) {
     // Header banner
     display_.fillRect(0, 0, hardware::Display::kWidth, 20, hardware::colors::DarkGray);
     display_.drawText(8, 6, "POCKET PAN", hardware::colors::Cyan, 1);
-    display_.drawText(175, 6, state.bleConnected ? "BLE OK" : "BLE SCAN",
-                      state.bleConnected ? hardware::colors::Green : hardware::colors::Orange, 1);
+    display_.drawText(175, 6, state.bleStatus,
+                      state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Orange, 1);
 
     display_.drawFastHLine(0, 20, hardware::Display::kWidth, hardware::colors::Gray);
 
@@ -93,9 +93,9 @@ void UiRenderer::renderDiagnostic(const UiState& state) {
     // Bottom status
     display_.drawFastHLine(0, 114, hardware::Display::kWidth, hardware::colors::DarkGray);
     snprintf(buf, sizeof(buf), "%s  (BOOT: TOGGLE)",
-             state.bleConnected ? "BLE CONNECTED" : "WAITING BLE...");
+             state.bleStatus);
     display_.drawText(10, 120, buf,
-                      state.bleConnected ? hardware::colors::Green : hardware::colors::Gray, 1);
+                      state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Gray, 1);
 }
 
 } // namespace pocketpan::ui

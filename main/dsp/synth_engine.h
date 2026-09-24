@@ -28,6 +28,7 @@ public:
     void setMasterVolume(float vol);
     uint32_t getSoftClipCount() const { return softClipCount_; }
     void resetSoftClipCount() { softClipCount_ = 0; }
+    uint32_t getModalInternalSaturationCount() const { return allocator_.getInternalSaturationCount(); }
 
 private:
     float sampleRate_ = 48000.0f;

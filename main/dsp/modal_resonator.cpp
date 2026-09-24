@@ -13,6 +13,7 @@ constexpr float kMinDenormal = 1.0e-15f;
 
 void ModalResonatorBank::init(float sampleRate) {
     sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
+    internalSaturationCount_ = 0;
     reset();
     setPreset(kPresetPan);
 }
@@ -115,6 +116,7 @@ float ModalResonatorBank::processSample(float excitation) {
 
         // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
         if (std::abs(y) > 2.0f) {
+            ++internalSaturationCount_;
             y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
         }
 

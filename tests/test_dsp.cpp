@@ -268,6 +268,17 @@ void testDeclickedVoiceStealing() {
     std::vector<float> buf(512);
     allocator.renderBlock(buf.data(), 512);
 
+    // Queue five steals exactly as the audio callback can do before rendering.
+    dsp::VoiceAllocator burst; burst.init(kFs);
+    for (uint8_t note : scale) burst.noteOn(note, 0.7f, midi::MidiMapping::noteToHz(note));
+    std::vector<float> warmup(512); burst.renderBlock(warmup.data(), warmup.size());
+    for (uint8_t note : {86, 87, 88, 89, 90}) burst.noteOn(note, 0.7f, midi::MidiMapping::noteToHz(note));
+    assert(burst.getActiveVoiceCount() == 8);
+    assert(burst.getActiveStealTailCount() == 5 && "steal tails must not overwrite one another");
+    std::vector<float> multiSteal(128); burst.renderBlock(multiSteal.data(), multiSteal.size());
+    for (float sample : multiSteal) assert(std::isfinite(sample));
+    assert(burst.getActiveStealTailCount() == 0);
+
     // 2. Steal voice by playing 9th note
     allocator.noteOn(86, 0.7f, midi::MidiMapping::noteToHz(86));
 
@@ -420,71 +431,62 @@ void testVelocityCalibration() {
     std::cout << "  -> PASSED: Dynamic velocity range is expressive and controlled!\n";
 }
 
+
+// Diagnostic counters span filter resets, while a reused voice never exposes a
+// stale output sample before its newly triggered strike is rendered.
+void testResetDiagnosticsAndVoiceReuse() {
+    dsp::ModalResonatorBank bank;
+    bank.init(48000.0f);
+    dsp::ModalPreset hot = {"Hot", 1, {{1.0f, 100.0f, 1.0f, 0.0f}}};
+    bank.setPreset(hot);
+    bank.updatePitchAndDamping(440.0f, 0.0f);
+    for (int i = 0; i < 64 && bank.getInternalSaturationCount() == 0; ++i) {
+        bank.processSample(10.0f);
+    }
+    const uint32_t saturationBeforeReset = bank.getInternalSaturationCount();
+    assert(saturationBeforeReset > 0);
+    bank.reset();
+    assert(bank.getInternalSaturationCount() == saturationBeforeReset);
+
+    dsp::ModalVoice voice;
+    voice.init(48000.0f);
+    voice.trigger(62, midi::MidiMapping::noteToHz(62), 1.0f);
+    for (int i = 0; i < 32; ++i) voice.processSample();
+    assert(std::abs(voice.getLastSample()) > 0.0f);
+    voice.trigger(64, midi::MidiMapping::noteToHz(64), 0.8f);
+    assert(voice.getLastSample() == 0.0f);
+}
+
 // 9. Generate all 5 required audio WAV files and log table
+struct ScheduledEvent { uint32_t frame; midi::MidiEvent event; };
+
 void generateComparativeWavs() {
-    std::cout << "\n[Test 9] Generating Comparative Audio WAV Files..." << std::endl;
-    constexpr float kFs = 48000.0f;
-    constexpr size_t kBlock = 128;
-
-    auto renderSequence = [&](const char* filename, const std::vector<midi::MidiEvent>& events,
-                              size_t totalFrames, const char* label) {
-        dsp::SynthEngine engine;
-        engine.init(kFs);
-        engine.resetSoftClipCount();
-
-        std::vector<int32_t> audio(totalFrames * 2, 0);
-        int32_t block[kBlock * 2];
-        size_t evIdx = 0;
-
-        for (size_t f = 0; f < totalFrames; f += kBlock) {
-            while (evIdx < events.size() && (evIdx * 12000) <= f) {
-                engine.handleMidiEvent(events[evIdx++]);
-            }
-            engine.renderBlock(block, kBlock);
-            std::memcpy(&audio[f * 2], block, sizeof(block));
+    std::cout << "\n[Test 9] Generating scheduled WAV regression fixtures..." << std::endl;
+    constexpr float kFs=48000.0f; constexpr size_t kBlock=128;
+    std::ofstream report("test_metrics.md");
+    report << "# ESPan32 audio regression metrics\n\n| Fixture | Peak | RMS | Crest | Limiter | ModalSat |\n|---|---:|---:|---:|---:|---:|\n";
+    auto event=[](uint8_t note,uint8_t velocity){ midi::MidiEvent e; e.type=midi::MidiEventType::NoteOn; e.data1=note; e.data2=velocity; return e; };
+    auto render=[&](const char* filename, std::vector<ScheduledEvent> events, size_t totalFrames) {
+        dsp::SynthEngine engine; engine.init(kFs); engine.resetSoftClipCount();
+        std::vector<int32_t> audio(totalFrames*2,0); size_t index=0;
+        for(size_t f=0; f<totalFrames; f+=kBlock) {
+            while(index<events.size() && events[index].frame<=f) engine.handleMidiEvent(events[index++].event);
+            const size_t frames=std::min(kBlock,totalFrames-f); int32_t block[kBlock*2]{};
+            engine.renderBlock(block,frames); std::memcpy(&audio[f*2],block,frames*2*sizeof(int32_t));
         }
-
-        writeWavFile(filename, audio.data(), totalFrames, static_cast<int>(kFs));
-        AudioMetrics m = computeMetrics(audio, engine.getSoftClipCount());
-        std::cout << "  " << std::left << std::setw(26) << label
-                  << " | Peak: " << std::setw(6) << std::fixed << std::setprecision(3) << m.peak
-                  << " | RMS: " << std::setw(6) << m.rms
-                  << " | SoftClip: " << m.softClipCount << std::endl;
+        writeWavFile(filename,audio.data(),totalFrames,static_cast<int>(kFs));
+        auto m=computeMetrics(audio,engine.getSoftClipCount()); auto sat=engine.getModalInternalSaturationCount();
+        report << "| "<<filename<<" | "<<m.peak<<" | "<<m.rms<<" | "<<m.crestFactor<<" | "<<m.softClipCount<<" | "<<sat<<" |\n";
+        std::cout<<filename<<" peak="<<m.peak<<" rms="<<m.rms<<" crest="<<m.crestFactor<<" limiter="<<m.softClipCount<<" modalSat="<<sat<<"\n";
     };
-
-    // 1. pan_D3_vel40.wav (3.0s)
-    {
-        midi::MidiEvent ev; ev.type = midi::MidiEventType::NoteOn; ev.data1 = 62; ev.data2 = 40;
-        renderSequence("pan_D3_vel40.wav", {ev}, 144000, "pan_D3_vel40");
-    }
-
-    // 2. pan_D3_vel90.wav (3.0s)
-    {
-        midi::MidiEvent ev; ev.type = midi::MidiEventType::NoteOn; ev.data1 = 62; ev.data2 = 90;
-        renderSequence("pan_D3_vel90.wav", {ev}, 144000, "pan_D3_vel90");
-    }
-
-    // 3. pan_D3_vel127.wav (3.0s)
-    {
-        midi::MidiEvent ev; ev.type = midi::MidiEventType::NoteOn; ev.data1 = 62; ev.data2 = 127;
-        renderSequence("pan_D3_vel127.wav", {ev}, 144000, "pan_D3_vel127");
-    }
-
-    // 4. pan_D4_double_strike.wav (3.5s) - Same note restrike
-    {
-        midi::MidiEvent ev1; ev1.type = midi::MidiEventType::NoteOn; ev1.data1 = 74; ev1.data2 = 80;
-        midi::MidiEvent ev2; ev2.type = midi::MidiEventType::NoteOn; ev2.data1 = 74; ev2.data2 = 95;
-        renderSequence("pan_D4_double_strike.wav", {ev1, ev2}, 168000, "pan_D4_double_strike");
-    }
-
-    // 5. pan_chord.wav (4.0s) - D minor Handpan chord (D3, A3, F4, A4)
-    {
-        midi::MidiEvent ev1; ev1.type = midi::MidiEventType::NoteOn; ev1.data1 = 62; ev1.data2 = 85;
-        midi::MidiEvent ev2; ev2.type = midi::MidiEventType::NoteOn; ev2.data1 = 69; ev2.data2 = 80;
-        midi::MidiEvent ev3; ev3.type = midi::MidiEventType::NoteOn; ev3.data1 = 77; ev3.data2 = 75;
-        midi::MidiEvent ev4; ev4.type = midi::MidiEventType::NoteOn; ev4.data1 = 81; ev4.data2 = 80;
-        renderSequence("pan_chord.wav", {ev1, ev2, ev3, ev4}, 192000, "pan_chord");
-    }
+    render("pan_D3_vel40.wav",{{0,event(62,40)}},144000);
+    render("pan_D3_vel90.wav",{{0,event(62,90)}},144000);
+    render("pan_D3_vel127.wav",{{0,event(62,127)}},144000);
+    render("pan_D3_double_strike.wav",{{0,event(62,80)},{12000,event(62,95)}},168000);
+    render("pan_D3_triple_strike.wav",{{0,event(62,80)},{12000,event(62,95)},{24000,event(62,105)}},168000);
+    render("pan_chord_simultaneous.wav",{{0,event(62,85)},{0,event(69,80)},{0,event(77,75)},{0,event(81,80)}},192000);
+    render("pan_dense_cluster.wav",{{0,event(62,100)},{0,event(64,100)},{0,event(65,100)},{0,event(67,100)},
+           {0,event(69,100)},{0,event(70,100)},{0,event(72,100)},{0,event(74,100)}},192000);
 }
 
 int main() {
@@ -500,6 +502,7 @@ int main() {
     testMultiVoiceDamping();
     testGainNormalization();
     testVelocityCalibration();
+    testResetDiagnosticsAndVoiceReuse();
     generateComparativeWavs();
 
     std::cout << "\n=======================================================\n";
