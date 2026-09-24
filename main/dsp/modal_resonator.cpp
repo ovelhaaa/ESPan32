@@ -18,6 +18,7 @@ void ModalResonatorBank::init(float sampleRate) {
 }
 
 void ModalResonatorBank::reset() {
+    internalSaturationCount_ = 0;
     for (size_t i = 0; i < kMaxModesPerVoice; ++i) {
         modes_[i].z1 = 0.0f;
         modes_[i].z2 = 0.0f;
@@ -115,6 +116,7 @@ float ModalResonatorBank::processSample(float excitation) {
 
         // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
         if (std::abs(y) > 2.0f) {
+            ++internalSaturationCount_;
             y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
         }
 

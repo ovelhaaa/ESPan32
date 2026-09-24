@@ -15,7 +15,8 @@ void VoiceAllocator::reset() {
     for (size_t i = 0; i < kMaxVoices; ++i) {
         voices_[i].reset();
     }
-    stealTail_ = StealDeclickTail{};
+    for (auto& tail : stealTails_) tail = StealDeclickTail{};
+    nextStealTail_ = 0;
 }
 
 int VoiceAllocator::findVoiceToSteal() const {
@@ -68,13 +69,15 @@ void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequ
     int stealIdx = findVoiceToSteal();
     if (stealIdx >= 0 && stealIdx < static_cast<int>(kMaxVoices)) {
         float residual = voices_[stealIdx].getLastSample();
-        if (std::abs(residual) > 1.0e-5f) {
-            // Apply 32-sample (~0.67ms @ 48kHz) linear declick fade
-            stealTail_.active = true;
-            stealTail_.currentSample = residual;
-            stealTail_.samplesLeft = 32;
-            stealTail_.step = residual / 32.0f;
-        }
+        // Reserve an independent fixed tail even near a zero crossing. Besides
+        // making burst ownership deterministic, this prevents a later steal
+        // from replacing an earlier non-zero residual.
+        auto& tail = stealTails_[nextStealTail_];
+        nextStealTail_ = (nextStealTail_ + 1) % kMaxVoices;
+        tail.active = true;
+        tail.currentSample = residual;
+        tail.samplesLeft = 32;
+        tail.step = residual / 32.0f;
         voices_[stealIdx].kill();
         voices_[stealIdx].trigger(note, fundamentalFrequencyHz, velocity);
     }
@@ -115,17 +118,30 @@ void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
         }
     }
 
-    // Mix in declick tail if a voice was stolen
-    if (stealTail_.active) {
-        for (size_t i = 0; i < frames && stealTail_.samplesLeft > 0; ++i) {
-            outBuffer[i] += stealTail_.currentSample;
-            stealTail_.currentSample -= stealTail_.step;
-            if (--stealTail_.samplesLeft == 0) {
-                stealTail_.active = false;
+    // Independently mix every steal captured since the previous render.
+    for (auto& tail : stealTails_) {
+        if (!tail.active) continue;
+        for (size_t i = 0; i < frames && tail.samplesLeft > 0; ++i) {
+            outBuffer[i] += tail.currentSample;
+            tail.currentSample -= tail.step;
+            if (--tail.samplesLeft == 0) {
+                tail.active = false;
                 break;
             }
         }
     }
+}
+
+size_t VoiceAllocator::getActiveStealTailCount() const {
+    size_t count = 0;
+    for (const auto& tail : stealTails_) if (tail.active) ++count;
+    return count;
+}
+
+uint32_t VoiceAllocator::getInternalSaturationCount() const {
+    uint32_t count = 0;
+    for (const auto& voice : voices_) count += voice.getInternalSaturationCount();
+    return count;
 }
 
 size_t VoiceAllocator::getActiveVoiceCount() const {

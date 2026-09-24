@@ -2,6 +2,8 @@
 
 Firmware de sintetizador físico/modal para a placa **TENSTAR TS-ESP32-S3** (clone da Adafruit Feather ESP32-S3 TFT), controlado via **BLE MIDI** (otimizado para o controlador **M-VAVE SMC-PAD Pocket**) com saída de áudio digital por **I2S para DAC PCM5102** e display embutido **ST7789 240×135**.
 
+[![Build & Tests](https://github.com/ovelhaaa/ESPan32/actions/workflows/ci.yml/badge.svg)](https://github.com/ovelhaaa/ESPan32/actions/workflows/ci.yml)
+
 ---
 
 ## 1. Conexões de Hardware & Pinout Validado
@@ -55,7 +57,11 @@ Os testes automatizados validam:
 7. **Normalização Modal:** Normalização dos filtros de ressonância ($b_0 = \sin(w) \cdot \text{gain} \cdot \text{bankNorm}$), garantindo que o pico de ataque não dependa arbitrariamente de $T_{60}$ ou da frequência.
 8. **Calibração de Velocidade & Headroom:** Faixa dinâmica expressiva de velocity 20 a 127 com limiter atuando estritamente como margem de segurança analógica (100% linear para notas individuais até vel 110).
 9. **Parser BLE MIDI:** Decodificação de pacotes BLE GATT com timestamps de 13 bits, Running Status, mensagens System Real-Time intercaladas (`0xF8`) e recuperação robusta de pacotes truncados.
-10. **Exportação de WAVs Comparativos:** Gera `pan_D3_vel40.wav`, `pan_D3_vel90.wav`, `pan_D3_vel127.wav`, `pan_D4_double_strike.wav` e `pan_chord.wav`.
+10. **Exportação de WAVs Comparativos:** Gera três níveis de velocity em D3, double/triple strike, acorde simultâneo e cluster denso, acompanhados de métricas de peak, RMS, crest factor, limiter e saturação modal.
+
+### Integração contínua
+
+O workflow **Build & Tests** executa CMake/CTest no Linux e compila o firmware para ESP32-S3 com ESP-IDF 5.3.2. Cada execução publica os sete WAVs de regressão e `test_metrics.md` no artifact `ESPan32-audio-tests`, além dos binários, ELF, mapa e argumentos de flash em `ESPan32-firmware`. Esses testes não substituem a validação física com TENSTAR, PCM5102 e SMC-PAD.
 
 ### Compilar e Gravar no ESP32-S3
 

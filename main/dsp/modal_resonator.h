@@ -29,6 +29,7 @@ public:
 
     size_t getModeCount() const { return modeCount_; }
     size_t getActiveModeCount() const { return activeModeCount_; }
+    uint32_t getInternalSaturationCount() const { return internalSaturationCount_; }
 
 private:
     float sampleRate_ = 48000.0f;
@@ -39,6 +40,7 @@ private:
     size_t activeModeCount_ = 0;
     ModalModeState modes_[kMaxModesPerVoice];
     ModalModeDefinition presetModes_[kMaxModesPerVoice];
+    uint32_t internalSaturationCount_ = 0;
 };
 
 } // namespace pocketpan::dsp

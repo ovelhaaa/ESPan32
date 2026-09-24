@@ -90,8 +90,9 @@ void BleMidiParser::parseBlePacket(const uint8_t* data, size_t length) {
     while (idx < length) {
         const uint8_t byte = data[idx++];
 
-        // 1. System Real-Time messages (0xF8 - 0xFF) can be interleaved anywhere
-        if (byte >= 0xF8) {
+        // In message states, realtime may be interleaved without disturbing
+        // parsing. In ExpectTimestamp the exact same byte range is timestamp low.
+        if (bleState_ != BleParseState::ExpectTimestamp && byte >= 0xF8) {
             MidiEvent ev;
             ev.channel = 0;
             ev.type = MidiEventType::Unknown;

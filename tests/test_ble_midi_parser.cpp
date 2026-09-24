@@ -200,6 +200,30 @@ void testTruncatedAndInvalidPackets() {
     printf("  PASSED: Clean recovery from invalid/truncated packets\n");
 }
 
+
+void testTimestampRealtimeCollisions() {
+    const uint8_t lows[] = {0xF7, 0xF8, 0xF9, 0xFA, 0xFC, 0xFF};
+    for (uint8_t low : lows) {
+        gEvents.clear(); BleMidiParser parser; parser.setCallback(testCallback, nullptr);
+        const uint8_t packet[] = {0x83, low, 0x90, 64, 99};
+        parser.parseBlePacket(packet, sizeof(packet));
+        assert(gEvents.size()==1); assert(gEvents[0].type==MidiEventType::NoteOn);
+        assert(gEvents[0].timestamp13==static_cast<uint16_t>((3<<7)|(low&0x7f)));
+    }
+}
+
+void testCompactRunningStatus() {
+    gEvents.clear(); BleMidiParser parser; parser.setCallback(testCallback, nullptr);
+    const uint8_t packet[] = {0x80, 0x81, 0x90, 60, 10, 61, 20, 62, 30};
+    parser.parseBlePacket(packet, sizeof(packet));
+    assert(gEvents.size()==3); assert(gEvents[2].data1==62 && gEvents[2].data2==30);
+
+    gEvents.clear();
+    const uint8_t timestamped[] = {0x80, 0x81, 0x90, 60, 10, 0x82, 61, 20};
+    parser.parseBlePacket(timestamped, sizeof(timestamped));
+    assert(gEvents.size()==2); assert(gEvents[1].timestamp13==2);
+}
+
 } // namespace
 
 int main() {
@@ -213,6 +237,8 @@ int main() {
     testPolyPressureAndChannelPressure();
     testRunningStatus();
     testInterleavedSystemRealTime();
+    testTimestampRealtimeCollisions();
+    testCompactRunningStatus();
     testTruncatedAndInvalidPackets();
 
     printf("\nAll BLE MIDI Parser Tests Passed Successfully!\n");

@@ -57,7 +57,11 @@ private:
     std::atomic<bool> running_{false};
     bool initialized_ = false;
 
-    mutable AudioStats stats_{};
+    struct AtomicAudioStats {
+        std::atomic<uint32_t> blocksProcessed{0}, deadlineMisses{0}, writeTimeouts{0};
+        std::atomic<uint32_t> txErrors{0}, shortWrites{0}, maxBlockTimeUs{0}, avgBlockTimeUs{0};
+        std::atomic<float> cpuLoadPercent{0.0f};
+    } stats_;
 };
 
 } // namespace pocketpan::hardware

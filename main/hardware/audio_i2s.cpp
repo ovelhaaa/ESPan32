@@ -25,7 +25,9 @@ bool AudioI2S::init(AudioRenderCallback callback, void* userData) {
 
     callback_ = callback;
     userData_ = userData;
-    stats_ = {};
+    stats_.blocksProcessed.store(0); stats_.deadlineMisses.store(0);
+    stats_.writeTimeouts.store(0); stats_.txErrors.store(0); stats_.shortWrites.store(0);
+    stats_.maxBlockTimeUs.store(0); stats_.avgBlockTimeUs.store(0); stats_.cpuLoadPercent.store(0.0f);
 
     // 1. PCM5102 SCK clock requirement:
     // If PCM5102 SCK is wired to ESP32-S3 GPIO10, force GPIO10 strictly LOW with pulldown.
@@ -170,7 +172,16 @@ void AudioI2S::deinit() {
 }
 
 AudioStats AudioI2S::getStats() const {
-    return stats_;
+    AudioStats out;
+    out.blocksProcessed = stats_.blocksProcessed.load(std::memory_order_relaxed);
+    out.deadlineMisses = stats_.deadlineMisses.load(std::memory_order_relaxed);
+    out.writeTimeouts = stats_.writeTimeouts.load(std::memory_order_relaxed);
+    out.txErrors = stats_.txErrors.load(std::memory_order_relaxed);
+    out.shortWrites = stats_.shortWrites.load(std::memory_order_relaxed);
+    out.maxBlockTimeUs = stats_.maxBlockTimeUs.load(std::memory_order_relaxed);
+    out.avgBlockTimeUs = stats_.avgBlockTimeUs.load(std::memory_order_relaxed);
+    out.cpuLoadPercent = stats_.cpuLoadPercent.load(std::memory_order_relaxed);
+    return out;
 }
 
 void AudioI2S::audioTaskEntry(void* arg) {
@@ -201,16 +212,16 @@ void AudioI2S::audioTaskLoop() {
 
         // Update real-time profiling stats
         if (processTimeUs > static_cast<uint32_t>(blockBudgetUs)) {
-            stats_.deadlineMisses++;
+            stats_.deadlineMisses.fetch_add(1, std::memory_order_relaxed);
         }
-        if (processTimeUs > stats_.maxBlockTimeUs) {
-            stats_.maxBlockTimeUs = processTimeUs;
-        }
+        uint32_t oldMax = stats_.maxBlockTimeUs.load(std::memory_order_relaxed);
+        while (processTimeUs > oldMax && !stats_.maxBlockTimeUs.compare_exchange_weak(oldMax, processTimeUs, std::memory_order_relaxed)) {}
         totalProcessTimeUs += processTimeUs;
         windowBlocks++;
         if (windowBlocks >= 100) {
-            stats_.avgBlockTimeUs = static_cast<uint32_t>(totalProcessTimeUs / windowBlocks);
-            stats_.cpuLoadPercent = (static_cast<float>(stats_.avgBlockTimeUs) / static_cast<float>(blockBudgetUs)) * 100.0f;
+            const uint32_t avg = static_cast<uint32_t>(totalProcessTimeUs / windowBlocks);
+            stats_.avgBlockTimeUs.store(avg, std::memory_order_relaxed);
+            stats_.cpuLoadPercent.store((static_cast<float>(avg) / static_cast<float>(blockBudgetUs)) * 100.0f, std::memory_order_relaxed);
             totalProcessTimeUs = 0;
             windowBlocks = 0;
         }
@@ -221,15 +232,15 @@ void AudioI2S::audioTaskLoop() {
 
         if (err != ESP_OK) {
             if (err == ESP_ERR_TIMEOUT) {
-                stats_.writeTimeouts++;
+                stats_.writeTimeouts.fetch_add(1, std::memory_order_relaxed);
             } else {
-                stats_.txErrors++;
+                stats_.txErrors.fetch_add(1, std::memory_order_relaxed);
             }
         } else if (bytesWritten != bytesPerBlock) {
-            stats_.shortWrites++;
+            stats_.shortWrites.fetch_add(1, std::memory_order_relaxed);
         }
 
-        stats_.blocksProcessed++;
+        stats_.blocksProcessed.fetch_add(1, std::memory_order_relaxed);
     }
 
     if (stoppedSignal_) {
@@ -249,7 +260,9 @@ bool AudioI2S::init(AudioRenderCallback, void*) { initialized_ = true; return tr
 bool AudioI2S::start() { running_.store(true); return true; }
 void AudioI2S::stop() { running_.store(false); }
 void AudioI2S::deinit() { initialized_ = false; }
-AudioStats AudioI2S::getStats() const { return stats_; }
+AudioStats AudioI2S::getStats() const {
+    AudioStats out; out.blocksProcessed = stats_.blocksProcessed.load(); return out;
+}
 } // namespace pocketpan::hardware
 
 #endif

@@ -33,6 +33,8 @@ uint16_t sConnHandle = BLE_HS_CONN_HANDLE_NONE;
 uint16_t sMidiValHandle = 0;
 uint16_t sMidiServiceEndHandle = 0;
 bool sCccdFound = false;
+bool sServiceFound = false;
+bool sCharacteristicFound = false;
 
 int bleGapEvent(struct ble_gap_event* event, void* arg);
 void startScan();
@@ -41,9 +43,10 @@ void startScan();
 int onDscWrite(uint16_t conn_handle, const struct ble_gatt_error* error,
                struct ble_gatt_attr* attr, void* arg) {
     if (error->status == 0) {
-        ESP_LOGI(kTag, "Successfully subscribed to BLE MIDI notifications via CCCD!");
+        ESP_LOGI(kTag, "CCCD subscription successful; BLE MIDI ready");
+        if (sInstance) sInstance->setState(BleMidiState::Ready);
     } else {
-        ESP_LOGE(kTag, "Failed to write CCCD notification enable: status=%d", error->status);
+        if (sInstance) sInstance->failAndRecover("CCCD subscription failed");
     }
     return 0;
 }
@@ -55,20 +58,23 @@ int onDscDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
         if (ble_uuid_u16(&dsc->uuid.u) == board::ble::kCccdUuid16) {
             ESP_LOGI(kTag, "Discovered CCCD (0x2902) handle=%d", dsc->handle);
             sCccdFound = true;
+            if (sInstance) sInstance->setState(BleMidiState::Subscribing);
             uint8_t notifyEnable[2] = {0x01, 0x00};
             int rc = ble_gattc_write_flat(conn_handle, dsc->handle, notifyEnable,
                                           sizeof(notifyEnable), onDscWrite, nullptr);
             if (rc != 0) {
-                ESP_LOGE(kTag, "Failed to initiate write to CCCD: rc=%d", rc);
+                if (sInstance) sInstance->failAndRecover("CCCD write could not start");
             }
         }
     } else if (error->status == BLE_HS_EDONE) {
         if (!sCccdFound) {
             ESP_LOGE(kTag, "Error: CCCD (0x2902) not found for MIDI characteristic in range [%d..%d]",
                      chr_val_handle, sMidiServiceEndHandle);
+            if (sInstance) sInstance->failAndRecover("MIDI CCCD not found");
         }
     } else if (error->status != 0) {
         ESP_LOGE(kTag, "Descriptor discovery error: status=%d", error->status);
+        if (sInstance) sInstance->failAndRecover("CCCD discovery failed");
     }
     return 0;
 }
@@ -78,6 +84,8 @@ int onCharDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
                     const struct ble_gatt_chr* chr, void* arg) {
     if (error->status == 0 && chr) {
         if (ble_uuid_cmp(&chr->uuid.u, &kMidiCharUuid.u) == 0) {
+            sCharacteristicFound = true;
+            if (sInstance) sInstance->setState(BleMidiState::DiscoveringCccd);
             ESP_LOGI(kTag, "Found BLE MIDI Characteristic! def_handle=%d val_handle=%d",
                      chr->def_handle, chr->val_handle);
             sMidiValHandle = chr->val_handle;
@@ -87,9 +95,13 @@ int onCharDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
             int rc = ble_gattc_disc_all_dscs(conn_handle, chr->val_handle, sMidiServiceEndHandle,
                                             onDscDiscovery, nullptr);
             if (rc != 0) {
-                ESP_LOGE(kTag, "Failed to start descriptor discovery: rc=%d", rc);
+                if (sInstance) sInstance->failAndRecover("CCCD discovery could not start");
             }
         }
+    } else if (error->status == BLE_HS_EDONE && !sCharacteristicFound && sInstance) {
+        sInstance->failAndRecover("MIDI characteristic not found");
+    } else if (error->status != 0 && error->status != BLE_HS_EDONE && sInstance) {
+        sInstance->failAndRecover("MIDI characteristic discovery failed");
     }
     return 0;
 }
@@ -99,13 +111,21 @@ int onServiceDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
                        const struct ble_gatt_svc* service, void* arg) {
     if (error->status == 0 && service) {
         if (ble_uuid_cmp(&service->uuid.u, &kMidiServiceUuid.u) == 0) {
+            sServiceFound = true;
+            sCharacteristicFound = false;
+            if (sInstance) sInstance->setState(BleMidiState::DiscoveringCharacteristic);
             ESP_LOGI(kTag, "Found BLE MIDI Service! start_handle=%d end_handle=%d",
                      service->start_handle, service->end_handle);
             sMidiServiceEndHandle = service->end_handle;
             // Discover characteristics within this service
-            ble_gattc_disc_all_chrs(conn_handle, service->start_handle, service->end_handle,
-                                   onCharDiscovery, nullptr);
+            int rc = ble_gattc_disc_all_chrs(conn_handle, service->start_handle, service->end_handle,
+                                             onCharDiscovery, nullptr);
+            if (rc != 0 && sInstance) sInstance->failAndRecover("MIDI characteristic discovery could not start");
         }
+    } else if (error->status == BLE_HS_EDONE && !sServiceFound && sInstance) {
+        sInstance->failAndRecover("MIDI service not found");
+    } else if (error->status != 0 && error->status != BLE_HS_EDONE && sInstance) {
+        sInstance->failAndRecover("MIDI service discovery failed");
     }
     return 0;
 }
@@ -138,7 +158,8 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
             }
 
             if (matchesMidi) {
-                ESP_LOGI(kTag, "Target MIDI controller discovered! Connecting...");
+                ESP_LOGI(kTag, "BLE MIDI device found; connecting");
+                if (sInstance) sInstance->setState(BleMidiState::Connecting);
                 ble_gap_disc_cancel();
 
                 rc = ble_gap_connect(BLE_OWN_ADDR_PUBLIC, &event->disc.addr, 30000, nullptr,
@@ -157,8 +178,20 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
                 ESP_LOGI(kTag, "BLE Connected! conn_handle=%d", sConnHandle);
                 if (sInstance) sInstance->onConnected(sConnHandle);
 
+                struct ble_gap_upd_params params = {};
+                params.itvl_min = 6;  // 7.5 ms
+                params.itvl_max = 12; // 15 ms
+                params.latency = 0;
+                params.supervision_timeout = 200; // 2 seconds
+                params.min_ce_len = 0; params.max_ce_len = 0;
+                int updateRc = ble_gap_update_params(sConnHandle, &params);
+                ESP_LOGI(kTag, "Requested connection params 7.5-15ms latency=0 timeout=2s rc=%d", updateRc);
+
                 // Discover services on the peripheral
-                ble_gattc_disc_all_svcs(sConnHandle, onServiceDiscovery, nullptr);
+                sServiceFound = false;
+                if (sInstance) sInstance->setState(BleMidiState::DiscoveringService);
+                int discoverRc = ble_gattc_disc_all_svcs(sConnHandle, onServiceDiscovery, nullptr);
+                if (discoverRc != 0 && sInstance) sInstance->failAndRecover("MIDI service discovery could not start");
             } else {
                 ESP_LOGW(kTag, "Connection failed: status=%d", event->connect.status);
                 startScan();
@@ -167,10 +200,20 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
         }
 
         case BLE_GAP_EVENT_DISCONNECT: {
-            ESP_LOGI(kTag, "BLE Disconnected. Resuming scan...");
+            ESP_LOGI(kTag, "BLE disconnected reason=%d; retry after backoff", event->disconnect.reason);
             sConnHandle = BLE_HS_CONN_HANDLE_NONE;
             if (sInstance) sInstance->onDisconnected();
-            startScan();
+            xTaskCreate([](void*) { vTaskDelay(pdMS_TO_TICKS(750)); startScan(); vTaskDelete(nullptr); },
+                        "ble_retry", 2048, nullptr, 3, nullptr);
+            return 0;
+        }
+
+        case BLE_GAP_EVENT_CONN_UPDATE: {
+            struct ble_gap_conn_desc desc;
+            if (ble_gap_conn_find(event->conn_update.conn_handle, &desc) == 0) {
+                ESP_LOGI(kTag, "Negotiated params interval=%.2fms latency=%u timeout=%ums",
+                         desc.conn_itvl * 1.25f, desc.conn_latency, desc.supervision_timeout * 10);
+            }
             return 0;
         }
 
@@ -192,6 +235,7 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
 }
 
 void startScan() {
+    if (sInstance) sInstance->setState(BleMidiState::Scanning);
     uint8_t own_addr_type;
     int rc = ble_hs_id_infer_auto(0, &own_addr_type);
     if (rc != 0) {
@@ -283,10 +327,19 @@ void BleMidi::poll() {
 
 void BleMidi::onConnected(uint16_t connHandle) {
     connected_.store(true, std::memory_order_release);
+    setState(BleMidiState::Connected);
 }
 
 void BleMidi::onDisconnected() {
     connected_.store(false, std::memory_order_release);
+    parser_.reset();
+    if (state() != BleMidiState::Error) setState(BleMidiState::Idle);
+}
+
+void BleMidi::failAndRecover(const char* reason) {
+    ESP_LOGE(kTag, "%s; disconnecting for recovery", reason);
+    setState(BleMidiState::Error);
+    if (sConnHandle != BLE_HS_CONN_HANDLE_NONE) ble_gap_terminate(sConnHandle, BLE_ERR_REM_USER_CONN_TERM);
 }
 
 void BleMidi::onMidiDataReceived(const uint8_t* data, size_t len) {
@@ -305,6 +358,7 @@ void BleMidi::poll() {}
 void BleMidi::onMidiDataReceived(const uint8_t*, size_t) {}
 void BleMidi::onConnected(uint16_t) { connected_.store(true); }
 void BleMidi::onDisconnected() { connected_.store(false); }
+void BleMidi::failAndRecover(const char*) { connected_.store(false); setState(BleMidiState::Error); }
 } // namespace pocketpan::hardware
 
 #endif
