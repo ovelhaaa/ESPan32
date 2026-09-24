@@ -34,3 +34,8 @@ CONFIG_BT_NIMBLE_ROLE_BROADCASTER=n
 
 # Compiler Optimization
 CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# Realtime audio: keep the I2S/GDMA ISRs executable while the flash cache is
+# disabled (NVS/runtime flash writes), so DMA completion is never delayed.
+CONFIG_I2S_ISR_IRAM_SAFE=y
+CONFIG_GDMA_ISR_IRAM_SAFE=y

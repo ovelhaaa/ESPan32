@@ -1,0 +1,17 @@
+menu "Pocket Pan configuration"
+
+    config POCKETPAN_HARDWARE_QUALIFICATION_LOG
+        bool "Emit periodic audio/MIDI/BLE qualification logs"
+        default n
+        help
+            Logs [AUDIO], [MIDI] and [BLE] counters every 5 seconds from the UI
+            task. Never emitted from the audio task.
+
+    config POCKETPAN_MIDI_DIAGNOSTIC_DEFAULT
+        bool "Boot into the MIDI diagnostic screen"
+        default n
+        help
+            When set, the UI starts on the MIDI diagnostic page instead of the
+            Status page.
+
+endmenu

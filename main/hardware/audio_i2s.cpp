@@ -143,7 +143,7 @@ bool AudioI2S::start() {
     // from a dead DSP in the logs. Fail loudly here instead of silently.
     size_t warmBytes = 0;
     esp_err_t warmErr = i2s_channel_write(txHandle_, txBuffer_, board::audio::kDmaBufferBytes,
-                                          &warmBytes, pdMS_TO_TICKS(100));
+                                          &warmBytes, 100);
     if (warmErr != ESP_OK || warmBytes != board::audio::kDmaBufferBytes) {
         ESP_LOGW(kTag, "I2S TX DMA did not drain on the warm-up block (err=%s, written=%u/%u); rebuilding channel",
                  esp_err_to_name(warmErr), static_cast<unsigned>(warmBytes),
@@ -154,7 +154,7 @@ bool AudioI2S::start() {
             ESP_LOGW(kTag, "I2S TX channel rebuilt; retrying warm-up");
             warmBytes = 0;
             warmErr = i2s_channel_write(txHandle_, txBuffer_, board::audio::kDmaBufferBytes,
-                                        &warmBytes, pdMS_TO_TICKS(100));
+                                        &warmBytes, 100);
             if (warmErr != ESP_OK || warmBytes != board::audio::kDmaBufferBytes) {
                 ESP_LOGE(kTag, "I2S TX still stalled after rebuild (err=%s, written=%u/%u): "
                                "check BCLK/LRCK wiring and the display SPI2 GDMA coexistence",
@@ -245,9 +245,11 @@ void AudioI2S::audioTaskLoop() {
     // Ceiling(128 / 48000 s) = 2667 us.  A render at that duration has missed
     // the complete block budget; transport failures remain separate counters.
     constexpr int64_t blockBudgetUs = 2667;
-    // Pacing by DMA: 6x128 frames (~16 ms buffering). Long timeout keeps the
-    // task blocked (yielding to IDLE0/WDT) instead of spinning on errors.
-    const TickType_t txTimeoutTicks = pdMS_TO_TICKS(50);
+    // i2s_channel_write() expects its last argument in MILLISECONDS (it applies
+    // pdMS_TO_TICKS internally). Passing pdMS_TO_TICKS(50) here delivered 5 ms,
+    // which collapses to 0 ticks at CONFIG_FREERTOS_HZ=100, so a momentarily
+    // empty free-buffer queue returned ESP_ERR_TIMEOUT/0 bytes immediately.
+    const uint32_t txTimeoutMs = 50;
 
     // Subscribe self to task WDT (proves liveness; keeps IDLE monitoring on).
     // Best effort: ignore error if WDT not initialized or already subscribed.
@@ -292,7 +294,7 @@ void AudioI2S::audioTaskLoop() {
 
         // 2. Write to I2S DMA. This blocks until a DMA buffer is free, pacing the real-time audio loop.
         size_t bytesWritten = 0;
-        esp_err_t err = i2s_channel_write(txHandle_, txBuffer_, bytesPerBlock, &bytesWritten, txTimeoutTicks);
+        esp_err_t err = i2s_channel_write(txHandle_, txBuffer_, bytesPerBlock, &bytesWritten, txTimeoutMs);
 
         if (err != ESP_OK || bytesWritten != bytesPerBlock) {
             if (err == ESP_ERR_TIMEOUT) {
