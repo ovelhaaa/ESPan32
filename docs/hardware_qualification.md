@@ -1,7 +1,8 @@
 # M4 hardware qualification
 
-Build with `HARDWARE_DIAGNOSTIC` (or use the built-in Audio Diagnostic page) and
-record physical observations below. Firmware metrics are diagnostic evidence,
+The normal firmware includes the built-in Audio Diagnostic page; no separate
+`HARDWARE_DIAGNOSTIC` build mode exists. Record physical observations below.
+Firmware metrics are diagnostic evidence,
 not a claim that playback or BLE was physically validated.
 
 ## Audio — TENSTAR + PCM5102

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include "dsp_config.h"
 
 namespace pocketpan::dsp {
 
@@ -11,6 +12,7 @@ public:
 
     void init(float sampleRate);
     void reset();
+    void setConfig(const ExciterConfig& config) { config_ = config; }
 
     // Trigger strike with MIDI normalized velocity (0.0 to 1.0)
     void trigger(float velocity);
@@ -38,6 +40,7 @@ private:
 
     // Fast 32-bit xorshift PRNG (deterministic, zero allocation)
     uint32_t rngState_ = 123456789U;
+    ExciterConfig config_{};
 };
 
 } // namespace pocketpan::dsp

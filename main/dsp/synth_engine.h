@@ -16,6 +16,10 @@ public:
     void init(float sampleRate);
     void reset();
 
+    // Used when entering/leaving diagnostic playback so MIDI cannot leave a
+    // resonator ringing behind a tone source.
+    void killAllVoices() { reset(); }
+
     // Process MIDI event on audio thread (NoteOn, NoteOff, Pressure, CC)
     void handleMidiEvent(const midi::MidiEvent& event);
 
@@ -28,7 +32,7 @@ public:
     void setMasterVolume(float vol);
     uint32_t getSoftClipCount() const { return softClipCount_; }
     void resetSoftClipCount() { softClipCount_ = 0; }
-    uint32_t getModalInternalSaturationCount() const { return allocator_.getInternalSaturationCount(); }
+    uint32_t getModalInternalSaturationCount() const;
 
 private:
     float sampleRate_ = 48000.0f;

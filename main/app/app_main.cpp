@@ -4,6 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "esp_heap_caps.h"
 #include "driver/gpio.h"
 
 #include "hardware/board_config.h"
@@ -11,6 +12,7 @@
 #include "hardware/display.h"
 #include "hardware/ble_midi.h"
 #include "dsp/synth_engine.h"
+#include "dsp/diagnostic_tone.h"
 #include "midi/midi_event.h"
 #include "midi/midi_mapping.h"
 #include "ui/ui_state.h"
@@ -21,6 +23,7 @@ namespace {
 constexpr const char* kTag = "pocket_pan_main";
 
 pocketpan::dsp::SynthEngine sSynth;
+pocketpan::dsp::DiagnosticToneSource sDiagnosticTone;
 pocketpan::hardware::AudioI2S sAudio;
 pocketpan::hardware::Display sDisplay;
 pocketpan::hardware::BleMidi sBleMidi;
@@ -58,8 +61,10 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     consume(sBleMidiQueue);
     consume(sDemoMidiQueue);
 
-    // 2. Synthesize polyphonic audio block
-    sSynth.renderBlock(outInterleaved, frames);
+    // 2. One producer owns TX: diagnostics intentionally silence/reset PAN,
+    // while MIDI is still consumed for its diagnostic display.
+    if (sDiagnosticTone.isPan()) sSynth.renderBlock(outInterleaved, frames);
+    else sDiagnosticTone.render(outInterleaved, frames, static_cast<float>(pocketpan::board::audio::kSampleRate));
 
     // 3. Publish at ~47 Hz (one in eight 128-frame blocks), above the 30 Hz UI
     // rate while avoiding needless cross-core atomic traffic on every block.
@@ -97,6 +102,10 @@ void uiTaskLoop(void* param) {
     gpio_config(&bootBtnCfg);
 
     bool lastBootBtnState = true;
+    uint32_t pressStartMs = 0;
+    bool longPressHandled = false;
+    uint32_t lastHeapUpdateMs = 0;
+    uint32_t lastLogMs = 0;
     uint32_t demoTick = 0;
 
     // D Kurd / D Celtic Handpan scale notes: D3, A3, Bb3, C4, D4, E4, F4, A4
@@ -107,13 +116,22 @@ void uiTaskLoop(void* param) {
     while (true) {
         // 1. Check Boot Button to toggle screens
         const bool btnPressed = (gpio_get_level(static_cast<gpio_num_t>(pocketpan::board::ui::kBootButtonGpio)) == 0);
-        if (btnPressed && lastBootBtnState) {
-            // Button pressed down: toggle screen mode
-            sUiState.mode = (sUiState.mode == pocketpan::ui::UiScreenMode::Status)
-                                ? pocketpan::ui::UiScreenMode::MidiDiagnostic
-                                : pocketpan::ui::UiScreenMode::Status;
-            ESP_LOGI(kTag, "Screen mode toggled to: %s",
-                     (sUiState.mode == pocketpan::ui::UiScreenMode::MidiDiagnostic) ? "MidiDiagnostic" : "Status");
+        const uint32_t nowMs = static_cast<uint32_t>(xTaskGetTickCount() * portTICK_PERIOD_MS);
+        if (btnPressed && lastBootBtnState) { pressStartMs = nowMs; longPressHandled = false; }
+        if (btnPressed && sUiState.mode == pocketpan::ui::UiScreenMode::AudioDiagnostic &&
+            !longPressHandled && nowMs - pressStartMs >= 800) {
+            sUiState.mode = pocketpan::ui::UiScreenMode::Status;
+            longPressHandled = true;
+        }
+        if (!btnPressed && !lastBootBtnState && !longPressHandled) {
+            if (sUiState.mode == pocketpan::ui::UiScreenMode::Status) sUiState.mode = pocketpan::ui::UiScreenMode::MidiDiagnostic;
+            else if (sUiState.mode == pocketpan::ui::UiScreenMode::MidiDiagnostic) sUiState.mode = pocketpan::ui::UiScreenMode::AudioDiagnostic;
+            else {
+                const auto next = static_cast<pocketpan::dsp::DiagnosticTone>((static_cast<uint8_t>(sDiagnosticTone.tone()) + 1) % 7);
+                const bool transition = sDiagnosticTone.isPan() != (next == pocketpan::dsp::DiagnosticTone::Pan);
+                if (transition) sSynth.killAllVoices();
+                sDiagnosticTone.setTone(next);
+            }
         }
         lastBootBtnState = !btnPressed;
 
@@ -173,6 +191,19 @@ void uiTaskLoop(void* param) {
         }
 
         sUiState.bleConnected = sBleMidi.isConnected();
+        sBleMidi.poll(); // low-rate BLE RSSI request; never called by audio task
+        sUiState.bleIntervalUnits = sBleMidi.connectionIntervalUnits();
+        sUiState.bleLatency = sBleMidi.connectionLatency();
+        sUiState.bleRssi = sBleMidi.rssi();
+        sUiState.bleReconnects = sBleMidi.reconnectCount();
+        sUiState.bleSupervisionTimeout = sBleMidi.supervisionTimeout();
+        sUiState.bleLastDisconnectReason = sBleMidi.lastDisconnectReason();
+        snprintf(sUiState.diagnosticTone, sizeof(sUiState.diagnosticTone), "%s", sDiagnosticTone.name());
+        if (nowMs - lastHeapUpdateMs >= 1000) {
+            sUiState.internalHeapFree = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
+            sUiState.largestInternalBlock = heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL);
+            lastHeapUpdateMs = nowMs;
+        }
         const auto bleState = sBleMidi.state();
         const char* bleText = "BLE SCAN";
         if (bleState == pocketpan::hardware::BleMidiState::Connecting || bleState == pocketpan::hardware::BleMidiState::Connected) bleText = "BLE CONN";
@@ -200,6 +231,18 @@ void uiTaskLoop(void* param) {
 
         // 4. Render TFT display
         renderer.render(sUiState);
+
+#ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
+        if (nowMs - lastLogMs >= 5000) {
+            lastLogMs = nowMs;
+            ESP_LOGI(kTag, "[AUDIO] blocks=%u avg_us=%u max_us=%u deadline=%u timeout=%u tx_error=%u short=%u",
+                     (unsigned)sAudio.getStats().blocksProcessed, (unsigned)sUiState.avgBlockTimeUs, (unsigned)sUiState.maxBlockTimeUs,
+                     (unsigned)sUiState.deadlineMisses, (unsigned)sUiState.writeTimeouts, (unsigned)sUiState.txErrors, (unsigned)sUiState.shortWrites);
+            ESP_LOGI(kTag, "[MIDI] push=%u pop=%u drop=%u hwm=%u", (unsigned)sUiState.midiPushCount, (unsigned)sUiState.midiPopCount, (unsigned)sUiState.midiDrops, (unsigned)sUiState.midiHighWater);
+            ESP_LOGI(kTag, "[BLE] state=%u interval_ms=%.2f latency=%u rssi=%d reconnects=%u last_disconnect=%u", (unsigned)bleState, sUiState.bleIntervalUnits * 1.25f, (unsigned)sUiState.bleLatency, sUiState.bleRssi, (unsigned)sUiState.bleReconnects, sUiState.bleLastDisconnectReason);
+            ESP_LOGI(kTag, "[MEM] internal_free=%u largest_internal=%u", (unsigned)sUiState.internalHeapFree, (unsigned)sUiState.largestInternalBlock);
+        }
+#endif
 
         vTaskDelay(pdMS_TO_TICKS(pocketpan::board::ui::kRefreshPeriodMs));
     }

@@ -13,6 +13,7 @@
 #include "../main/dsp/modal_voice.h"
 #include "../main/dsp/voice_allocator.h"
 #include "../main/dsp/synth_engine.h"
+#include "../main/dsp/diagnostic_tone.h"
 #include "../main/midi/midi_mapping.h"
 #include "../main/midi/midi_event.h"
 
@@ -64,6 +65,7 @@ struct AudioMetrics {
     float rms = 0.0f;
     float crestFactor = 0.0f;
     uint32_t softClipCount = 0;
+    float attackRms = 0.0f;
 };
 
 AudioMetrics computeMetrics(const std::vector<int32_t>& audioStereo, uint32_t softClipCount) {
@@ -85,7 +87,28 @@ AudioMetrics computeMetrics(const std::vector<int32_t>& audioStereo, uint32_t so
     m.peak = maxAbs;
     m.rms = static_cast<float>(std::sqrt(sumSq / numSamples));
     m.crestFactor = (m.rms > 1.0e-6f) ? (m.peak / m.rms) : 0.0f;
+    const size_t attackSamples = std::min(numSamples, static_cast<size_t>(48000 * 2 / 5)); // first 100 ms, stereo
+    double attackSum = 0.0;
+    for (size_t i = 0; i < attackSamples; ++i) { const float s = static_cast<float>(audioStereo[i]) / 2147483647.0f; attackSum += s * s; }
+    m.attackRms = static_cast<float>(std::sqrt(attackSum / attackSamples));
     return m;
+}
+
+void testDiagnosticToneSource() {
+    std::cout << "[Test 0] Diagnostic tone source routing and level..." << std::endl;
+    dsp::DiagnosticToneSource source;
+    constexpr size_t frames = 48000;
+    std::vector<int32_t> audio(frames * 2);
+    auto render = [&](dsp::DiagnosticTone tone) { source.setTone(tone); source.render(audio.data(), frames, 48000.0f); };
+    render(dsp::DiagnosticTone::Silence);
+    for (auto s : audio) assert(s == 0);
+    render(dsp::DiagnosticTone::Sine440);
+    auto m440 = computeMetrics(audio, 0); assert(m440.rms > 0.34f && m440.rms < 0.37f);
+    render(dsp::DiagnosticTone::Sine1k); auto m1k = computeMetrics(audio, 0); assert(m1k.rms > 0.34f && m1k.rms < 0.37f);
+    render(dsp::DiagnosticTone::Sine1kMinus12); auto m12 = computeMetrics(audio, 0); assert(std::abs(m12.rms - 0.2511886f / std::sqrt(2.0f)) < 0.003f);
+    render(dsp::DiagnosticTone::LeftOnly); bool leftAudible = false; for (size_t i = 0; i < frames; ++i) { assert(audio[i * 2 + 1] == 0); leftAudible |= audio[i * 2] != 0; } assert(leftAudible);
+    render(dsp::DiagnosticTone::RightOnly); bool rightAudible = false; for (size_t i = 0; i < frames; ++i) { assert(audio[i * 2] == 0); rightAudible |= audio[i * 2 + 1] != 0; } assert(rightAudible);
+    std::cout << "  -> PASSED!\n";
 }
 
 // 1. Fundamental frequency accuracy
@@ -408,7 +431,7 @@ void testVelocityCalibration() {
     std::cout << "\n  Vel |   Peak   |   RMS    | CrestFac | Limiter Hits\n";
     std::cout << "  ----+----------+----------+----------+-------------\n";
 
-    float previousRms = 0.0f;
+    float previousRms = 0.0f, previousAttackRms = 0.0f;
     for (uint8_t vel : velocities) {
         dsp::SynthEngine engine;
         engine.init(kFs);
@@ -440,6 +463,8 @@ void testVelocityCalibration() {
         // The physical model may vary peak shape, but early energy must rise.
         assert(m.rms > previousRms * 1.001f && "Velocity RMS must be monotonic");
         previousRms = m.rms;
+        assert(m.attackRms > previousAttackRms * 1.001f && "Velocity attackRms must be monotonic");
+        previousAttackRms = m.attackRms;
         // Vel 20 must produce useful audible sound (> 0.05 peak)
         if (vel == 20) assert(m.peak > 0.05f && "Vel 20 must be audible");
         // Vel <= 110 must NOT trigger safety limiter
@@ -502,10 +527,13 @@ void generateComparativeWavs() {
     render("pan_D3_vel40.wav",{{0,event(62,40)}},144000);
     render("pan_D3_vel90.wav",{{0,event(62,90)}},144000);
     render("pan_D3_vel127.wav",{{0,event(62,127)}},144000);
-    render("pan_D3_double_strike.wav",{{0,event(62,80)},{12000,event(62,95)}},168000);
-    render("pan_D3_triple_strike.wav",{{0,event(62,80)},{12000,event(62,95)},{24000,event(62,105)}},168000);
-    render("pan_chord_simultaneous.wav",{{0,event(62,85)},{0,event(69,80)},{0,event(77,75)},{0,event(81,80)}},192000);
-    render("pan_dense_cluster.wav",{{0,event(62,100)},{0,event(64,100)},{0,event(65,100)},{0,event(67,100)},
+    render("pan_D3_single.wav",{{0,event(62,90)}},144000);
+    render("pan_D3_double_100ms.wav",{{0,event(62,80)},{4800,event(62,95)}},168000);
+    render("pan_D3_double_250ms.wav",{{0,event(62,80)},{12000,event(62,95)}},168000);
+    render("pan_D3_triple.wav",{{0,event(62,80)},{12000,event(62,95)},{24000,event(62,105)}},168000);
+    render("pan_D3_roll.wav",{{0,event(62,85)},{3600,event(62,85)},{7200,event(62,85)},{10800,event(62,85)},{14400,event(62,85)},{18000,event(62,85)},{21600,event(62,85)},{25200,event(62,85)},{28800,event(62,85)},{32400,event(62,85)},{36000,event(62,85)},{39600,event(62,85)},{43200,event(62,85)}},96000);
+    render("pan_chord.wav",{{0,event(62,85)},{0,event(69,80)},{0,event(77,75)},{0,event(81,80)}},192000);
+    render("pan_cluster8.wav",{{0,event(62,100)},{0,event(64,100)},{0,event(65,100)},{0,event(67,100)},
            {0,event(69,100)},{0,event(70,100)},{0,event(72,100)},{0,event(74,100)}},192000);
 }
 
@@ -514,6 +542,7 @@ int main() {
     std::cout << "  Pocket Pan / Metal Modal Synth - Comprehensive DSP  \n";
     std::cout << "=======================================================\n\n";
 
+    testDiagnosticToneSource();
     testModalFrequency();
     testT60Decay();
     testModeSplitting();

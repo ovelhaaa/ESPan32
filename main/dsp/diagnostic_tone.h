@@ -18,19 +18,33 @@ public:
     bool isPan() const { return tone() == DiagnosticTone::Pan; }
     void render(int32_t* out, size_t frames, float sampleRate) {
         const auto tone = this->tone();
+        if (tone != renderedTone_) {
+            // A source change starts at a deterministic zero crossing.  The expensive
+            // trigonometry below is consequently outside the per-sample loop.
+            oscCos_ = 1.0f;
+            oscSin_ = 0.0f;
+            renderedTone_ = tone;
+        }
         const float hz = tone == DiagnosticTone::Sine440 ? 440.0f : 1000.0f;
         const float gain = tone == DiagnosticTone::Sine1kMinus12 ? 0.2511886f : 0.50f;
+        const float step = 6.28318530718f * hz / sampleRate;
+        const float stepCos = std::cos(step);
+        const float stepSin = std::sin(step);
         for (size_t i = 0; i < frames; ++i) {
-            float v = tone == DiagnosticTone::Silence ? 0.0f : std::sin(phase_) * gain;
-            phase_ += 6.28318530718f * hz / sampleRate;
-            if (phase_ >= 6.28318530718f) phase_ -= 6.28318530718f;
+            const float v = tone == DiagnosticTone::Silence ? 0.0f : oscSin_ * gain;
             int32_t s = static_cast<int32_t>(v * 2147483647.0f);
             out[i * 2] = tone == DiagnosticTone::RightOnly ? 0 : s;
             out[i * 2 + 1] = tone == DiagnosticTone::LeftOnly ? 0 : s;
+            // Recursive oscillator: no std::sin() or std::cos() per sample.
+            const float nextCos = oscCos_ * stepCos - oscSin_ * stepSin;
+            oscSin_ = oscSin_ * stepCos + oscCos_ * stepSin;
+            oscCos_ = nextCos;
         }
     }
 private:
     std::atomic<uint8_t> tone_{static_cast<uint8_t>(DiagnosticTone::Pan)};
-    float phase_ = 0.0f;
+    DiagnosticTone renderedTone_ = DiagnosticTone::Pan;
+    float oscCos_ = 1.0f;
+    float oscSin_ = 0.0f;
 };
 } // namespace pocketpan::dsp

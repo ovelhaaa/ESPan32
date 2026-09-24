@@ -202,7 +202,7 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
         case BLE_GAP_EVENT_DISCONNECT: {
             ESP_LOGI(kTag, "BLE disconnected reason=%d; retry after backoff", event->disconnect.reason);
             sConnHandle = BLE_HS_CONN_HANDLE_NONE;
-            if (sInstance) sInstance->onDisconnected();
+            if (sInstance) { sInstance->onDisconnectReason(event->disconnect.reason); sInstance->onDisconnected(); }
             const BaseType_t retryCreated = xTaskCreate(
                 [](void*) { vTaskDelay(pdMS_TO_TICKS(750)); startScan(); vTaskDelete(nullptr); },
                 "ble_retry", 2048, nullptr, 3, nullptr);
@@ -218,6 +218,7 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
             if (ble_gap_conn_find(event->conn_update.conn_handle, &desc) == 0) {
                 ESP_LOGI(kTag, "Negotiated params interval=%.2fms latency=%u timeout=%ums",
                          desc.conn_itvl * 1.25f, desc.conn_latency, desc.supervision_timeout * 10);
+                if (sInstance) sInstance->onConnectionUpdate(desc.conn_itvl, desc.conn_latency, desc.supervision_timeout);
             }
             return 0;
         }
@@ -327,10 +328,24 @@ bool BleMidi::begin() {
 }
 
 void BleMidi::poll() {
-    // NimBLE uses event-driven callbacks; polling is handled inside NimBLE host task
+    // UI/Core 1 samples the controller's most recently measured RSSI. This
+    // query is deliberately never made from the audio task.
+    static uint32_t lastRssiRequestMs = 0;
+    const uint32_t nowMs = static_cast<uint32_t>(xTaskGetTickCount() * portTICK_PERIOD_MS);
+    if (isConnected() && nowMs - lastRssiRequestMs >= 1000 && sConnHandle != BLE_HS_CONN_HANDLE_NONE) {
+        lastRssiRequestMs = nowMs;
+        int8_t value = 0;
+        const int rc = ble_gap_conn_rssi(sConnHandle, &value);
+        if (rc == 0) onRssi(value);
+        else ESP_LOGD(kTag, "RSSI query failed: %d", rc);
+    }
 }
 
 void BleMidi::onConnected(uint16_t connHandle) {
+    if (hasConnectedBefore_.exchange(true, std::memory_order_acq_rel) &&
+        disconnectedSinceConnect_.exchange(false, std::memory_order_acq_rel)) {
+        reconnectCount_.fetch_add(1, std::memory_order_relaxed);
+    }
     connected_.store(true, std::memory_order_release);
     setState(BleMidiState::Connected);
 }
@@ -338,8 +353,17 @@ void BleMidi::onConnected(uint16_t connHandle) {
 void BleMidi::onDisconnected() {
     connected_.store(false, std::memory_order_release);
     parser_.reset();
+    disconnectedSinceConnect_.store(true, std::memory_order_release);
     if (state() != BleMidiState::Error) setState(BleMidiState::Idle);
 }
+
+void BleMidi::onConnectionUpdate(uint16_t intervalUnits, uint16_t latency, uint16_t supervisionTimeout) {
+    intervalUnits_.store(intervalUnits, std::memory_order_release);
+    latency_.store(latency, std::memory_order_release);
+    supervisionTimeout_.store(supervisionTimeout, std::memory_order_release);
+}
+void BleMidi::onRssi(int8_t rssi) { rssi_.store(rssi, std::memory_order_release); }
+void BleMidi::onDisconnectReason(uint8_t reason) { lastDisconnectReason_.store(reason, std::memory_order_release); }
 
 void BleMidi::failAndRecover(const char* reason) {
     ESP_LOGE(kTag, "%s; disconnecting for recovery", reason);
@@ -362,7 +386,10 @@ bool BleMidi::begin() { return true; }
 void BleMidi::poll() {}
 void BleMidi::onMidiDataReceived(const uint8_t*, size_t) {}
 void BleMidi::onConnected(uint16_t) { connected_.store(true); }
-void BleMidi::onDisconnected() { connected_.store(false); }
+void BleMidi::onDisconnected() { connected_.store(false); disconnectedSinceConnect_.store(true); }
+void BleMidi::onConnectionUpdate(uint16_t i, uint16_t l, uint16_t t) { intervalUnits_.store(i); latency_.store(l); supervisionTimeout_.store(t); }
+void BleMidi::onRssi(int8_t r) { rssi_.store(r); }
+void BleMidi::onDisconnectReason(uint8_t r) { lastDisconnectReason_.store(r); }
 void BleMidi::failAndRecover(const char*) { connected_.store(false); setState(BleMidiState::Error); }
 } // namespace pocketpan::hardware
 

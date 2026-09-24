@@ -51,6 +51,8 @@ struct UiState {
     uint16_t bleIntervalUnits = 0;
     uint16_t bleLatency = 0;
     int8_t bleRssi = 0;
+    uint16_t bleSupervisionTimeout = 0;
+    uint8_t bleLastDisconnectReason = 0;
 };
 
 } // namespace pocketpan::ui

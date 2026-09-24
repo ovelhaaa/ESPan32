@@ -191,7 +191,9 @@ void AudioI2S::audioTaskEntry(void* arg) {
 void AudioI2S::audioTaskLoop() {
     const size_t bytesPerBlock = board::audio::kDmaBufferBytes;
     const size_t framesPerBlock = board::audio::kDmaBufferFrames;
-    const int64_t blockBudgetUs = static_cast<int64_t>((1000000ULL * framesPerBlock) / board::audio::kSampleRate); // ~2666 us
+    // Ceiling(128 / 48000 s) = 2667 us.  A render at that duration has missed
+    // the complete block budget; transport failures remain separate counters.
+    constexpr int64_t blockBudgetUs = 2667;
     const TickType_t txTimeoutTicks = pdMS_TO_TICKS(16); // ~16ms max wait before reporting underrun/error
 
     uint64_t totalProcessTimeUs = 0;
@@ -211,7 +213,7 @@ void AudioI2S::audioTaskLoop() {
         uint32_t processTimeUs = static_cast<uint32_t>(tRenderDone - tStart);
 
         // Update real-time profiling stats
-        if (processTimeUs > static_cast<uint32_t>(blockBudgetUs)) {
+        if (processTimeUs >= static_cast<uint32_t>(blockBudgetUs)) {
             stats_.deadlineMisses.fetch_add(1, std::memory_order_relaxed);
         }
         uint32_t oldMax = stats_.maxBlockTimeUs.load(std::memory_order_relaxed);

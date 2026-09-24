@@ -5,6 +5,7 @@
 #include <cstddef>
 #include "modal_mode.h"
 #include "modal_preset.h"
+#include "dsp_config.h"
 
 namespace pocketpan::dsp {
 
@@ -16,6 +17,7 @@ public:
     void reset();
 
     void setPreset(const ModalPreset& preset);
+    void setConfig(const ResonatorConfig& config) { config_ = config; }
     void updatePitchAndDamping(float fundamentalFrequencyHz, float damping);
 
     // Process a single sample through the resonator bank
@@ -30,6 +32,7 @@ public:
     size_t getModeCount() const { return modeCount_; }
     size_t getActiveModeCount() const { return activeModeCount_; }
     uint32_t getInternalSaturationCount() const { return internalSaturationCount_; }
+    void resetInternalSaturationCount() { internalSaturationCount_ = 0; }
 
 private:
     float sampleRate_ = 48000.0f;
@@ -41,6 +44,7 @@ private:
     ModalModeState modes_[kMaxModesPerVoice];
     ModalModeDefinition presetModes_[kMaxModesPerVoice];
     uint32_t internalSaturationCount_ = 0;
+    ResonatorConfig config_{};
 };
 
 } // namespace pocketpan::dsp
