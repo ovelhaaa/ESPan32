@@ -41,6 +41,12 @@ void SynthEngine::setMasterVolume(float vol) {
     masterGain_ = std::clamp(vol, 0.0f, 1.0f);
 }
 
+uint32_t SynthEngine::getModalInternalSaturationCount() const {
+    uint32_t total = 0;
+    for (size_t i = 0; i < kMaxVoices; ++i) total += allocator_.getVoice(i).getInternalSaturationCount();
+    return total;
+}
+
 void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
     switch (event.type) {
         case midi::MidiEventType::NoteOn: {

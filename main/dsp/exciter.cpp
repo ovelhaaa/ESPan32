@@ -1,4 +1,5 @@
 #include "exciter.h"
+#include "pan_calibration.h"
 #include <algorithm>
 #include <cmath>
 
@@ -26,7 +27,7 @@ void Exciter::trigger(float velocity) {
     // Vel 20 (~0.15) -> ~0.24, Vel 80 (~0.63) -> ~0.63, Vel 127 (1.0) -> 1.0
     const float minStrikeGain = 0.15f;
     const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * std::pow(v, 1.25f);
-    strikeAmplitude_ = strikeGain * 0.80f;
+    strikeAmplitude_ = strikeGain * kPanCalibration.exciterGain;
 
     // 2. Transient hardness: high velocity yields a shorter, sharper impulse
     // Soft strike (low v): ~14 samples (soft finger pad / rounded mallet)
@@ -41,11 +42,12 @@ void Exciter::trigger(float velocity) {
     // 4. Brightness / Cutoff frequency:
     // Low velocity: ~700 Hz (warm, rounded thud)
     // High velocity: ~12,000 Hz (bright, crisp acoustic strike)
-    const float cutoffHz = 700.0f + 11300.0f * (v * v);
+    const float cutoffHz = kPanCalibration.brightnessMinHz +
+        (kPanCalibration.brightnessMaxHz - kPanCalibration.brightnessMinHz) * (v * v);
     const float w = (2.0f * kPi * cutoffHz) / sampleRate_;
     filterCoeff_ = std::clamp(1.0f - std::exp(-w), 0.01f, 0.99f);
 
-    noiseGain_ = strikeAmplitude_ * (0.04f + 0.06f * v);
+    noiseGain_ = strikeAmplitude_ * (0.04f + 0.06f * v) * kPanCalibration.noiseAmount;
 
     sampleIndex_ = 0;
     filterState_ = 0.0f;

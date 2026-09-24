@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modal_mode.h"
+#include "pan_calibration.h"
 
 namespace pocketpan::dsp {
 
@@ -22,10 +23,10 @@ inline const ModalPreset kPresetPan = {
     8,
     {
         // ratio,   gain,  t60(s), detune
-        { 1.0000f, 1.00f, 2.40f, 0.0000f }, // Mode 0: Fundamental (f)
-        { 1.0000f, 0.38f, 2.10f, 0.0032f }, // Mode 1: Split doublet of fundamental (ratio=1.0, detune=0.0032 for natural acoustic beating)
-        { 2.0000f, 0.70f, 1.80f, 0.0000f }, // Mode 2: Octave (2f - longitudinal ding mode)
-        { 3.0000f, 0.48f, 1.30f, 0.0000f }, // Mode 3: Compound Fifth (3f - transverse ding mode)
+        { 1.0000f, kPanCalibration.fundamentalGain, 2.40f, 0.0000f }, // Mode 0: Fundamental (f)
+        { 1.0000f, kPanCalibration.splitGain, 2.10f, 0.0032f }, // Mode 1: Split doublet
+        { 2.0000f, kPanCalibration.octaveGain, 1.80f, 0.0000f }, // Mode 2: Octave
+        { 3.0000f, kPanCalibration.fifthGain, 1.30f, 0.0000f }, // Mode 3: Compound Fifth
         { 3.9800f, 0.22f, 0.85f, 0.0000f }, // Mode 4: Upper harmonic mode (~4f)
         { 5.2500f, 0.14f, 0.60f, 0.0000f }, // Mode 5: Higher boundary mode (~5.25f)
         { 6.6200f, 0.08f, 0.40f, 0.0000f }, // Mode 6: Metallic ring mode (~6.6f)

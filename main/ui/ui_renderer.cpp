@@ -6,6 +6,18 @@ namespace pocketpan::ui {
 void UiRenderer::render(const UiState& state) {
     if (state.mode == UiScreenMode::MidiDiagnostic) {
         renderDiagnostic(state);
+    } else if (state.mode == UiScreenMode::AudioDiagnostic) {
+        display_.clear(hardware::colors::Background);
+        display_.fillRect(0, 0, hardware::Display::kWidth, 18, hardware::colors::DarkGray);
+        display_.drawText(8, 5, "AUDIO DIAG", hardware::colors::White, 1);
+        char b[40];
+        snprintf(b, sizeof(b), "SR %u  BLOCK 128", 48000U); display_.drawText(10, 26, b, hardware::colors::LightGray, 1);
+        snprintf(b, sizeof(b), "LOAD %2.1f%% MAX %uus", state.cpuLoadPercent, (unsigned)state.maxBlockTimeUs); display_.drawText(10, 42, b, hardware::colors::LightGray, 1);
+        snprintf(b, sizeof(b), "DLINE %u TMO %u", (unsigned)state.deadlineMisses, (unsigned)state.writeTimeouts); display_.drawText(10, 58, b, hardware::colors::LightGray, 1);
+        snprintf(b, sizeof(b), "TXERR %u SHORT %u", (unsigned)state.txErrors, (unsigned)state.shortWrites); display_.drawText(10, 74, b, hardware::colors::LightGray, 1);
+        snprintf(b, sizeof(b), "HEAP %u LRG %u", (unsigned)state.internalHeapFree, (unsigned)state.largestInternalBlock); display_.drawText(10, 90, b, hardware::colors::LightGray, 1);
+        snprintf(b, sizeof(b), "SOURCE %s", state.diagnosticTone); display_.drawText(10, 106, b, hardware::colors::Cyan, 1);
+        display_.drawText(10, 122, "BOOT: SOURCE / HOLD EXIT", hardware::colors::Gray, 1);
     } else {
         renderStatus(state);
     }
@@ -85,10 +97,14 @@ void UiRenderer::renderDiagnostic(const UiState& state) {
              static_cast<unsigned>(state.midiHighWater), static_cast<unsigned>(state.midiDrops));
     display_.drawText(10, 72, buf, state.midiDrops > 0 ? hardware::colors::Red : hardware::colors::Green, 1);
 
+    snprintf(buf, sizeof(buf), "CONN %.2fms LAT %u RSSI %d",
+             state.bleIntervalUnits * 1.25f, state.bleLatency, state.bleRssi);
+    display_.drawText(10, 80, buf, hardware::colors::LightGray, 1);
+
     // Audio Engine stats
     snprintf(buf, sizeof(buf), "DSP %uus (CPU %2.0f%%) DL %u",
              static_cast<unsigned>(state.avgBlockTimeUs), state.cpuLoadPercent, static_cast<unsigned>(state.deadlineMisses));
-    display_.drawText(10, 88, buf, state.deadlineMisses > 0 ? hardware::colors::Red : hardware::colors::LightGray, 1);
+    display_.drawText(10, 94, buf, state.deadlineMisses > 0 ? hardware::colors::Red : hardware::colors::LightGray, 1);
 
     // Bottom status
     display_.drawFastHLine(0, 114, hardware::Display::kWidth, hardware::colors::DarkGray);

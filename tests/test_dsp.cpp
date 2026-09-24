@@ -305,6 +305,21 @@ void testDeclickedVoiceStealing() {
     std::cout << "  -> PASSED: Declicked voice stealing handled 16-note burst without clicks or instability!\n";
 }
 
+// A naturally inactive voice must not carry a stale sample into a later steal.
+void testInactiveTriggerClearsResidual() {
+    std::cout << "[Test 5b] Inactive trigger clears stale residual..." << std::endl;
+    dsp::ModalVoice voice;
+    voice.init(48000.0f);
+    voice.trigger(62, 293.665f, 0.8f);
+    for (int i = 0; i < 100; ++i) voice.processSample();
+    assert(std::abs(voice.getLastSample()) > 1.0e-7f);
+    voice.reset();
+    // Exercise the public inactive reuse path after a state transition.
+    voice.trigger(64, 329.628f, 0.7f);
+    assert(voice.getLastSample() == 0.0f);
+    std::cout << "  -> PASSED!\n";
+}
+
 // 6. Independent Multi-Voice Damping (Poly Pressure)
 void testMultiVoiceDamping() {
     std::cout << "[Test 6] Multi-Voice Independent Damping (Poly Pressure)..." << std::endl;
@@ -388,11 +403,12 @@ void testGainNormalization() {
 void testVelocityCalibration() {
     std::cout << "[Test 8] Velocity Dynamic Calibration (20, 50, 80, 110, 127)..." << std::endl;
     constexpr float kFs = 48000.0f;
-    const uint8_t velocities[] = { 20, 50, 80, 110, 127 };
+    const uint8_t velocities[] = { 10, 20, 40, 64, 90, 110, 127 };
 
     std::cout << "\n  Vel |   Peak   |   RMS    | CrestFac | Limiter Hits\n";
     std::cout << "  ----+----------+----------+----------+-------------\n";
 
+    float previousRms = 0.0f;
     for (uint8_t vel : velocities) {
         dsp::SynthEngine engine;
         engine.init(kFs);
@@ -421,12 +437,16 @@ void testVelocityCalibration() {
                   << " | " << std::setw(12) << m.softClipCount << "\n" << std::flush;
 
         // Criteria:
+        // The physical model may vary peak shape, but early energy must rise.
+        assert(m.rms > previousRms * 1.001f && "Velocity RMS must be monotonic");
+        previousRms = m.rms;
         // Vel 20 must produce useful audible sound (> 0.05 peak)
         if (vel == 20) assert(m.peak > 0.05f && "Vel 20 must be audible");
         // Vel <= 110 must NOT trigger safety limiter
         if (vel <= 110) assert(m.softClipCount == 0 && "Limiter must not engage during normal playing");
         // Peak must never exceed 1.0
         assert(m.peak <= 1.0f);
+        if (vel <= 110) assert(engine.getModalInternalSaturationCount() == 0 && "Normal single notes must not use modal saturation");
     }
     std::cout << "  -> PASSED: Dynamic velocity range is expressive and controlled!\n";
 }
@@ -499,6 +519,7 @@ int main() {
     testModeSplitting();
     testSameNoteRestrike();
     testDeclickedVoiceStealing();
+    testInactiveTriggerClearsResidual();
     testMultiVoiceDamping();
     testGainNormalization();
     testVelocityCalibration();

@@ -1,4 +1,5 @@
 #include "modal_resonator.h"
+#include "pan_calibration.h"
 #include <algorithm>
 #include <cmath>
 
@@ -15,6 +16,7 @@ void ModalResonatorBank::init(float sampleRate) {
     sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
     internalSaturationCount_ = 0;
     reset();
+    resetInternalSaturationCount();
     setPreset(kPresetPan);
 }
 
@@ -44,7 +46,7 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
     // Damping factor: scales T60 down smoothly as damping increases (choke / palm mute)
     // At damping = 0: 100% of nominal T60
     // At damping = 1: 5% of nominal T60 (fast physical decay)
-    const float dampingScale = 1.0f - 0.95f * currentDamping_;
+    const float dampingScale = 1.0f - kPanCalibration.dampingDepth * currentDamping_;
 
     // Bank normalization: energy-based scaling across defined modes
     // Prevents multi-mode summation from exploding headroom
@@ -100,7 +102,7 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
         // Setting b0 = sin(w) * modeGain * bankNorm normalizes the attack envelope peak to
         // exactly modeGain * bankNorm, INDEPENDENT of frequency w and INDEPENDENT of T60 decay!
         const float filterNorm = std::sin(w);
-        modes_[i].gain = modeGain * filterNorm * bankNorm;
+        modes_[i].gain = modeGain * filterNorm * bankNorm * kPanCalibration.masterModalGain;
     }
 }
 

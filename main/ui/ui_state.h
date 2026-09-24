@@ -7,7 +7,8 @@ namespace pocketpan::ui {
 
 enum class UiScreenMode : uint8_t {
     Status = 0,
-    MidiDiagnostic
+    MidiDiagnostic,
+    AudioDiagnostic
 };
 
 struct UiState {
@@ -33,6 +34,9 @@ struct UiState {
     uint32_t writeTimeouts = 0;
     uint32_t txErrors = 0;
     uint32_t shortWrites = 0;
+    uint32_t internalHeapFree = 0;
+    uint32_t largestInternalBlock = 0;
+    char diagnosticTone[12] = "PAN";
 
     // MIDI Queue diagnostics
     uint32_t midiPushCount = 0;
@@ -43,6 +47,10 @@ struct UiState {
     // BLE status
     bool bleConnected = false;
     char bleStatus[16] = "BLE SCAN";
+    uint32_t bleReconnects = 0;
+    uint16_t bleIntervalUnits = 0;
+    uint16_t bleLatency = 0;
+    int8_t bleRssi = 0;
 };
 
 } // namespace pocketpan::ui
