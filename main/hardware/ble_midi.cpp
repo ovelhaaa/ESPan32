@@ -86,8 +86,8 @@ int onCharDiscovery(uint16_t conn_handle, const struct ble_gatt_error* error,
         if (ble_uuid_cmp(&chr->uuid.u, &kMidiCharUuid.u) == 0) {
             sCharacteristicFound = true;
             if (sInstance) sInstance->setState(BleMidiState::DiscoveringCccd);
-            ESP_LOGI(kTag, "Found BLE MIDI Characteristic! def_handle=%d val_handle=%d",
-                     chr->def_handle, chr->val_handle);
+            ESP_LOGI(kTag, "Found BLE MIDI Characteristic! def_handle=%d val_handle=%d props=0x%02X",
+                     chr->def_handle, chr->val_handle, chr->properties);
             sMidiValHandle = chr->val_handle;
             sCccdFound = false;
 
@@ -158,7 +158,9 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
             }
 
             if (matchesMidi) {
-                ESP_LOGI(kTag, "BLE MIDI device found; connecting");
+                ESP_LOGI(kTag, "BLE MIDI device found (%02X:%02X:%02X:%02X:%02X:%02X); connecting",
+                         event->disc.addr.val[5], event->disc.addr.val[4], event->disc.addr.val[3],
+                         event->disc.addr.val[2], event->disc.addr.val[1], event->disc.addr.val[0]);
                 if (sInstance) sInstance->setState(BleMidiState::Connecting);
                 ble_gap_disc_cancel();
 

@@ -251,7 +251,10 @@ void uiTaskLoop(void* param) {
             ESP_LOGI(kTag, "[AUDIO] blocks=%u avg_us=%u max_us=%u deadline=%u timeout=%u tx_error=%u short=%u",
                      (unsigned)sAudio.getStats().blocksProcessed, (unsigned)sUiState.avgBlockTimeUs, (unsigned)sUiState.maxBlockTimeUs,
                      (unsigned)sUiState.deadlineMisses, (unsigned)sUiState.writeTimeouts, (unsigned)sUiState.txErrors, (unsigned)sUiState.shortWrites);
-            ESP_LOGI(kTag, "[MIDI] push=%u pop=%u drop=%u hwm=%u", (unsigned)sUiState.midiPushCount, (unsigned)sUiState.midiPopCount, (unsigned)sUiState.midiDrops, (unsigned)sUiState.midiHighWater);
+            ESP_LOGI(kTag, "[MIDI] push=%u pop=%u drop=%u hwm=%u last=(n=%u v=%u t=%u hex=%02X%02X%02X)",
+                     (unsigned)sUiState.midiPushCount, (unsigned)sUiState.midiPopCount, (unsigned)sUiState.midiDrops, (unsigned)sUiState.midiHighWater,
+                     (unsigned)sUiState.lastNoteNumber, (unsigned)sUiState.lastVelocity, (unsigned)sUiState.lastEventType[0],
+                     sUiState.lastRawBytes[0], sUiState.lastRawBytes[1], sUiState.lastRawBytes[2]);
             ESP_LOGI(kTag, "[BLE] state=%u interval_ms=%.2f latency=%u rssi=%d reconnects=%u last_disconnect=%u", (unsigned)bleState, sUiState.bleIntervalUnits * 1.25f, (unsigned)sUiState.bleLatency, sUiState.bleRssi, (unsigned)sUiState.bleReconnects, sUiState.bleLastDisconnectReason);
             ESP_LOGI(kTag, "[MEM] internal_free=%u largest_internal=%u", (unsigned)sUiState.internalHeapFree, (unsigned)sUiState.largestInternalBlock);
         }
