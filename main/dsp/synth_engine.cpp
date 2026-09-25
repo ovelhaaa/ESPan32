@@ -9,8 +9,10 @@ void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
     limiter_.init(sampleRate_);
-    // 35 ms avoids gain steps as modal voices naturally become inactive.
-    polyHeadroomRelease_ = std::exp(-1.0f / (sampleRate_ * 0.035f));
+    // Fast attenuation catches simultaneous-note attacks; slower recovery
+    // avoids loudness steps while modal voices naturally become inactive.
+    polyHeadroomAttackCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.003f));
+    polyHeadroomReleaseCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.050f));
     reset();
 }
 
@@ -21,6 +23,12 @@ void SynthEngine::reset() {
     preLimiterPeak_ = postLimiterPeak_ = 0.0f;
     hardClampCount_ = 0;
     std::fill(monoBuffer_, monoBuffer_ + kMaxBlockFrames, 0.0f);
+}
+
+void SynthEngine::resetDiagnostics() {
+    limiter_.resetDiagnostics();
+    preLimiterPeak_ = postLimiterPeak_ = 0.0f;
+    hardClampCount_ = 0;
 }
 
 void SynthEngine::setMasterVolume(float vol) {
@@ -83,7 +91,9 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
 
     // 2. Mixdown, headroom, lookahead gain limiting, and safe conversion.
     for (size_t i = 0; i < frames; ++i) {
-        polyHeadroomGain_ = targetHeadroom + polyHeadroomRelease_ * (polyHeadroomGain_ - targetHeadroom);
+        const float coefficient = targetHeadroom < polyHeadroomGain_
+            ? polyHeadroomAttackCoefficient_ : polyHeadroomReleaseCoefficient_;
+        polyHeadroomGain_ = targetHeadroom + coefficient * (polyHeadroomGain_ - targetHeadroom);
         float sample = monoBuffer_[i] * masterGain_ * polyHeadroomGain_;
 
         // NaN / Inf safety guard

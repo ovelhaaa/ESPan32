@@ -659,7 +659,10 @@ struct OutputStrategyResult {
     float prePeak = 0.0f;
     float postPeak = 0.0f;
     float maxGrDb = 0.0f;
+    float averageGrDb = 0.0f;
     uint32_t limiterActive = 0;
+    uint32_t grOver0p1Db = 0;
+    uint32_t grOver1Db = 0;
     uint32_t hardClampCount = 0;
 };
 
@@ -672,7 +675,8 @@ OutputStrategyResult renderOutputStrategy(const std::vector<ScheduledEvent>& eve
     dsp::PeakLimiter limiter;
     limiter.init(kFs);
     float polyGain = 1.0f;
-    const float polyCoeff = std::exp(-1.0f / (kFs * 0.035f));
+    const float polyAttackCoeff = std::exp(-1.0f / (kFs * 0.003f));
+    const float polyReleaseCoeff = std::exp(-1.0f / (kFs * 0.050f));
     const float masterGain = strategy == OutputStrategy::StaticGainOnly ? 0.50f : 0.85f;
     OutputStrategyResult result;
     result.audio.resize(totalFrames * 2);
@@ -694,7 +698,8 @@ OutputStrategyResult renderOutputStrategy(const std::vector<ScheduledEvent>& eve
         for (size_t i = 0; i < frames; ++i) {
             float sample = mono[i] * masterGain;
             if (strategy == OutputStrategy::NewLimiter) {
-                polyGain = targetPolyGain + polyCoeff * (polyGain - targetPolyGain);
+                const float coefficient = targetPolyGain < polyGain ? polyAttackCoeff : polyReleaseCoeff;
+                polyGain = targetPolyGain + coefficient * (polyGain - targetPolyGain);
                 sample *= polyGain;
             }
             result.prePeak = std::max(result.prePeak, std::abs(sample));
@@ -713,6 +718,9 @@ OutputStrategyResult renderOutputStrategy(const std::vector<ScheduledEvent>& eve
     if (strategy == OutputStrategy::NewLimiter) {
         result.limiterActive = limiter.getActiveSampleCount();
         result.maxGrDb = limiter.getMaxGainReductionDb();
+        result.averageGrDb = limiter.getAverageGainReductionDb();
+        result.grOver0p1Db = limiter.getGainReductionOver0p1DbSamples();
+        result.grOver1Db = limiter.getGainReductionOver1DbSamples();
     }
     return result;
 }
@@ -741,7 +749,7 @@ void testOutputStrategyAbc() {
     std::ofstream report("output_stage_abc_metrics.md");
     report << "# Output stage A/B/C host audit\n\n"
            << "A = master 0.85 + retired tanh; B = poly headroom + peak limiter; C = master 0.50 + retired tanh.\n\n"
-           << "| Fixture | A peak/RMS | B pre/post/RMS | B max GR | B hard clamp | C peak/RMS | A→B RMS diff | A→C RMS diff |\n|---|---|---|---:|---:|---|---:|---:|\n";
+           << "| Fixture | A peak/RMS | B pre/post/RMS | B max/avg GR | B GR >0.1/>1 dB | B hard clamp | C peak/RMS | A→B RMS diff | A→C RMS diff |\n|---|---|---|---:|---:|---:|---|---:|---:|\n";
     for (const auto& item : cases) {
         const size_t frames = std::strcmp(item.first, "roll") == 0 ? 96000 : 192000;
         const auto old = renderOutputStrategy(item.second, frames, OutputStrategy::OldTanh);
@@ -755,8 +763,8 @@ void testOutputStrategyAbc() {
         const float abDiff = rmsDifference(old.audio, fresh.audio);
         const float acDiff = rmsDifference(old.audio, quiet.audio);
         report << "| " << item.first << " | " << oldMetrics.peak << " / " << oldMetrics.rms
-               << " | " << fresh.prePeak << " / " << newMetrics.peak << " / " << newMetrics.rms << " | " << fresh.maxGrDb
-               << " | " << fresh.hardClampCount << " | " << quietMetrics.peak << " / " << quietMetrics.rms
+               << " | " << fresh.prePeak << " / " << newMetrics.peak << " / " << newMetrics.rms << " | " << fresh.maxGrDb << " / " << fresh.averageGrDb
+               << " | " << fresh.grOver0p1Db << " / " << fresh.grOver1Db << " | " << fresh.hardClampCount << " | " << quietMetrics.peak << " / " << quietMetrics.rms
                << " | " << abDiff << " | " << acDiff << " |\n";
         writeWavFile((std::string("pan_") + item.first + "_old.wav").c_str(), old.audio.data(), frames, 48000);
         writeWavFile((std::string("pan_") + item.first + "_new.wav").c_str(), fresh.audio.data(), frames, 48000);
@@ -794,6 +802,21 @@ void testPeakLimiter() {
         peak = std::max(peak, std::abs(hot.processSample(1.5f * std::sin(2.0f * 3.14159265358979323846f * 1000.0f * i / kFs))));
     assert(peak <= std::pow(10.0f, -0.5f / 20.0f) + 1.0e-4f);
     assert(hot.getMaxGainReductionDb() < -3.0f && hot.getActiveSampleCount() > 0);
+    assert(hot.getGainReductionOver0p1DbSamples() > 0);
+    assert(hot.getGainReductionOver1DbSamples() > 0);
+    assert(hot.getAverageGainReductionDb() < 0.0f);
+
+    // Diagnostic reset must not flush lookahead/envelope audio state.
+    dsp::PeakLimiter stateful;
+    stateful.init(kFs); stateful.setConfig(cfg);
+    for (uint32_t i = 0; i < kLookahead + 8; ++i) stateful.processSample(1.5f);
+    stateful.resetDiagnostics();
+    const float continuingOutput = stateful.processSample(1.5f);
+    assert(std::abs(continuingOutput) > 1.0e-3f);
+    assert(stateful.getActiveSampleCount() == 1);
+    assert(stateful.getGainReductionOver0p1DbSamples() == 1);
+    assert(stateful.getGainReductionOver1DbSamples() == 1);
+    assert(stateful.getMaxGainReductionDb() < -1.0f);
 
     // Validate all candidate releases: gain must recover after a burst, rather
     // than staying latched or jumping back to unity during the delayed peak.

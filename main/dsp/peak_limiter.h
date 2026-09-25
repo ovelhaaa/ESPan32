@@ -18,12 +18,17 @@ class PeakLimiter {
 public:
     void init(float sampleRate);
     void reset();
+    // Clears reported statistics without touching delay or envelope state.
+    void resetDiagnostics();
     void setConfig(const LimiterConfig& cfg);
     float processSample(float x);
 
     float getCurrentGainReductionDb() const;
     float getMaxGainReductionDb() const;
     uint32_t getActiveSampleCount() const { return activeSamples_; }
+    uint32_t getGainReductionOver0p1DbSamples() const { return gainReductionOver0p1DbSamples_; }
+    uint32_t getGainReductionOver1DbSamples() const { return gainReductionOver1DbSamples_; }
+    float getAverageGainReductionDb() const;
 
 private:
     static constexpr uint32_t kMaxLookahead = 64;
@@ -40,6 +45,10 @@ private:
     float currentGrDb_ = 0.0f;
     float maxGrDb_ = 0.0f;
     uint32_t activeSamples_ = 0;
+    uint32_t gainReductionOver0p1DbSamples_ = 0;
+    uint32_t gainReductionOver1DbSamples_ = 0;
+    uint32_t processedSamples_ = 0;
+    float gainReductionDbSum_ = 0.0f;
 };
 
 } // namespace pocketpan::dsp

@@ -93,7 +93,10 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     sAudioSnapshot.postLimiterPeak = sSynth.getPostLimiterPeak();
     sAudioSnapshot.currentGainReductionDb = sSynth.getCurrentGainReductionDb();
     sAudioSnapshot.maxGainReductionDb = sSynth.getMaxGainReductionDb();
+    sAudioSnapshot.averageGainReductionDb = sSynth.getAverageGainReductionDb();
     sAudioSnapshot.limiterActiveSamples = sSynth.getLimiterActiveSamples();
+    sAudioSnapshot.gainReductionOver0p1DbSamples = sSynth.getGainReductionOver0p1DbSamples();
+    sAudioSnapshot.gainReductionOver1DbSamples = sSynth.getGainReductionOver1DbSamples();
     sAudioSnapshot.hardClampCount = sSynth.getHardClampCount();
 
     sAudioSnapshot.midiPushCount = sBleMidiQueue.getPushCount() + sDemoMidiQueue.getPushCount();
@@ -169,7 +172,10 @@ void uiTaskLoop(void* param) {
             sUiState.postLimiterPeak = snap.postLimiterPeak;
             sUiState.currentGainReductionDb = snap.currentGainReductionDb;
             sUiState.maxGainReductionDb = snap.maxGainReductionDb;
+            sUiState.averageGainReductionDb = snap.averageGainReductionDb;
             sUiState.limiterActiveSamples = snap.limiterActiveSamples;
+            sUiState.gainReductionOver0p1DbSamples = snap.gainReductionOver0p1DbSamples;
+            sUiState.gainReductionOver1DbSamples = snap.gainReductionOver1DbSamples;
             sUiState.hardClampCount = snap.hardClampCount;
 
             sUiState.lastNoteNumber = snap.lastNote;

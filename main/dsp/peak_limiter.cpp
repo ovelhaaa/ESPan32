@@ -19,14 +19,22 @@ void PeakLimiter::reset() {
     writeIndex_ = 0;
     gain_ = 1.0f;
     holdSamples_ = 0;
+    resetDiagnostics();
+}
+
+void PeakLimiter::resetDiagnostics() {
     currentGrDb_ = 0.0f;
     maxGrDb_ = 0.0f;
     activeSamples_ = 0;
+    gainReductionOver0p1DbSamples_ = 0;
+    gainReductionOver1DbSamples_ = 0;
+    processedSamples_ = 0;
+    gainReductionDbSum_ = 0.0f;
 }
 
 void PeakLimiter::setConfig(const LimiterConfig& cfg) {
     config_ = cfg;
-    config_.lookaheadSamples = std::clamp(config_.lookaheadSamples, 1U, kMaxLookahead);
+    config_.lookaheadSamples = std::clamp<uint32_t>(config_.lookaheadSamples, 1, kMaxLookahead);
     config_.releaseMs = std::max(config_.releaseMs, 1.0f);
     thresholdLinear_ = dbToLinear(config_.thresholdDb);
     ceilingLinear_ = dbToLinear(config_.ceilingDb);
@@ -69,10 +77,17 @@ float PeakLimiter::processSample(float x) {
     currentGrDb_ = gain_ < 1.0f ? 20.0f * std::log10(gain_) : 0.0f;
     maxGrDb_ = std::min(maxGrDb_, currentGrDb_);
     if (gain_ < 0.99999f) ++activeSamples_;
+    if (currentGrDb_ < -0.1f) ++gainReductionOver0p1DbSamples_;
+    if (currentGrDb_ < -1.0f) ++gainReductionOver1DbSamples_;
+    ++processedSamples_;
+    gainReductionDbSum_ += currentGrDb_;
     return delayed * gain_;
 }
 
 float PeakLimiter::getCurrentGainReductionDb() const { return currentGrDb_; }
 float PeakLimiter::getMaxGainReductionDb() const { return maxGrDb_; }
+float PeakLimiter::getAverageGainReductionDb() const {
+    return processedSamples_ ? gainReductionDbSum_ / static_cast<float>(processedSamples_) : 0.0f;
+}
 
 } // namespace pocketpan::dsp
