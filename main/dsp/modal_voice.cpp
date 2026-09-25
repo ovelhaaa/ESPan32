@@ -14,7 +14,7 @@ void ModalVoice::init(float sampleRate) {
     exciter_.init(sampleRate_);
     resonators_.init(sampleRate_);
     // Explicit PAN wiring. The exciter/resonator primitives remain model-neutral.
-    exciter_.setConfig(kPanExciterConfig);
+    exciter_.setConfig(exciterConfig_);
     resonators_.setConfig(kPanResonatorConfig);
 
     // Smoothing coefficient for damping filter (~20 ms time constant)
@@ -28,6 +28,12 @@ void ModalVoice::setInternalSafetySaturation(bool enabled) {
     ResonatorConfig config = kPanResonatorConfig;
     config.internalSafetySaturation = enabled;
     resonators_.setConfig(config);
+}
+
+void ModalVoice::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) {
+    exciterConfig_ = exciter;
+    voicingConfig_ = voicing;
+    exciter_.setConfig(exciterConfig_);
 }
 
 void ModalVoice::reset() {
@@ -86,14 +92,14 @@ void ModalVoice::restrike(float velocity) {
 }
 
 float ModalVoice::registerPosition() const {
-    const auto& v = kPanVoicingConfig;
+    const auto& v = voicingConfig_;
     const float lo = std::log(v.registerLowHz);
     const float hi = std::log(v.registerHighHz);
     return std::clamp((std::log(std::max(fundamentalFrequencyHz_, 1.0f)) - lo) / (hi - lo), 0.0f, 1.0f);
 }
 
 void ModalVoice::configureStrike(float velocity) {
-    const auto& v = kPanVoicingConfig;
+    const auto& v = voicingConfig_;
     const float reg = registerPosition();
     const float hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) *
         std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);

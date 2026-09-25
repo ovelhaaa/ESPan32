@@ -38,7 +38,9 @@ struct PanVoicingConfig {
     // Keep upper-mode interpolation active into hard strikes instead of
     // plateauing around v112; this makes v120–127 brighter by excitation,
     // not by forcing the output limiter.
-    float upperModeHardVelocity = 0.98f;
+    // M5D.1 provisional final: restores moderate upper-mode life while the
+    // M5D velocity knee keeps v127 clear of M5C.2 limiter dependence.
+    float upperModeHardVelocity = 0.94f;
     float t60LowRegisterScale = 1.10f;
     float t60HighRegisterScale = 0.90f;
     float splitBeatTargetHz = 1.00f;

@@ -56,6 +56,7 @@ public:
     uint32_t getModalInternalSaturationCount() const;
     // Host qualification only; normal firmware uses the PAN model default.
     void setInternalSafetySaturation(bool enabled) { allocator_.setInternalSafetySaturation(enabled); }
+    void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) { allocator_.setPanConfigsForTest(exciter, voicing); }
     void setBodyEnabled(bool enabled) { bodyConfig_.body.enabled=enabled; body_.setConfig(bodyConfig_.body); }
     // A runtime toggle must not retain delayed feedback from its prior mode.
     void setSympatheticEnabled(bool enabled);

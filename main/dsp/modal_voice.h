@@ -4,6 +4,7 @@
 #include <cstddef>
 #include "exciter.h"
 #include "modal_resonator.h"
+#include "pan_calibration.h"
 
 namespace pocketpan::dsp {
 
@@ -52,6 +53,8 @@ public:
     float getLastSample() const { return lastSample_; }
     uint32_t getInternalSaturationCount() const { return resonators_.getInternalSaturationCount(); }
     void setInternalSafetySaturation(bool enabled);
+    // Host qualification only. Defaults remain the frozen PAN calibration.
+    void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing);
 
 private:
     void configureStrike(float velocity);
@@ -81,6 +84,8 @@ private:
 
     Exciter exciter_;
     ModalResonatorBank resonators_;
+    ExciterConfig exciterConfig_ = kPanExciterConfig;
+    PanVoicingConfig voicingConfig_ = kPanVoicingConfig;
 };
 
 } // namespace pocketpan::dsp

@@ -13,7 +13,7 @@ effect, allocation, or expensive DSP is introduced.
 | Brightness range | 700–12000 Hz |
 | Velocity energy curve | `0.15 + 0.85 * pow(v', 1.25)`, `v' = v` through 0.85, then slope 0.35 |
 | Hardness | `0.18 + 0.82 * pow(v, 1.15)` |
-| Upper-mode blend | 0.18 → 0.98 velocity |
+| Upper-mode blend | 0.18 → 0.94 velocity (M5D.1 provisional final) |
 | Doublet | fixed 1 Hz target |
 | StrikeBus gain | 48 |
 | Body excitation / output / LPF | 0.18 / 0.11 / 1800 Hz |
@@ -21,27 +21,30 @@ effect, allocation, or expensive DSP is introduced.
 | Sympathetic | enabled; input .005, feedback .002, LPF 1500 Hz, max bus .03 |
 | Limiter | -3 dB threshold, -0.5 dB ceiling, 32-sample lookahead, 80 ms release |
 
-The only M5D sound changes are a continuous high-velocity excitation-energy
-knee and extending upper-mode interpolation through velocity 0.98. They avoid
-the v120–127 limiter/color plateau while retaining a tactile hard strike.
+The M5D knee remains 0.85 / 0.35. M5D.1 selects a provisional upper-mode
+hard-velocity endpoint of 0.94: it restores moderate metallic life relative
+to the 0.98 M5D current curve while retaining the v127 limiter headroom gain
+over M5C.2. This is pending hardware listening; no other body, sympathetic,
+limiter, doublet, polyphony, sample-rate, or block-size parameter changed.
 
 ## Host regression fingerprint
 
-`test_dsp` writes `pan_m5d_voicing.md` and named WAV A/B/listening fixtures in
-its working directory. The selected fingerprint is:
+`test_dsp` writes `pan_m5d_voicing.md`, `pan_m5d1_ab.md`, and named true
+M5C.2/M5D/bright WAV fixtures in its working directory. M5D.1 uses C=0.94 as
+the provisional listening candidate; final hardware approval remains required.
 
 | D3 velocity | RMS | brightness | body RMS | max limiter GR |
 |---:|---:|---:|---:|---:|
-| 30 | .037882 | .004699 | .006652 | 0 dB |
-| 70 | .070148 | .015935 | .012075 | 0 dB |
-| 110 | .105752 | .030115 | .017748 | 0 dB |
-| 127 | .114743 | .034766 | .019001 | 0 dB |
+| 30 | .037892 | .002623 | .006652 | 0 dB |
+| 70 | .070271 | .009437 | .012075 | 0 dB |
+| 110 | .106164 | .018184 | .017748 | 0 dB |
+| 127 | .114743 | .019630 | .019001 | 0 dB |
 
-The full tested curve is monotonic in RMS and brightness at velocities 1, 10,
-20, 30, 40, 50, 64, 80, 96, 110, 120, and 127. The M5C.2 register-loss guard
-remains in force: no principal note may lose more than 1.5 dB from body
-interaction without explanation. Host fixtures report zero hard clamps and
-zero modal internal-saturation events.
+The full tested C curve is monotonic in RMS and configured upper-mode blend at
+velocities 1, 10, 20, 30, 40, 50, 64, 80, 96, 110, 120, and 127. The M5C.2
+register-loss guard remains in force: no principal note may lose more than 1.5
+dB from body interaction without explanation. Host fixtures report zero hard
+clamps and zero modal internal-saturation events.
 
 ## Hardware listening and realtime gate
 

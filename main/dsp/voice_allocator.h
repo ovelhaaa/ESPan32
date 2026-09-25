@@ -49,6 +49,7 @@ public:
     size_t getActiveStealTailCount() const;
     uint32_t getInternalSaturationCount() const;
     void setInternalSafetySaturation(bool enabled);
+    void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing);
     const ModalVoice& getVoice(size_t index) const { return voices_[index]; }
 
 private:

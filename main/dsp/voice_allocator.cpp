@@ -215,6 +215,10 @@ void VoiceAllocator::setInternalSafetySaturation(bool enabled) {
     for (auto& voice : voices_) voice.setInternalSafetySaturation(enabled);
 }
 
+void VoiceAllocator::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) {
+    for (auto& voice : voices_) voice.setPanConfigsForTest(exciter, voicing);
+}
+
 size_t VoiceAllocator::getActiveVoiceCount() const {
     size_t count = 0;
     for (size_t i = 0; i < kMaxVoices; ++i) {

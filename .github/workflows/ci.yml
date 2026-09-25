@@ -24,6 +24,8 @@ jobs:
           cat build-host/pan_m5c_metrics.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/pan_m5c2_body_coupling.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/pan_doublet_ab.md >> "$GITHUB_STEP_SUMMARY"
+          cat build-host/pan_m5d_voicing.md >> "$GITHUB_STEP_SUMMARY"
+          cat build-host/pan_m5d1_ab.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: ESPan32-audio-tests
@@ -36,6 +38,8 @@ jobs:
             build-host/pan_m5c_metrics.md
             build-host/pan_m5c2_body_coupling.md
             build-host/pan_doublet_ab.md
+            build-host/pan_m5d_voicing.md
+            build-host/pan_m5d1_ab.md
             build-host/pan_doublet_*.wav
             build-host/pan_register_*.wav
           if-no-files-found: error
