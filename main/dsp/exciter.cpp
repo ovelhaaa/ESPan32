@@ -10,6 +10,9 @@ constexpr float kPi = 3.14159265358979323846f;
 
 void Exciter::init(float sampleRate) {
     sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
+    // init is a model-boundary reset; make a selected model start from the
+    // same deterministic noise sequence as a cold boot.
+    rngState_ = 123456789U;
     reset();
 }
 

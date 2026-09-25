@@ -6,16 +6,16 @@
 namespace pocketpan::dsp {
 
 namespace {
-constexpr float kSilenceThreshold = 1.0e-7f;
 }
 
 void ModalVoice::init(float sampleRate) {
     sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
     exciter_.init(sampleRate_);
     resonators_.init(sampleRate_);
-    // Explicit PAN wiring. The exciter/resonator primitives remain model-neutral.
+    // The default remains PAN until SynthEngine selects its static model config.
     exciter_.setConfig(exciterConfig_);
-    resonators_.setConfig(kPanResonatorConfig);
+    resonators_.setConfig(resonatorConfig_);
+    resonators_.setPreset(*modalPreset_);
 
     // Smoothing coefficient for damping filter (~20 ms time constant)
     const float tcSeconds = 0.020f;
@@ -25,9 +25,20 @@ void ModalVoice::init(float sampleRate) {
 }
 
 void ModalVoice::setInternalSafetySaturation(bool enabled) {
-    ResonatorConfig config = kPanResonatorConfig;
+    ResonatorConfig config = resonatorConfig_;
     config.internalSafetySaturation = enabled;
     resonators_.setConfig(config);
+}
+
+void ModalVoice::setModelConfig(const InstrumentModelConfig& config) {
+    modalPreset_ = config.modalPreset;
+    exciterConfig_ = config.exciter;
+    resonatorConfig_ = config.resonator;
+    voicingConfig_ = config.voicing;
+    exciter_.setConfig(exciterConfig_);
+    resonators_.setConfig(resonatorConfig_);
+    resonators_.setPreset(*modalPreset_);
+    reset();
 }
 
 void ModalVoice::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) {
@@ -172,7 +183,7 @@ float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
     // 4. Energy estimation and automatic voice release
     if ((age_ & 0x7F) == 0) { // Check periodically
         estimatedEnergy_ = resonators_.getEnergy();
-        if (!exciter_.isActive() && estimatedEnergy_ < kSilenceThreshold) {
+        if (!exciter_.isActive() && estimatedEnergy_ < voicingConfig_.silenceThreshold) {
             active_ = false;
             estimatedEnergy_ = 0.0f;
         }

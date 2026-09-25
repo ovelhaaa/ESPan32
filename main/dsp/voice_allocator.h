@@ -5,6 +5,7 @@
 #include <cmath>
 #include "modal_voice.h"
 #include "sympathetic_config.h"
+#include "instrument_model.h"
 
 namespace pocketpan::dsp {
 
@@ -49,6 +50,7 @@ public:
     size_t getActiveStealTailCount() const;
     uint32_t getInternalSaturationCount() const;
     void setInternalSafetySaturation(bool enabled);
+    void setModelConfig(const InstrumentModelConfig& config);
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing);
     const ModalVoice& getVoice(size_t index) const { return voices_[index]; }
 

@@ -11,6 +11,7 @@ idf_component_register(
         "dsp/voice_allocator.cpp"
         "dsp/peak_limiter.cpp"
         "dsp/synth_engine.cpp"
+        "dsp/instrument_model.cpp"
         "midi/midi_parser.cpp"
         "midi/midi_mapping.cpp"
         "ui/ui_renderer.cpp"

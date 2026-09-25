@@ -631,6 +631,62 @@ float differenceRms(const std::vector<int32_t>& a, const std::vector<int32_t>& b
 }
 float dbRelative(float value, float reference) { return 20.0f*std::log10(std::max(value,1.0e-12f)/std::max(reference,1.0e-12f)); }
 
+uint64_t fnv1a64(const std::vector<int32_t>& pcm) {
+    uint64_t hash = 14695981039346656037ull;
+    for (int32_t sample : pcm) {
+        const uint32_t value = static_cast<uint32_t>(sample);
+        for (unsigned shift = 0; shift < 32; shift += 8) { hash ^= (value >> shift) & 0xffu; hash *= 1099511628211ull; }
+    }
+    return hash;
+}
+
+M5cResult renderModel(const std::vector<ScheduledEvent>& events, size_t totalFrames, dsp::InstrumentModel model) {
+    constexpr size_t kBlock = 128; M5cResult result; result.audio.resize(totalFrames * 2); size_t eventIndex = 0;
+    dsp::SynthEngine engine; engine.init(48000.0f); engine.setInstrumentModel(model);
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) engine.handleMidiEvent(events[eventIndex++].event);
+        engine.renderBlock(result.audio.data() + frame * 2, std::min(kBlock, totalFrames - frame));
+    }
+    result.metrics = computeMetrics(result.audio, engine.getSoftClipCount()); result.hardClampCount = engine.getHardClampCount();
+    result.modalSat = engine.getModalInternalSaturationCount(); result.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    result.metrics.averageGainReductionDb = engine.getAverageGainReductionDb(); return result;
+}
+
+void testM6ModelArchitectureAndBell() {
+    std::cout << "[Test 18] M6 model registry, PAN regression, and Bell V1..." << std::endl;
+    auto note=[](uint8_t n,uint8_t v){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    const std::vector<ScheduledEvent> d3={{0,note(50,70)}};
+    const auto pan = renderModel(d3, 96000, dsp::InstrumentModel::Pan);
+    assert(pan.audio == renderModel(d3,96000,dsp::InstrumentModel::Pan).audio && fnv1a64(pan.audio) != 0);
+    const std::vector<std::pair<const char*,std::vector<ScheduledEvent>>> panFixtures = {
+        {"D3 v30",{{0,note(50,30)}}}, {"D3 v70",d3}, {"D3 v110",{{0,note(50,110)}}}, {"D3 v127",{{0,note(50,127)}}},
+        {"A3 v70",{{0,note(57,70)}}}, {"D4 v70",{{0,note(62,70)}}}, {"A4 v70",{{0,note(69,70)}}},
+        {"restrike soft-hard",{{0,note(50,30)},{4800,note(50,110)}}}, {"restrike hard-soft",{{0,note(50,110)},{4800,note(50,30)}}},
+        {"roll",{{0,note(50,70)},{3840,note(50,70)},{7680,note(50,70)}}}, {"chord",{{0,note(50,70)},{0,note(57,70)},{0,note(62,70)},{0,note(69,70)}}},
+        {"cluster8",{{0,note(50,100)},{0,note(52,100)},{0,note(54,100)},{0,note(56,100)},{0,note(57,100)},{0,note(59,100)},{0,note(61,100)},{0,note(62,100)}}}
+    };
+    constexpr uint64_t kPanGolden[] = {0xdfff8cb4bc9451adull,0x625f551231401141ull,0xb28e308f6f3b7ff9ull,0x857e3b19560fb8fdull,0x8fd51136812f9c09ull,0xfb6d1d3cb77ae911ull,0x1c664493f822e449ull,0x1230248779ad08ddull,0x153a4d12cc9da585ull,0xc84c3e607e2b5129ull,0x3c6d8246768089e9ull,0x98494cd426a587a1ull};
+    for (size_t i=0; i<panFixtures.size(); ++i) { const uint64_t hash=fnv1a64(renderModel(panFixtures[i].second,96000,dsp::InstrumentModel::Pan).audio); assert(hash == kPanGolden[i]); std::cout << "  PAN FNV " << panFixtures[i].first << " = 0x" << std::hex << hash << std::dec << "\n"; }
+    dsp::SynthEngine switched; switched.init(48000.0f); switched.handleMidiEvent(note(50,70)); int32_t block[256]{}; switched.renderBlock(block,128);
+    switched.setInstrumentModel(dsp::InstrumentModel::Bell); switched.renderBlock(block,128); for (auto sample : block) assert(sample == 0);
+    switched.handleMidiEvent(note(62,110)); switched.renderBlock(block,128); switched.setInstrumentModel(dsp::InstrumentModel::Pan); switched.handleMidiEvent(note(50,70));
+    std::vector<int32_t> switchedPan(96000 * 2); for (size_t frame=0; frame<96000; frame+=128) switched.renderBlock(switchedPan.data()+frame*2, std::min<size_t>(128,96000-frame));
+    if (fnv1a64(switchedPan) != fnv1a64(pan.audio)) {
+        for (size_t i=0; i<switchedPan.size(); ++i) if (switchedPan[i] != pan.audio[i]) { std::cerr << "M6 switch first diff " << i << " " << switchedPan[i] << " vs " << pan.audio[i] << "\n"; break; }
+        assert(false && "PAN after model switch must match direct PAN");
+    }
+    float previousUpper = -1.0f;
+    for (uint8_t velocity : {30,70,110,127}) {
+        const auto bell = renderModel({{0,note(62,velocity)}}, 96000, dsp::InstrumentModel::Bell); assert(bell.hardClampCount == 0 && bell.modalSat == 0);
+        const float f = midi::MidiMapping::noteToHz(62); const float primary = spectralEnergy(bell.audio,{f,2.0f*f});
+        const float upper = spectralEnergy(bell.audio,{3.0f*f,4.0f*f,5.2f*f}) / std::max(primary, 1.0e-12f); assert(upper >= previousUpper); previousUpper = upper;
+    }
+    for (uint8_t midiNote : {36,50,57,62,69,74,84}) { const auto bell = renderModel({{0,note(midiNote,110)}}, 576000, dsp::InstrumentModel::Bell); assert(bell.hardClampCount == 0 && bell.modalSat == 0); }
+    const auto single=renderModel({{0,note(62,100)}},48000,dsp::InstrumentModel::Bell); const auto restrike=renderModel({{0,note(62,100)},{4800,note(62,100)}},48000,dsp::InstrumentModel::Bell);
+    assert(windowRms(restrike.audio,.10f,.20f) > windowRms(single.audio,.10f,.20f));
+    std::cout << "  -> PASSED: model resets, Bell velocity/register/tail/restrike safety verified.\n";
+}
+
 // Exact host-only copy of the M5B signal path. It is a regression oracle, not firmware code.
 std::vector<int32_t> renderM5bReference(const std::vector<ScheduledEvent>& events, size_t totalFrames) {
     constexpr size_t kBlock=128; dsp::VoiceAllocator allocator; dsp::PeakLimiter limiter; allocator.init(48000.0f); allocator.reset(); limiter.init(48000.0f); limiter.reset();
@@ -1270,6 +1326,7 @@ int main() {
     testM5cBodyAndSympathetic();
     testM5c2BodyCoupling();
     testM5dVoicingFreeze();
+    testM6ModelArchitectureAndBell();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

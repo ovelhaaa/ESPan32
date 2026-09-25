@@ -215,6 +215,10 @@ void VoiceAllocator::setInternalSafetySaturation(bool enabled) {
     for (auto& voice : voices_) voice.setInternalSafetySaturation(enabled);
 }
 
+void VoiceAllocator::setModelConfig(const InstrumentModelConfig& config) {
+    for (auto& voice : voices_) voice.setModelConfig(config);
+}
+
 void VoiceAllocator::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) {
     for (auto& voice : voices_) voice.setPanConfigsForTest(exciter, voicing);
 }

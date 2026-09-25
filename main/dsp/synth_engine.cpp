@@ -9,7 +9,10 @@ namespace pocketpan::dsp {
 void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
-    bodyConfig_=kPanBodyConfig; body_.init(sampleRate_); body_.setConfig(bodyConfig_.body);
+    model_ = InstrumentModel::Pan;
+    modelConfig_ = getInstrumentModelConfig(model_);
+    allocator_.setModelConfig(modelConfig_);
+    body_.init(sampleRate_); body_.setConfig(modelConfig_.body);
     // Cheap one-pole reference for the host-only transient candidate (~1 ms).
     bodyTransientCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.001f));
     limiter_.init(sampleRate_);
@@ -31,6 +34,21 @@ void SynthEngine::reset() {
     std::fill(monoBuffer_, monoBuffer_ + kMaxBlockFrames, 0.0f);
 }
 
+void SynthEngine::setInstrumentModel(InstrumentModel model) {
+    // Reinitialize the small, fixed DSP state exactly as boot does. This is
+    // intentionally stronger than killing voices: no exciter, modal, body,
+    // sympathetic, or limiter state crosses a model boundary.
+    model_ = model;
+    modelConfig_ = getInstrumentModelConfig(model_);
+    allocator_.init(sampleRate_);
+    allocator_.setModelConfig(modelConfig_);
+    body_.init(sampleRate_);
+    body_.setConfig(modelConfig_.body);
+    limiter_.init(sampleRate_);
+    bodyStrategy_ = modelConfig_.bodyStrategy;
+    reset();
+}
+
 void SynthEngine::resetDiagnostics() {
     limiter_.resetDiagnostics();
     preLimiterPeak_ = postLimiterPeak_ = 0.0f;
@@ -43,8 +61,8 @@ void SynthEngine::setMasterVolume(float vol) {
 }
 
 void SynthEngine::setSympatheticEnabled(bool enabled) {
-    if (bodyConfig_.sympathetic.enabled == enabled) return;
-    bodyConfig_.sympathetic.enabled = enabled;
+    if (modelConfig_.sympathetic.enabled == enabled) return;
+    modelConfig_.sympathetic.enabled = enabled;
     allocator_.resetSympatheticState();
 }
 
@@ -94,9 +112,9 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
     if (!outInterleaved || frames == 0) return;
 
     // 1. Synthesize 8-voice polyphony into mono buffer
-    const bool useStrikeBus = bodyConfig_.body.enabled && bodyStrategy_ == BodyExcitationStrategy::StrikeBus;
-    if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, bodyConfig_.sympathetic);
-    else if (bodyConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, bodyConfig_.sympathetic);
+    const bool useStrikeBus = modelConfig_.body.enabled && bodyStrategy_ == BodyExcitationStrategy::StrikeBus;
+    if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, modelConfig_.sympathetic);
+    else if (modelConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, modelConfig_.sympathetic);
     else allocator_.renderBlock(monoBuffer_, frames);
 
     // Smooth count-based polyphonic headroom: 1=0 dB, 2=-1.5 dB,
@@ -115,7 +133,7 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
             bodyTransientState_ = (1.0f-bodyTransientCoefficient_)*monoBuffer_[i] + bodyTransientCoefficient_*bodyTransientState_;
             bodyExcitation = monoBuffer_[i] - bodyTransientState_;
         } else if (useStrikeBus) {
-            bodyExcitation = strikeBuffer_[i] * bodyConfig_.strikeBusGain;
+            bodyExcitation = strikeBuffer_[i] * modelConfig_.strikeBusGain;
         }
         const float bodySample=body_.processSample(bodyExcitation);
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
