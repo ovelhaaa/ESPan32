@@ -10,6 +10,8 @@ void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
     bodyConfig_=kPanBodyConfig; body_.init(sampleRate_); body_.setConfig(bodyConfig_.body);
+    // Cheap one-pole reference for the host-only transient candidate (~1 ms).
+    bodyTransientCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.001f));
     limiter_.init(sampleRate_);
     // Fast attenuation catches simultaneous-note attacks; slower recovery
     // avoids loudness steps while modal voices naturally become inactive.
@@ -25,6 +27,7 @@ void SynthEngine::reset() {
     preLimiterPeak_ = postLimiterPeak_ = 0.0f;
     hardClampCount_ = 0;
     body_.reset(); bodyPeak_=bodySumSquares_=0.0f; bodySamples_=0; allocator_.resetSympatheticDiagnostics();
+    bodyTransientState_ = 0.0f;
     std::fill(monoBuffer_, monoBuffer_ + kMaxBlockFrames, 0.0f);
 }
 
@@ -91,7 +94,9 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
     if (!outInterleaved || frames == 0) return;
 
     // 1. Synthesize 8-voice polyphony into mono buffer
-    if (bodyConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, bodyConfig_.sympathetic);
+    const bool useStrikeBus = bodyConfig_.body.enabled && bodyStrategy_ == BodyExcitationStrategy::StrikeBus;
+    if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, bodyConfig_.sympathetic);
+    else if (bodyConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, bodyConfig_.sympathetic);
     else allocator_.renderBlock(monoBuffer_, frames);
 
     // Smooth count-based polyphonic headroom: 1=0 dB, 2=-1.5 dB,
@@ -105,7 +110,14 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
         const float coefficient = targetHeadroom < polyHeadroomGain_
             ? polyHeadroomAttackCoefficient_ : polyHeadroomReleaseCoefficient_;
         polyHeadroomGain_ = targetHeadroom + coefficient * (polyHeadroomGain_ - targetHeadroom);
-        const float bodySample=body_.processSample(monoBuffer_[i]);
+        float bodyExcitation = monoBuffer_[i];
+        if (bodyStrategy_ == BodyExcitationStrategy::Transient) {
+            bodyTransientState_ = (1.0f-bodyTransientCoefficient_)*monoBuffer_[i] + bodyTransientCoefficient_*bodyTransientState_;
+            bodyExcitation = monoBuffer_[i] - bodyTransientState_;
+        } else if (useStrikeBus) {
+            bodyExcitation = strikeBuffer_[i] * bodyConfig_.strikeBusGain;
+        }
+        const float bodySample=body_.processSample(bodyExcitation);
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
         float sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
 

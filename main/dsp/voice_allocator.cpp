@@ -177,6 +177,40 @@ void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const Sympathe
     }
 }
 
+void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* strikeBuffer, size_t frames,
+                                              const SympatheticConfig& config) {
+    std::fill(outBuffer, outBuffer + frames, 0.0f);
+    std::fill(strikeBuffer, strikeBuffer + frames, 0.0f);
+    const bool sympathetic = config.enabled;
+    if (sympathetic) {
+        const float cutoff=std::clamp(config.lowpassHz,10.0f,sampleRate_*0.45f);
+        sympatheticLowpassCoefficient_=std::exp(-2.0f*3.14159265358979323846f*cutoff/sampleRate_);
+    }
+    for (size_t i=0; i<frames; ++i) {
+        float sum=0.0f, strikes=0.0f;
+        const float external = sympathetic ? sympatheticPreviousBus_*config.inputGain : 0.0f;
+        for (auto& voice:voices_) if (voice.isActive()) {
+            float strike=0.0f;
+            sum += voice.processSample(external, &strike);
+            strikes += strike;
+        }
+        for(auto& tail:stealTails_) if(tail.active && tail.samplesLeft) {
+            sum+=tail.currentSample; tail.currentSample-=tail.step;
+            if(--tail.samplesLeft==0) tail.active=false;
+        }
+        if (sympathetic) {
+            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+            float next=sympatheticFilterState_*config.feedbackGain;
+            const float limit=std::max(0.0f,config.maxBusLevel);
+            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+            sympatheticPreviousBus_=next;
+            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+        }
+        outBuffer[i]=sum;
+        strikeBuffer[i]=strikes;
+    }
+}
+
 void VoiceAllocator::setInternalSafetySaturation(bool enabled) {
     for (auto& voice : voices_) voice.setInternalSafetySaturation(enabled);
 }

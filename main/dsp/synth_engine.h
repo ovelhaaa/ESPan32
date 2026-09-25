@@ -13,6 +13,11 @@ namespace pocketpan::dsp {
 
 constexpr size_t kMaxBlockFrames = 128;
 
+// Full mix and transient exist for qualification only. StrikeBus is the
+// production coupling: a shared shell receives strike energy, not a coherent
+// copy of every modal tail that is later summed back into the dry signal.
+enum class BodyExcitationStrategy : uint8_t { FullMix, Transient, StrikeBus };
+
 class SynthEngine {
 public:
     SynthEngine() = default;
@@ -56,6 +61,7 @@ public:
     void setSympatheticEnabled(bool enabled);
     // Host qualification hooks. They are intentionally not connected to UI or persisted settings.
     void setBodyConfigForTest(const BodyConfig& config) { bodyConfig_.body=config; body_.setConfig(bodyConfig_.body); }
+    void setBodyExcitationStrategyForTest(BodyExcitationStrategy strategy) { bodyStrategy_=strategy; }
     void setSympatheticConfigForTest(const SympatheticConfig& config) { bodyConfig_.sympathetic=config; allocator_.resetSympatheticState(); }
     float getBodyEnergy() const { return body_.getEnergy(); }
     float getBodyPeak() const { return bodyPeak_; }
@@ -77,10 +83,14 @@ private:
 
     VoiceAllocator allocator_;
     BodyResonator body_; PanBodyConfig bodyConfig_{};
+    BodyExcitationStrategy bodyStrategy_ = BodyExcitationStrategy::StrikeBus;
+    float bodyTransientState_ = 0.0f;
+    float bodyTransientCoefficient_ = 0.0f;
     float bodyPeak_=0.0f, bodySumSquares_=0.0f; uint32_t bodySamples_=0;
 
     // Internal mono voice mix buffer
     float monoBuffer_[kMaxBlockFrames];
+    float strikeBuffer_[kMaxBlockFrames];
 };
 
 } // namespace pocketpan::dsp

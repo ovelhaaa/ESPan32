@@ -46,11 +46,18 @@ struct PanVoicingConfig {
 
 inline constexpr PanVoicingConfig kPanVoicingConfig{};
 
-struct PanBodyConfig { BodyConfig body; SympatheticConfig sympathetic; };
+struct PanBodyConfig {
+    BodyConfig body;
+    SympatheticConfig sympathetic;
+    // A local exciter impulse has a much smaller sample peak than a completed
+    // modal voice. Normalize only that source before it reaches the shared
+    // body; outputGain remains a return-mix control.
+    float strikeBusGain = 48.0f;
+};
 inline constexpr PanBodyConfig kPanBodyConfig{{
     {{110.0f,0.18f,1.00f},{205.0f,0.14f,0.82f},{390.0f,0.11f,0.65f},{730.0f,0.08f,0.48f},{1280.0f,0.05f,0.32f},{1980.0f,0.035f,0.22f}},
     6, 0.18f, 0.11f, 1800.0f, true
-}, {true, 0.005f, 0.002f, 1500.0f, 0.03f}};
+}, {true, 0.005f, 0.002f, 1500.0f, 0.03f}, 48.0f};
 
 // PAN is a model selection, not a set of implicit DSP defaults. Future models
 // provide their own preset plus these two generic DSP configurations.

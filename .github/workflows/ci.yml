@@ -22,6 +22,7 @@ jobs:
           cat build-host/output_stage_abc_metrics.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/pan_m5b_metrics.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/pan_m5c_metrics.md >> "$GITHUB_STEP_SUMMARY"
+          cat build-host/pan_m5c2_body_coupling.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/pan_doublet_ab.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
@@ -33,6 +34,7 @@ jobs:
             build-host/output_stage_abc_metrics.md
             build-host/pan_m5b_metrics.md
             build-host/pan_m5c_metrics.md
+            build-host/pan_m5c2_body_coupling.md
             build-host/pan_doublet_ab.md
             build-host/pan_doublet_*.wav
             build-host/pan_register_*.wav

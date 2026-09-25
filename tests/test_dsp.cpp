@@ -584,11 +584,15 @@ struct M5cResult {
 };
 
 M5cResult renderM5c(const std::vector<ScheduledEvent>& events, size_t totalFrames, bool body, bool sympathetic,
-                     float bodyOutputGain = -1.0f, float sympatheticScale = 1.0f, bool tailVariant = false) {
+                     float bodyOutputGain = -1.0f, float sympatheticScale = 1.0f, bool tailVariant = false,
+                     dsp::BodyExcitationStrategy strategy = dsp::BodyExcitationStrategy::FullMix,
+                     float bodyExcitationGain = -1.0f) {
     constexpr size_t kBlock=128; M5cResult result; result.audio.resize(totalFrames*2); size_t eventIndex=0;
     dsp::SynthEngine engine; engine.init(48000.0f);
+    engine.setBodyExcitationStrategyForTest(strategy);
     auto bodyConfig=dsp::kPanBodyConfig.body; bodyConfig.enabled=body;
     if(bodyOutputGain>=0.0f) bodyConfig.outputGain=bodyOutputGain;
+    if(bodyExcitationGain>=0.0f) bodyConfig.excitationGain=bodyExcitationGain;
     if(tailVariant) { bodyConfig.excitationGain*=0.80f; bodyConfig.outputGain*=1.08f; for(auto& mode:bodyConfig.modes) mode.t60Seconds*=1.15f; }
     auto sympatheticConfig=dsp::kPanBodyConfig.sympathetic; sympatheticConfig.enabled=sympathetic;
     sympatheticConfig.inputGain*=sympatheticScale; sympatheticConfig.feedbackGain*=sympatheticScale;
@@ -682,6 +686,119 @@ void testM5cBodyAndSympathetic() {
     dsp::SynthEngine toggle; toggle.init(48000.0f); toggle.setBodyEnabled(false); toggle.setSympatheticEnabled(true); toggle.handleMidiEvent(note(50,100)); int32_t block[256]{}; toggle.renderBlock(block,128); toggle.setSympatheticEnabled(false); toggle.setSympatheticEnabled(true); toggle.reset(); toggle.renderBlock(block,128); for(int32_t sample:block) assert(sample==0 && "Sympathetic toggle must not resurrect stale feedback into silence");
     assert(body.bodyRms>0.0f && full.bodyRms>0.0f && sym.busPeak>0.0f);
     std::cout << "  -> PASSED: M5C A/B artifacts, global fixed-Hz body and delayed bus remain stable.\n";
+}
+
+// M5C.2 qualification deliberately keeps all candidate routing host-visible.
+// Firmware defaults to StrikeBus; FullMix and Transient are comparison paths.
+float correlationWindow(const std::vector<int32_t>& dry, const std::vector<int32_t>& wet,
+                        float startSeconds, float endSeconds) {
+    const size_t begin=std::min(dry.size()/2, static_cast<size_t>(startSeconds*48000.0f));
+    const size_t end=std::min(dry.size()/2, static_cast<size_t>(endSeconds*48000.0f));
+    double xy=0.0, xx=0.0, yy=0.0;
+    for(size_t i=begin;i<end;++i) {
+        const double x=static_cast<double>(dry[i*2])/2147483647.0;
+        const double y=static_cast<double>(wet[i*2]-static_cast<int64_t>(dry[i*2]))/2147483647.0;
+        xy+=x*y; xx+=x*x; yy+=y*y;
+    }
+    return static_cast<float>(xy/std::sqrt(std::max(1.0e-24,xx*yy)));
+}
+
+void testM5c2BodyCoupling() {
+    std::cout << "[Test 14] M5C.2 body excitation A/B/C/D qualification..." << std::endl;
+    auto note=[](uint8_t n,uint8_t v){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    constexpr size_t kFrames=96000;
+    const auto fullMix=dsp::BodyExcitationStrategy::FullMix;
+    const auto transient=dsp::BodyExcitationStrategy::Transient;
+    const auto strikeBus=dsp::BodyExcitationStrategy::StrikeBus;
+    auto render=[&](const std::vector<ScheduledEvent>& events, bool enabled, dsp::BodyExcitationStrategy strategy) {
+        return renderM5c(events,kFrames,enabled,true,-1.0f,1.0f,false,strategy);
+    };
+    const std::vector<ScheduledEvent> chord={{0,note(50,70)},{0,note(57,70)},{0,note(62,70)},{0,note(69,70)}};
+    const std::vector<ScheduledEvent> interval={{0,note(50,70)},{24000,note(57,70)}};
+    std::vector<ScheduledEvent> roll; for(uint32_t i=0;i<12;++i) roll.push_back({i*3600,note(50,85)});
+
+    std::ofstream report("pan_m5c2_body_coupling.md");
+    report << std::fixed << std::setprecision(4)
+           << "# PAN M5C.2 body coupling qualification\n\n"
+           << "Selected production strategy: **strike/exciter bus**. It taps local exciter energy before each voice modal bank; sympathetic feedback is excluded. Full mix and transient remain host-only comparison strategies. The fixed 1980 Hz body mode is retained and is currently weakly excited by the 1800 Hz input LPF. Physical listening required.\n\n"
+           << "## Strategy comparison — D3 v70\n\n| Strategy | RMS | dry→wet dB | difference RMS / relative dB | contribution correlation (attack/mid/tail) | body RMS | clamp / sympathetic safety |\n|---|---:|---:|---:|---|---:|---:|\n";
+    const auto d3Events=std::vector<ScheduledEvent>{{0,note(50,70)}};
+    const auto d3Dry=render(d3Events,false,strikeBus);
+    const auto d3Full=render(d3Events,true,fullMix);
+    const auto d3Transient=render(d3Events,true,transient);
+    const auto d3Strike=render(d3Events,true,strikeBus);
+    auto strategyRow=[&](const char* name,const M5cResult& r) {
+        const float diff=differenceRms(d3Dry.audio,r.audio);
+        report << "| " << name << " | " << r.metrics.rms << " | " << dbRelative(r.metrics.rms,d3Dry.metrics.rms)
+               << " | " << diff << " / " << dbRelative(diff,d3Dry.metrics.rms) << " | "
+               << correlationWindow(d3Dry.audio,r.audio,0,.020f) << " / "
+               << correlationWindow(d3Dry.audio,r.audio,.100f,.500f) << " / "
+               << correlationWindow(d3Dry.audio,r.audio,.500f,1.500f) << " | " << r.bodyRms
+               << " | " << r.hardClampCount << " / " << r.sympatheticSafetyCount << " |\n";
+    };
+    strategyRow("A: body off",d3Dry); strategyRow("B: full mix",d3Full);
+    strategyRow("C: transient",d3Transient); strategyRow("D: strike bus",d3Strike);
+    report << "\n## Candidate gain sweeps — D3 v70, strike bus\n\n| Sweep | Value | RMS delta dB | difference relative dB |\n|---|---:|---:|---:|\n";
+    for(float gain : {0.07f,0.09f,0.11f,0.13f}) {
+        const auto r=renderM5c(d3Events,kFrames,true,true,gain,1.0f,false,strikeBus);
+        report << "| outputGain | " << gain << " | " << dbRelative(r.metrics.rms,d3Dry.metrics.rms) << " | " << dbRelative(differenceRms(d3Dry.audio,r.audio),d3Dry.metrics.rms) << " |\n";
+    }
+    for(float gain : {0.10f,0.14f,0.18f}) {
+        const auto r=renderM5c(d3Events,kFrames,true,true,-1.0f,1.0f,false,strikeBus,gain);
+        report << "| excitationGain | " << gain << " | " << dbRelative(r.metrics.rms,d3Dry.metrics.rms) << " | " << dbRelative(differenceRms(d3Dry.audio,r.audio),d3Dry.metrics.rms) << " |\n";
+    }
+
+    report << "\n## Register balance — candidate D, velocity 70\n\n| Note | dry RMS | candidate RMS | dry→body dB | tail dry→body dB | 0-5 / 0-20 / 0-100 ms dB | correlation attack/mid/tail | difference RMS / relative dB |\n|---|---:|---:|---:|---:|---:|---|---:|\n";
+    float a3Overall=0.0f, a3Tail=0.0f;
+    for(uint8_t midiNote : {50,57,62,69}) {
+        const auto events=std::vector<ScheduledEvent>{{0,note(midiNote,70)}};
+        const auto dry=render(events,false,strikeBus), candidate=render(events,true,strikeBus);
+        const float overall=dbRelative(candidate.metrics.rms,dry.metrics.rms);
+        const float tail=dbRelative(windowRms(candidate.audio,.5f,1.5f),windowRms(dry.audio,.5f,1.5f));
+        const float diff=differenceRms(dry.audio,candidate.audio);
+        const char* name=midiNote==50?"D3":midiNote==57?"A3":midiNote==62?"D4":"A4";
+        report << "| " << name << " | " << dry.metrics.rms << " | " << candidate.metrics.rms << " | " << overall << " | " << tail << " | "
+               << dbRelative(windowRms(candidate.audio,0,.005f),windowRms(dry.audio,0,.005f)) << " / "
+               << dbRelative(windowRms(candidate.audio,0,.020f),windowRms(dry.audio,0,.020f)) << " / "
+               << dbRelative(windowRms(candidate.audio,0,.100f),windowRms(dry.audio,0,.100f)) << " | "
+               << correlationWindow(dry.audio,candidate.audio,0,.020f) << " / " << correlationWindow(dry.audio,candidate.audio,.100f,.500f) << " / " << correlationWindow(dry.audio,candidate.audio,.500f,1.500f)
+               << " | " << diff << " / " << dbRelative(diff,dry.metrics.rms) << " |\n";
+        if(midiNote==57) { a3Overall=overall; a3Tail=tail; }
+        writeWavFile((std::string("pan_m5c2_")+name+"_dry.wav").c_str(),dry.audio.data(),kFrames,48000);
+        writeWavFile((std::string("pan_m5c2_")+name+"_candidate.wav").c_str(),candidate.audio.data(),kFrames,48000);
+    }
+    const auto d3Current=render(d3Events,true,fullMix);
+    const auto a3Current=render({{0,note(57,70)}},true,fullMix);
+    writeWavFile("pan_m5c2_D3_current.wav",d3Current.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_A3_current.wav",a3Current.audio.data(),kFrames,48000);
+    const auto chordDry=render(chord,false,strikeBus), chordCurrent=render(chord,true,fullMix), chordCandidate=render(chord,true,strikeBus);
+    const auto rollDry=render(roll,false,strikeBus), rollCandidate=render(roll,true,strikeBus);
+    writeWavFile("pan_m5c2_chord_dry.wav",chordDry.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_chord_current.wav",chordCurrent.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_chord_candidate.wav",chordCandidate.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_roll_dry.wav",rollDry.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_roll_candidate.wav",rollCandidate.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_D3_fullmix.wav",d3Full.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_D3_transient.wav",d3Transient.audio.data(),kFrames,48000);
+    writeWavFile("pan_m5c2_D3_strikebus.wav",d3Strike.audio.data(),kFrames,48000);
+
+    report << "\n## Full-mix polarity and delay diagnostics — D3 v70\n\nThese are offline analysis only; no polarity or delay switch is shipped.\n\n| Full-mix return | RMS delta dB vs dry |\n|---|---:|\n";
+    for(int polarity : {1,-1}) for(int delay : {0,1,2,4,8}) {
+        std::vector<int32_t> probe=d3Dry.audio;
+        for(size_t i=0;i<probe.size()/2;++i) { const size_t source=i>=static_cast<size_t>(delay)?i-delay:0; const int64_t c=static_cast<int64_t>(d3Full.audio[source*2])-d3Dry.audio[source*2]; const int64_t mixed=static_cast<int64_t>(d3Dry.audio[i*2])+polarity*c; probe[i*2]=probe[i*2+1]=static_cast<int32_t>(std::clamp<int64_t>(mixed,INT32_MIN,INT32_MAX)); }
+        report << "| " << (polarity>0?"+1":"-1") << ", " << delay << " samples | " << dbRelative(windowRms(probe,0,2),d3Dry.metrics.rms) << " |\n";
+    }
+    report << "\n## Chord, interval, roll, limiter, and stability\n\n| Fixture | dry/candidate RMS | dry/candidate max GR | dry/candidate avg GR | candidate clamp / safety |\n|---|---:|---:|---:|---:|\n";
+    auto fixture=[&](const char* name,const M5cResult& dry,const M5cResult& candidate) { report << "| " << name << " | " << dry.metrics.rms << " / " << candidate.metrics.rms << " | " << dry.metrics.maxGainReductionDb << " / " << candidate.metrics.maxGainReductionDb << " | " << dry.metrics.averageGainReductionDb << " / " << candidate.metrics.averageGainReductionDb << " | " << candidate.hardClampCount << " / " << candidate.sympatheticSafetyCount << " |\n"; assert(candidate.hardClampCount==0 && candidate.sympatheticSafetyCount==0); };
+    fixture("D3+A3 interval",render(interval,false,strikeBus),render(interval,true,strikeBus));
+    fixture("D3 A3 D4 A4 chord",chordDry,chordCandidate); fixture("D3 roll",rollDry,rollCandidate);
+    const auto d3v110=render({{0,note(50,110)}},true,strikeBus); fixture("D3 v110",render({{0,note(50,110)}},false,strikeBus),d3v110);
+    for(const auto& events : std::initializer_list<std::vector<ScheduledEvent>>{d3Events,chord,roll}) { const auto stable=renderM5c(events,480000,true,true,-1.0f,1.0f,false,strikeBus); assert(std::isfinite(stable.metrics.rms) && stable.hardClampCount==0 && stable.sympatheticSafetyCount==0); }
+    const auto decay=renderM5c(chord,720000,true,true,-1.0f,1.0f,false,strikeBus); assert(decay.bodyEnergy<1.0e-5f && decay.hardClampCount==0 && decay.sympatheticSafetyCount==0);
+    // Acceptance targets specifically reject the prior A3 cancellation failure.
+    assert(a3Overall > -1.5f && a3Tail > -2.0f);
+    report << "\n## Conclusion\n\nM5C.2 status: **PASS (host)**. Strike bus is selected because it stops continuously feeding the shell with coherent modal tails while preserving a single six-mode global resonator. Sympathetic defaults are unchanged (0.005 / 0.002 / 1500 Hz / 0.03), safety count is zero, and body-off/sympathetic-off M5B bit identity remains covered by Test 13. CPU: host only; hardware telemetry and physical listening remain required before voicing freeze.\n";
+    std::cout << "  -> PASSED: strike-bus register/tail balance, diagnostics, artifacts, and stability.\n";
 }
 
 void testSpectralAndRestrikeSanity() {
@@ -1100,6 +1217,7 @@ int main() {
     testPeakLimiter();
     testOutputStrategyAbc();
     testM5cBodyAndSympathetic();
+    testM5c2BodyCoupling();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

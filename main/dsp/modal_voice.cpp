@@ -132,7 +132,7 @@ void ModalVoice::prepareSteal(float fadeDurationMs) {
     stealDecr_ = 1.0f / fadeFrames;
 }
 
-float ModalVoice::processSample(float externalExcitation) {
+float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
     if (!active_) return 0.0f;
 
     age_++;
@@ -147,7 +147,9 @@ float ModalVoice::processSample(float externalExcitation) {
     }
 
     // 2. Generate excitation and filter through resonator bank
-    const float exc = exciter_.processSample() + externalExcitation;
+    const float localStrike = exciter_.processSample();
+    if (strikeTap) *strikeTap = localStrike;
+    const float exc = localStrike + externalExcitation;
     float output = resonators_.processSample(exc);
 
     // 3. Handle voice stealing micro-fade

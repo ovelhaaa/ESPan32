@@ -32,6 +32,10 @@ public:
     // Render polyphonic sum of all active voices into outBuffer
     void renderBlock(float* outBuffer, size_t frames);
     void renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config);
+    // Renders the normal dry mix and, in the same voice pass, a sum of local
+    // exciter taps. The latter is a body input bus, never a sympathetic bus.
+    void renderBlockWithStrikeBus(float* outBuffer, float* strikeBuffer, size_t frames,
+                                  const SympatheticConfig& config);
     float getSympatheticBusPeak() const { return sympatheticBusPeak_; }
     float getSympatheticBusRms() const { return sympatheticBusSamples_ ? std::sqrt(sympatheticBusSumSquares_/sympatheticBusSamples_) : 0.0f; }
     uint32_t getSympatheticSafetyCount() const { return sympatheticSafetyCount_; }

@@ -33,7 +33,10 @@ public:
     void prepareSteal(float fadeDurationMs = 2.5f);
 
     // Process a single audio sample
-    float processSample(float externalExcitation = 0.0f);
+    // strikeTap, when supplied, receives only the local exciter signal before
+    // it enters the modal bank.  External sympathetic feedback is deliberately
+    // excluded: it is not a physical strike on the shared shell.
+    float processSample(float externalExcitation = 0.0f, float* strikeTap = nullptr);
 
     // Process an entire block
     void processBlock(float* outBuffer, size_t frames);
