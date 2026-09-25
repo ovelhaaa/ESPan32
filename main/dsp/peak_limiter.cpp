@@ -28,6 +28,8 @@ void PeakLimiter::setConfig(const LimiterConfig& cfg) {
     config_ = cfg;
     config_.lookaheadSamples = std::clamp(config_.lookaheadSamples, 1U, kMaxLookahead);
     config_.releaseMs = std::max(config_.releaseMs, 1.0f);
+    thresholdLinear_ = dbToLinear(config_.thresholdDb);
+    ceilingLinear_ = dbToLinear(config_.ceilingDb);
     const float releaseSamples = config_.releaseMs * sampleRate_ / 1000.0f;
     releaseCoefficient_ = std::exp(-1.0f / releaseSamples);
 }
@@ -41,11 +43,11 @@ float PeakLimiter::processSample(float x) {
     const float delayed = delay_[readIndex];
     const float requiredForDelayedSample = requiredGain_[readIndex];
     const float peak = std::abs(x);
-    const float threshold = dbToLinear(config_.thresholdDb);
-    const float ceiling = dbToLinear(config_.ceilingDb);
     // Ceiling, rather than a waveshaper, determines the required attenuation.
     // Threshold remains an explicit detector/activity boundary for diagnostics.
-    const float desiredGain = peak > threshold ? std::min(1.0f, ceiling / std::max(peak, 1.0e-20f)) : 1.0f;
+    const float desiredGain = peak > thresholdLinear_
+        ? std::min(1.0f, ceilingLinear_ / std::max(peak, 1.0e-20f))
+        : 1.0f;
     delay_[writeIndex_] = x;
     requiredGain_[writeIndex_] = desiredGain;
     writeIndex_ = (writeIndex_ + 1) % kMaxLookahead;

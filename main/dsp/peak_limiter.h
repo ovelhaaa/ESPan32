@@ -34,6 +34,8 @@ private:
     uint32_t writeIndex_ = 0;
     float gain_ = 1.0f;
     float releaseCoefficient_ = 0.0f;
+    float thresholdLinear_ = 1.0f;
+    float ceilingLinear_ = 1.0f;
     uint32_t holdSamples_ = 0;
     float currentGrDb_ = 0.0f;
     float maxGrDb_ = 0.0f;

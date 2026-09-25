@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <cmath>
 #include <cassert>
@@ -6,6 +7,7 @@
 #include <cstring>
 #include <iomanip>
 #include <limits>
+#include <string>
 
 #include "../main/dsp/modal_mode.h"
 #include "../main/dsp/modal_preset.h"
@@ -638,6 +640,130 @@ void generateComparativeWavs() {
            {0,event(69,100)},{0,event(70,100)},{0,event(72,100)},{0,event(74,100)}},192000);
 }
 
+// Host-only reference for the retired output stage.  It deliberately lives in
+// the fixture, never in firmware, so A/B evidence cannot accidentally enable
+// a waveshaper on the ESP32.
+float oldSafetySoftClipForTest(float x, bool& active) {
+    constexpr float threshold = 0.85f;
+    if (std::abs(x) <= threshold) { active = false; return x; }
+    active = true;
+    const float excess = std::abs(x) - threshold;
+    return std::copysign(threshold + (1.0f - threshold) *
+        std::tanh(excess / (1.0f - threshold)), x);
+}
+
+enum class OutputStrategy { OldTanh, NewLimiter, StaticGainOnly };
+
+struct OutputStrategyResult {
+    std::vector<int32_t> audio;
+    float prePeak = 0.0f;
+    float postPeak = 0.0f;
+    float maxGrDb = 0.0f;
+    uint32_t limiterActive = 0;
+    uint32_t hardClampCount = 0;
+};
+
+OutputStrategyResult renderOutputStrategy(const std::vector<ScheduledEvent>& events,
+                                          size_t totalFrames, OutputStrategy strategy) {
+    constexpr size_t kBlock = 128;
+    constexpr float kFs = 48000.0f;
+    dsp::VoiceAllocator allocator;
+    allocator.init(kFs);
+    dsp::PeakLimiter limiter;
+    limiter.init(kFs);
+    float polyGain = 1.0f;
+    const float polyCoeff = std::exp(-1.0f / (kFs * 0.035f));
+    const float masterGain = strategy == OutputStrategy::StaticGainOnly ? 0.50f : 0.85f;
+    OutputStrategyResult result;
+    result.audio.resize(totalFrames * 2);
+    size_t eventIndex = 0;
+
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) {
+            const auto& event = events[eventIndex++].event;
+            allocator.noteOn(event.data1, midi::MidiMapping::toNormalizedFloat(event.data2),
+                             midi::MidiMapping::noteToHz(event.data1));
+        }
+        const size_t frames = std::min(kBlock, totalFrames - frame);
+        float mono[kBlock]{};
+        allocator.renderBlock(mono, frames);
+        const float voices = static_cast<float>(allocator.getActiveVoiceCount());
+        const float targetDb = voices <= 1.0f ? 0.0f : -1.5f * std::log2(voices);
+        const float targetPolyGain = std::pow(10.0f, std::max(targetDb, -5.0f) / 20.0f);
+
+        for (size_t i = 0; i < frames; ++i) {
+            float sample = mono[i] * masterGain;
+            if (strategy == OutputStrategy::NewLimiter) {
+                polyGain = targetPolyGain + polyCoeff * (polyGain - targetPolyGain);
+                sample *= polyGain;
+            }
+            result.prePeak = std::max(result.prePeak, std::abs(sample));
+            bool active = false;
+            if (strategy == OutputStrategy::NewLimiter) sample = limiter.processSample(sample);
+            else sample = oldSafetySoftClipForTest(sample, active);
+            if (active) ++result.limiterActive;
+            result.postPeak = std::max(result.postPeak, std::abs(sample));
+            const float clamped = std::clamp(sample, -1.0f, 1.0f);
+            if (clamped != sample) ++result.hardClampCount;
+            const int32_t pcm = static_cast<int32_t>(clamped * 2147483647.0f);
+            result.audio[(frame + i) * 2] = pcm;
+            result.audio[(frame + i) * 2 + 1] = pcm;
+        }
+    }
+    if (strategy == OutputStrategy::NewLimiter) {
+        result.limiterActive = limiter.getActiveSampleCount();
+        result.maxGrDb = limiter.getMaxGainReductionDb();
+    }
+    return result;
+}
+
+float rmsDifference(const std::vector<int32_t>& a, const std::vector<int32_t>& b) {
+    assert(a.size() == b.size());
+    double sum = 0.0;
+    for (size_t i = 0; i < a.size(); ++i) {
+        const double d = (static_cast<double>(a[i]) - b[i]) / 2147483647.0;
+        sum += d * d;
+    }
+    return static_cast<float>(std::sqrt(sum / a.size()));
+}
+
+void testOutputStrategyAbc() {
+    std::cout << "[Test 12] Output-stage A/B/C and static master-gain audit..." << std::endl;
+    auto note=[](uint8_t n, uint8_t v) { midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    const std::vector<std::pair<const char*, std::vector<ScheduledEvent>>> cases = {
+        {"chord", {{0,note(62,85)}, {0,note(69,80)}, {0,note(77,75)}, {0,note(81,80)}}},
+        {"cluster8", {{0,note(62,100)}, {0,note(64,100)}, {0,note(65,100)}, {0,note(67,100)},
+                      {0,note(69,100)}, {0,note(70,100)}, {0,note(72,100)}, {0,note(74,100)}}},
+        {"roll", {{0,note(62,85)}, {3600,note(62,85)}, {7200,note(62,85)}, {10800,note(62,85)},
+                  {14400,note(62,85)}, {18000,note(62,85)}, {21600,note(62,85)}, {25200,note(62,85)},
+                  {28800,note(62,85)}, {32400,note(62,85)}, {36000,note(62,85)}, {39600,note(62,85)}}}
+    };
+    std::ofstream report("output_stage_abc_metrics.md");
+    report << "# Output stage A/B/C host audit\n\n"
+           << "A = master 0.85 + retired tanh; B = poly headroom + peak limiter; C = master 0.50 + retired tanh.\n\n"
+           << "| Fixture | A peak/RMS | B pre/post/RMS | B max GR | B hard clamp | C peak/RMS | A→B RMS diff | A→C RMS diff |\n|---|---|---|---:|---:|---|---:|---:|\n";
+    for (const auto& item : cases) {
+        const size_t frames = std::strcmp(item.first, "roll") == 0 ? 96000 : 192000;
+        const auto old = renderOutputStrategy(item.second, frames, OutputStrategy::OldTanh);
+        const auto fresh = renderOutputStrategy(item.second, frames, OutputStrategy::NewLimiter);
+        const auto quiet = renderOutputStrategy(item.second, frames, OutputStrategy::StaticGainOnly);
+        const auto oldMetrics = computeMetrics(old.audio, old.limiterActive);
+        const auto newMetrics = computeMetrics(fresh.audio, fresh.limiterActive);
+        const auto quietMetrics = computeMetrics(quiet.audio, quiet.limiterActive);
+        assert(fresh.hardClampCount == 0);
+        assert(fresh.postPeak <= std::pow(10.0f, -0.5f / 20.0f) + 1.0e-4f);
+        const float abDiff = rmsDifference(old.audio, fresh.audio);
+        const float acDiff = rmsDifference(old.audio, quiet.audio);
+        report << "| " << item.first << " | " << oldMetrics.peak << " / " << oldMetrics.rms
+               << " | " << fresh.prePeak << " / " << newMetrics.peak << " / " << newMetrics.rms << " | " << fresh.maxGrDb
+               << " | " << fresh.hardClampCount << " | " << quietMetrics.peak << " / " << quietMetrics.rms
+               << " | " << abDiff << " | " << acDiff << " |\n";
+        writeWavFile((std::string("pan_") + item.first + "_old.wav").c_str(), old.audio.data(), frames, 48000);
+        writeWavFile((std::string("pan_") + item.first + "_new.wav").c_str(), fresh.audio.data(), frames, 48000);
+    }
+    std::cout << "  -> PASSED: transparent limiter and reduced-master reference rendered.\n";
+}
+
 void testPeakLimiter() {
     std::cout << "[Test 11] Lookahead peak limiter transparency, ceiling, and release..." << std::endl;
     constexpr float kFs = 48000.0f;
@@ -705,6 +831,7 @@ int main() {
     saturationAbAudit();
     generateComparativeWavs();
     testPeakLimiter();
+    testOutputStrategyAbc();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

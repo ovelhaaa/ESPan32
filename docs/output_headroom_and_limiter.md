@@ -44,6 +44,25 @@ algorithmic latency is 0.667 ms. CPU cost must still be measured on hardware
 using the existing average/max render-time counters and compared with the
 2667 us block budget.
 
+## Host A/B/C evidence
+
+`test_dsp` renders the same chord, cluster8, and roll through three host-only
+strategies: A is the retired 0.85-master `tanh` stage, B is the production
+poly-headroom plus limiter path, and C is a 0.50-master `tanh` reference.  The
+old waveshaper is test code only and cannot be selected by firmware.
+
+| Fixture | A peak / RMS | B pre / post / RMS | B max GR | B clamps | C peak / RMS |
+|---|---|---|---:|---:|---|
+| Chord | 1.000 / 0.118 | 1.747 / 0.944 / 0.075 | -5.35 dB | 0 | 0.985 / 0.073 |
+| Cluster8 | 1.000 / 0.165 | 4.778 / 0.944 / 0.087 | -14.08 dB | 0 | 1.000 / 0.113 |
+| Roll | 1.000 / 0.399 | 1.618 / 0.944 / 0.331 | -4.68 dB | 0 | 0.938 / 0.245 |
+
+The complete generated table includes RMS-difference columns and is emitted as
+the unversioned `output_stage_abc_metrics.md` CI artifact. It also emits
+`pan_{chord,cluster8,roll}_{old,new}.wav` for listening comparisons. The host
+result supports the output-stage hypothesis: merely lowering static gain loses
+more roll RMS, while B stays below the ceiling without `tanh` saturation.
+
 ## Host evidence and remaining validation
 
 `test_dsp` checks a 1 kHz sine below threshold for sample-exact output apart
@@ -53,6 +72,8 @@ scheduled fixtures cover single notes, double strikes, chord, cluster8, and
 roll; their generated WAVs remain unversioned CI artifacts.
 
 The included host comparison is evidence of DSP behavior, not physical proof.
-Complete the added checklist in `hardware_qualification.md`, record maximum
-observed GR, and compare audio CPU measurements before declaring M5A physically
-validated.
+No ESP32 before/after CPU timing has been recorded yet, so CPU delta is
+intentionally not claimed. Complete the added checklist in
+`hardware_qualification.md`, record maximum observed GR, and compare the
+existing average/max render-time counters with the 2667 us block budget before
+declaring M5A physically validated.
