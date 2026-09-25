@@ -52,7 +52,11 @@ public:
     // Host qualification only; normal firmware uses the PAN model default.
     void setInternalSafetySaturation(bool enabled) { allocator_.setInternalSafetySaturation(enabled); }
     void setBodyEnabled(bool enabled) { bodyConfig_.body.enabled=enabled; body_.setConfig(bodyConfig_.body); }
-    void setSympatheticEnabled(bool enabled) { bodyConfig_.sympathetic.enabled=enabled; }
+    // A runtime toggle must not retain delayed feedback from its prior mode.
+    void setSympatheticEnabled(bool enabled);
+    // Host qualification hooks. They are intentionally not connected to UI or persisted settings.
+    void setBodyConfigForTest(const BodyConfig& config) { bodyConfig_.body=config; body_.setConfig(bodyConfig_.body); }
+    void setSympatheticConfigForTest(const SympatheticConfig& config) { bodyConfig_.sympathetic=config; allocator_.resetSympatheticState(); }
     float getBodyEnergy() const { return body_.getEnergy(); }
     float getBodyPeak() const { return bodyPeak_; }
     float getBodyRms() const { return bodySamples_ ? std::sqrt(bodySumSquares_/bodySamples_) : 0.0f; }

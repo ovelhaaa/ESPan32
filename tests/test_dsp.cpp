@@ -552,6 +552,8 @@ void testResetDiagnosticsAndVoiceReuse() {
 // 9. Generate all 5 required audio WAV files and log table
 struct ScheduledEvent { uint32_t frame; midi::MidiEvent event; };
 
+float spectralEnergy(const std::vector<int32_t>& audio, const std::initializer_list<float>& frequencies);
+
 std::vector<int32_t> renderScheduled(const std::vector<ScheduledEvent>& events, size_t totalFrames,
                                      bool internalSafetySaturation, AudioMetrics& metrics, uint32_t& modalSat) {
     constexpr size_t kBlock = 128;
@@ -572,11 +574,25 @@ std::vector<int32_t> renderScheduled(const std::vector<ScheduledEvent>& events, 
     return audio;
 }
 
-struct M5cResult { std::vector<int32_t> audio; AudioMetrics metrics; float bodyEnergy=0.0f, bodyPeak=0.0f, bodyRms=0.0f, busPeak=0.0f, busRms=0.0f; uint32_t safety=0, hardClamp=0; };
+struct M5cResult {
+    std::vector<int32_t> audio;
+    AudioMetrics metrics;
+    float bodyEnergy=0.0f, bodyPeak=0.0f, bodyRms=0.0f;
+    float busPeak=0.0f, busRms=0.0f;
+    uint32_t sympatheticSafetyCount=0, hardClampCount=0;
+    uint32_t grOver0p1DbSamples=0, grOver1DbSamples=0;
+};
 
-M5cResult renderM5c(const std::vector<ScheduledEvent>& events, size_t totalFrames, bool body, bool sympathetic) {
+M5cResult renderM5c(const std::vector<ScheduledEvent>& events, size_t totalFrames, bool body, bool sympathetic,
+                     float bodyOutputGain = -1.0f, float sympatheticScale = 1.0f, bool tailVariant = false) {
     constexpr size_t kBlock=128; M5cResult result; result.audio.resize(totalFrames*2); size_t eventIndex=0;
-    dsp::SynthEngine engine; engine.init(48000.0f); engine.setBodyEnabled(body); engine.setSympatheticEnabled(sympathetic);
+    dsp::SynthEngine engine; engine.init(48000.0f);
+    auto bodyConfig=dsp::kPanBodyConfig.body; bodyConfig.enabled=body;
+    if(bodyOutputGain>=0.0f) bodyConfig.outputGain=bodyOutputGain;
+    if(tailVariant) { bodyConfig.excitationGain*=0.80f; bodyConfig.outputGain*=1.08f; for(auto& mode:bodyConfig.modes) mode.t60Seconds*=1.15f; }
+    auto sympatheticConfig=dsp::kPanBodyConfig.sympathetic; sympatheticConfig.enabled=sympathetic;
+    sympatheticConfig.inputGain*=sympatheticScale; sympatheticConfig.feedbackGain*=sympatheticScale;
+    engine.setBodyConfigForTest(bodyConfig); engine.setSympatheticConfigForTest(sympatheticConfig);
     for(size_t frame=0; frame<totalFrames; frame+=kBlock) {
         while(eventIndex<events.size() && events[eventIndex].frame<=frame) engine.handleMidiEvent(events[eventIndex++].event);
         int32_t block[kBlock*2]{}; const size_t frames=std::min(kBlock,totalFrames-frame); engine.renderBlock(block,frames);
@@ -585,8 +601,38 @@ M5cResult renderM5c(const std::vector<ScheduledEvent>& events, size_t totalFrame
     result.metrics=computeMetrics(result.audio,engine.getSoftClipCount()); result.metrics.preLimiterPeak=engine.getPreLimiterPeak();
     result.metrics.maxGainReductionDb=engine.getMaxGainReductionDb(); result.metrics.averageGainReductionDb=engine.getAverageGainReductionDb();
     result.bodyEnergy=engine.getBodyEnergy(); result.bodyPeak=engine.getBodyPeak(); result.bodyRms=engine.getBodyRms();
-    result.busPeak=engine.getSympatheticBusPeak(); result.busRms=engine.getSympatheticBusRms(); result.safety=engine.getSympatheticSafetyCount(); result.hardClamp=engine.getHardClampCount();
+    result.busPeak=engine.getSympatheticBusPeak(); result.busRms=engine.getSympatheticBusRms(); result.sympatheticSafetyCount=engine.getSympatheticSafetyCount(); result.hardClampCount=engine.getHardClampCount();
+    result.grOver0p1DbSamples=engine.getGainReductionOver0p1DbSamples(); result.grOver1DbSamples=engine.getGainReductionOver1DbSamples();
     return result;
+}
+
+float windowRms(const std::vector<int32_t>& audio, float startSeconds, float endSeconds) {
+    const size_t begin=std::min(audio.size()/2, static_cast<size_t>(startSeconds*48000.0f));
+    const size_t end=std::min(audio.size()/2, static_cast<size_t>(endSeconds*48000.0f));
+    if(end<=begin) return 0.0f;
+    double sum=0.0; for(size_t i=begin;i<end;++i) { const double s=static_cast<double>(audio[i*2])/2147483647.0; sum+=s*s; }
+    return static_cast<float>(std::sqrt(sum/(end-begin)));
+}
+
+float differenceRms(const std::vector<int32_t>& a, const std::vector<int32_t>& b) {
+    assert(a.size()==b.size()); double sum=0.0;
+    for(size_t i=0;i<a.size();++i) { const double d=static_cast<double>(a[i]-static_cast<int64_t>(b[i]))/2147483647.0; sum+=d*d; }
+    return static_cast<float>(std::sqrt(sum/a.size()));
+}
+float dbRelative(float value, float reference) { return 20.0f*std::log10(std::max(value,1.0e-12f)/std::max(reference,1.0e-12f)); }
+
+// Exact host-only copy of the M5B signal path. It is a regression oracle, not firmware code.
+std::vector<int32_t> renderM5bReference(const std::vector<ScheduledEvent>& events, size_t totalFrames) {
+    constexpr size_t kBlock=128; dsp::VoiceAllocator allocator; dsp::PeakLimiter limiter; allocator.init(48000.0f); allocator.reset(); limiter.init(48000.0f); limiter.reset();
+    float mono[kBlock]{}, headroom=1.0f; const float attack=std::exp(-1.0f/(48000.0f*.003f)), release=std::exp(-1.0f/(48000.0f*.050f));
+    std::vector<int32_t> audio(totalFrames*2); size_t eventIndex=0;
+    for(size_t frame=0;frame<totalFrames;frame+=kBlock) {
+        while(eventIndex<events.size() && events[eventIndex].frame<=frame) { const auto& e=events[eventIndex++].event; if(e.type==midi::MidiEventType::NoteOn) allocator.noteOn(e.data1,midi::MidiMapping::toNormalizedFloat(e.data2),midi::MidiMapping::noteToHz(e.data1)); else if(e.type==midi::MidiEventType::NoteOff) allocator.noteOff(e.data1); }
+        const size_t frames=std::min(kBlock,totalFrames-frame); allocator.renderBlock(mono,frames);
+        const float voices=static_cast<float>(allocator.getActiveVoiceCount()); const float target=std::pow(10.0f,std::max(voices<=1.0f?0.0f:-1.5f*std::log2(voices),-5.0f)/20.0f);
+        for(size_t i=0;i<frames;++i) { const float coefficient=target<headroom?attack:release; headroom=target+coefficient*(headroom-target); const float s=limiter.processSample(mono[i]*.85f*headroom); const int32_t pcm=static_cast<int32_t>(std::clamp(s,-1.0f,1.0f)*2147483647.0f); audio[(frame+i)*2]=audio[(frame+i)*2+1]=pcm; }
+    }
+    return audio;
 }
 
 void testM5cBodyAndSympathetic() {
@@ -605,12 +651,35 @@ void testM5cBodyAndSympathetic() {
     writeWavFile("pan_m5c_interval_dry.wav",intervalDry.audio.data(),96000,48000); writeWavFile("pan_m5c_interval_full.wav",intervalFull.audio.data(),96000,48000);
     writeWavFile("pan_m5c_chord_dry.wav",chordDry.audio.data(),96000,48000); writeWavFile("pan_m5c_chord_full.wav",chordFull.audio.data(),96000,48000);
     writeWavFile("pan_m5c_roll_dry.wav",rollDry.audio.data(),96000,48000); writeWavFile("pan_m5c_roll_full.wav",rollFull.audio.data(),96000,48000);
-    std::ofstream report("pan_m5c_metrics.md"); report << "# PAN M5C metrics\n\n| Fixture | dry RMS | body RMS | sympathetic RMS | output RMS | attack RMS | tail RMS | pre-limiter peak | max/avg GR dB | body energy | bus peak/RMS | hard clamp | safety |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
-    auto row=[&](const char* name,const M5cResult& r){ report<<"| "<<name<<" | "<<dry.metrics.rms<<" | "<<r.bodyRms<<" | "<<r.busRms<<" | "<<r.metrics.rms<<" | "<<r.metrics.attackRms<<" | "<<r.metrics.tailRms<<" | "<<r.metrics.preLimiterPeak<<" | "<<r.metrics.maxGainReductionDb<<" / "<<r.metrics.averageGainReductionDb<<" | "<<r.bodyEnergy<<" | "<<r.busPeak<<" / "<<r.busRms<<" | "<<r.hardClamp<<" | "<<r.safety<<" |\n"; };
-    row("D3 dry",dry); row("D3 body",body); row("D3 sympathetic",sym); row("D3 full",full); row("interval full",intervalFull); row("chord full",chordFull); row("roll full",rollFull);
+    std::ofstream report("pan_m5c_metrics.md"); report << std::fixed << std::setprecision(6) << "# PAN M5C.1 host metrics\n\nHost timing is not ESP32-S3 realtime timing; hardware telemetry is authoritative for CPU, deadline misses, write timeouts, and TX errors.\n\n## A — D3 component isolation\n\n| Candidate | Dry baseline RMS | Candidate RMS | Difference RMS | Relative dB | Body peak/RMS | Bus peak/RMS | Max/avg GR dB | GR >0.1 / >1 dB | Clamp / safety |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    auto row=[&](const char* name,const M5cResult& baseline,const M5cResult& candidate){ const float diff=differenceRms(baseline.audio,candidate.audio); report<<"| "<<name<<" | "<<baseline.metrics.rms<<" | "<<candidate.metrics.rms<<" | "<<diff<<" | "<<dbRelative(diff,baseline.metrics.rms)<<" | "<<candidate.bodyPeak<<" / "<<candidate.bodyRms<<" | "<<candidate.busPeak<<" / "<<candidate.busRms<<" | "<<candidate.metrics.maxGainReductionDb<<" / "<<candidate.metrics.averageGainReductionDb<<" | "<<candidate.grOver0p1DbSamples<<" / "<<candidate.grOver1DbSamples<<" | "<<candidate.hardClampCount<<" / "<<candidate.sympatheticSafetyCount<<" |\n"; };
+    row("dry",dry,dry); row("body only contribution",dry,body); row("sympathetic only contribution",dry,sym); row("full",dry,full);
+    report << "\n## B — musical fixtures\n\n| Fixture | Dry baseline RMS | Full RMS | Difference RMS | Relative dB | Dry/full max GR | Dry/full avg GR | Clamp / safety |\n|---|---:|---:|---:|---:|---:|---:|---:|\n";
+    auto musical=[&](const char* name,const M5cResult& baseline,const M5cResult& candidate){ const float diff=differenceRms(baseline.audio,candidate.audio); report<<"| "<<name<<" | "<<baseline.metrics.rms<<" | "<<candidate.metrics.rms<<" | "<<diff<<" | "<<dbRelative(diff,baseline.metrics.rms)<<" | "<<baseline.metrics.maxGainReductionDb<<" / "<<candidate.metrics.maxGainReductionDb<<" | "<<baseline.metrics.averageGainReductionDb<<" / "<<candidate.metrics.averageGainReductionDb<<" | "<<candidate.hardClampCount<<" / "<<candidate.sympatheticSafetyCount<<" |\n"; };
+    musical("interval",intervalDry,intervalFull); musical("chord",chordDry,chordFull); musical("roll",rollDry,rollFull);
     const std::vector<ScheduledEvent> cluster={{0,note(50,100)},{0,note(57,100)},{0,note(58,100)},{0,note(60,100)},{0,note(62,100)},{0,note(64,100)},{0,note(65,100)},{0,note(69,100)}};
-    for(const std::vector<ScheduledEvent>* fixture : {&d3,&cluster,&roll}) { const auto r=renderM5c(*fixture,480000,true,true); assert(std::isfinite(r.metrics.rms) && r.hardClamp==0 && r.safety==0); }
-    const auto decay=renderM5c(chord,720000,true,true); assert(decay.bodyEnergy < 1.0e-5f && decay.hardClamp==0 && decay.safety==0);
+    const auto clusterDry=renderM5c(cluster,96000,false,false), clusterFull=renderM5c(cluster,96000,true,true); musical("cluster8",clusterDry,clusterFull);
+    report << "\n### A.1 — D3 attack and tail contribution\n\n| Velocity | Path | 0-5 ms RMS | 0-20 ms RMS | 0-100 ms RMS | 500-1500 ms RMS | Attack delta RMS / % | Tail delta RMS / % |\n|---:|---|---:|---:|---:|---:|---:|---:|\n";
+    for(uint8_t velocity : {70,110}) for(const auto& entry : std::initializer_list<std::pair<const char*,M5cResult>>{{"dry",renderM5c({{0,note(50,velocity)}},96000,false,false)},{"body",renderM5c({{0,note(50,velocity)}},96000,true,false)},{"full",renderM5c({{0,note(50,velocity)}},96000,true,true)}}) { const auto& r=entry.second; const auto base=renderM5c({{0,note(50,velocity)}},96000,false,false); const float a=windowRms(r.audio,0,.020f), ta=windowRms(r.audio,.5f,1.5f), ba=windowRms(base.audio,0,.020f), bt=windowRms(base.audio,.5f,1.5f); report<<"| "<<static_cast<int>(velocity)<<" | "<<entry.first<<" | "<<windowRms(r.audio,0,.005f)<<" | "<<windowRms(r.audio,0,.020f)<<" | "<<windowRms(r.audio,0,.100f)<<" | "<<ta<<" | "<<(a-ba)<<" / "<<(100.0f*(a-ba)/std::max(ba,1e-12f))<<" | "<<(ta-bt)<<" / "<<(100.0f*(ta-bt)/std::max(bt,1e-12f))<<" |\n"; }
+    report << "\n### A.2 — body mode spectral validation (D3 body ON vs OFF)\n\n| Mode Hz | Body-off magnitude | Body-on magnitude | bodyModeDeltaDb |\n|---:|---:|---:|---:|\n"; for(float hz : {110.f,205.f,390.f,730.f,1280.f,1980.f}) report<<"| "<<hz<<" | "<<goertzelMagnitude(dry.audio,hz)<<" | "<<goertzelMagnitude(body.audio,hz)<<" | "<<dbRelative(goertzelMagnitude(body.audio,hz),goertzelMagnitude(dry.audio,hz))<<" |\n";
+    report << "\n## C — register audit (body ON vs OFF, velocity 70)\n\n| Note | RMS off/on | Attack RMS off/on | Tail RMS off/on | Body RMS | Pre-limiter peak off/on | Max/avg GR off/on | Nearest body mode | Distance % |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    for(uint8_t midiNote : {50,57,62,69}) { const auto off=renderM5c({{0,note(midiNote,70)}},96000,false,false), on=renderM5c({{0,note(midiNote,70)}},96000,true,false); const float f=midi::MidiMapping::noteToHz(midiNote); float nearest=0, distance=std::numeric_limits<float>::max(); for(float partial : {f,2*f,3*f,3.98f,5.25f,6.62f,8.18f}) for(float mode : {110.f,205.f,390.f,730.f,1280.f,1980.f}) if(std::abs(partial-mode)/mode<distance) { distance=std::abs(partial-mode)/mode; nearest=mode; } const char* name=midiNote==50?"D3":midiNote==57?"A3":midiNote==62?"D4":"A4"; report<<"| "<<name<<" | "<<off.metrics.rms<<" / "<<on.metrics.rms<<" | "<<off.metrics.attackRms<<" / "<<on.metrics.attackRms<<" | "<<off.metrics.tailRms<<" / "<<on.metrics.tailRms<<" | "<<on.bodyRms<<" | "<<off.metrics.preLimiterPeak<<" / "<<on.metrics.preLimiterPeak<<" | "<<off.metrics.maxGainReductionDb<<" / "<<on.metrics.maxGainReductionDb<<"; "<<off.metrics.averageGainReductionDb<<" / "<<on.metrics.averageGainReductionDb<<" | "<<nearest<<" | "<<(distance*100.0f)<<" |\n"; }
+    report << "\n## D — stability and sympathetic gain sweep\n\n| Case | Bus RMS | Bus peak | Final body energy | Safety | Hard clamp |\n|---|---:|---:|---:|---:|---:|\n";
+    for(const std::vector<ScheduledEvent>* fixture : {&d3,&cluster,&roll}) { const auto r=renderM5c(*fixture,480000,true,true); assert(std::isfinite(r.metrics.rms) && r.hardClampCount==0 && r.sympatheticSafetyCount==0); report<<"| 10s fixture | "<<r.busRms<<" | "<<r.busPeak<<" | "<<r.bodyEnergy<<" | "<<r.sympatheticSafetyCount<<" | "<<r.hardClampCount<<" |\n"; }
+    const auto decay=renderM5c(chord,720000,true,true); assert(decay.bodyEnergy < 1.0e-5f && decay.hardClampCount==0 && decay.sympatheticSafetyCount==0); report<<"| 15s decay | "<<decay.busRms<<" | "<<decay.busPeak<<" | "<<decay.bodyEnergy<<" | "<<decay.sympatheticSafetyCount<<" | "<<decay.hardClampCount<<" |\n";
+    for(float gain : {.5f,1.f,2.f,4.f}) { const auto r=renderM5c(cluster,480000,true,true,-1.0f,gain); report<<"| sympathetic "<<gain<<"x | "<<r.busRms<<" | "<<r.busPeak<<" | "<<r.bodyEnergy<<" | "<<r.sympatheticSafetyCount<<" | "<<r.hardClampCount<<" |\n"; assert(r.hardClampCount==0); }
+    report << "\n## E — gain staging\n\n| Fixture | Dry max GR | Full max GR | Dry avg GR | Full avg GR | Dry >0.1/>1 dB | Full >0.1/>1 dB | Hard clamp | Safety |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    auto staging=[&](const char* name,const M5cResult& base,const M5cResult& candidate){ report<<"| "<<name<<" | "<<base.metrics.maxGainReductionDb<<" | "<<candidate.metrics.maxGainReductionDb<<" | "<<base.metrics.averageGainReductionDb<<" | "<<candidate.metrics.averageGainReductionDb<<" | "<<base.grOver0p1DbSamples<<" / "<<base.grOver1DbSamples<<" | "<<candidate.grOver0p1DbSamples<<" / "<<candidate.grOver1DbSamples<<" | "<<candidate.hardClampCount<<" | "<<candidate.sympatheticSafetyCount<<" |\n"; };
+    staging("D3",dry,full); staging("interval",intervalDry,intervalFull); staging("chord",chordDry,chordFull); staging("roll",rollDry,rollFull); staging("cluster8",clusterDry,clusterFull);
+    report << "\n## Hardware CPU capture (required before freeze)\n\n| Scenario | M5B-like avg/max block us | M5C avg/max block us | CPU delta | Deadline misses | Write timeouts | TX errors |\n|---|---:|---:|---:|---:|---:|---:|\n| single | hardware required | hardware required | hardware required | hardware required | hardware required | hardware required |\n| 4-note chord | hardware required | hardware required | hardware required | hardware required | hardware required | hardware required |\n| 8-note cluster | hardware required | hardware required | hardware required | hardware required | hardware required | hardware required |\n| roll | hardware required | hardware required | hardware required | hardware required | hardware required | hardware required |\n";
+    const auto reference=renderM5bReference(d3,96000); assert(reference==dry.audio && "M5C body OFF + sympathetic OFF must be bit-identical to M5B");
+    report << "\n### B.1 — M5B velocity expression with M5C enabled\n\n| Velocity | modalBrightnessRatio | highModalRatio |\n|---:|---:|---:|\n";
+    float priorBright=-1.0f, priorHigh=-1.0f;
+    for(uint8_t velocity : {30,70,110}) { const auto r=renderM5c({{0,note(50,velocity)}},96000,true,true); const float f=midi::MidiMapping::noteToHz(50); const float all=spectralEnergy(r.audio,{f,2*f,3*f,3.98f*f,5.25f*f,6.62f*f,8.18f*f}); const float bright=spectralEnergy(r.audio,{3*f,3.98f*f,5.25f*f,6.62f*f,8.18f*f})/std::max(all,1e-12f); const float high=spectralEnergy(r.audio,{5.25f*f,6.62f*f,8.18f*f})/std::max(spectralEnergy(r.audio,{f,2*f}),1e-12f); assert(bright>priorBright && high>priorHigh); priorBright=bright; priorHigh=high; report<<"| "<<static_cast<int>(velocity)<<" | "<<bright<<" | "<<high<<" |\n"; }
+    for(const auto& fixture : std::initializer_list<std::vector<ScheduledEvent>>{{{0,note(50,90)}},{{0,note(50,90)},{4800,note(50,90)}},{{0,note(50,90)},{12000,note(50,90)}},roll}) { const auto r=renderM5c(fixture,96000,true,true); assert(std::isfinite(r.metrics.rms) && r.hardClampCount==0 && r.sympatheticSafetyCount==0); }
+    for(float gain : {.07f,.11f,.15f}) { const auto d=renderM5c(d3,96000,true,false,gain); const auto c=renderM5c(chord,96000,true,false,gain); writeWavFile((std::string("pan_m5c_D3_body_")+std::to_string(static_cast<int>(gain*100))+".wav").c_str(),d.audio.data(),96000,48000); writeWavFile((std::string("pan_m5c_chord_body_")+std::to_string(static_cast<int>(gain*100))+".wav").c_str(),c.audio.data(),96000,48000); }
+    const auto tail=renderM5c(d3,96000,true,false,-1.0f,1.0f,true); writeWavFile("pan_m5c_D3_body_tail_variant.wav",tail.audio.data(),96000,48000);
+    dsp::SynthEngine toggle; toggle.init(48000.0f); toggle.setBodyEnabled(false); toggle.setSympatheticEnabled(true); toggle.handleMidiEvent(note(50,100)); int32_t block[256]{}; toggle.renderBlock(block,128); toggle.setSympatheticEnabled(false); toggle.setSympatheticEnabled(true); toggle.reset(); toggle.renderBlock(block,128); for(int32_t sample:block) assert(sample==0 && "Sympathetic toggle must not resurrect stale feedback into silence");
     assert(body.bodyRms>0.0f && full.bodyRms>0.0f && sym.busPeak>0.0f);
     std::cout << "  -> PASSED: M5C A/B artifacts, global fixed-Hz body and delayed bus remain stable.\n";
 }

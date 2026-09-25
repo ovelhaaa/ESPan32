@@ -39,6 +39,12 @@ void SynthEngine::setMasterVolume(float vol) {
     masterGain_ = std::clamp(vol, 0.0f, 1.0f);
 }
 
+void SynthEngine::setSympatheticEnabled(bool enabled) {
+    if (bodyConfig_.sympathetic.enabled == enabled) return;
+    bodyConfig_.sympathetic.enabled = enabled;
+    allocator_.resetSympatheticState();
+}
+
 uint32_t SynthEngine::getModalInternalSaturationCount() const {
     uint32_t total = 0;
     for (size_t i = 0; i < kMaxVoices; ++i) total += allocator_.getVoice(i).getInternalSaturationCount();

@@ -18,7 +18,8 @@ void VoiceAllocator::reset() {
     }
     for (auto& tail : stealTails_) tail = StealDeclickTail{};
     nextStealTail_ = 0;
-    sympatheticPreviousBus_=sympatheticFilterState_=0.0f; resetSympatheticDiagnostics();
+    resetSympatheticState();
+    resetSympatheticDiagnostics();
 }
 
 int VoiceAllocator::findVoiceToSteal() const {
@@ -146,7 +147,15 @@ uint32_t VoiceAllocator::getInternalSaturationCount() const {
     return count;
 }
 
-void VoiceAllocator::resetSympatheticDiagnostics() { sympatheticBusPeak_=sympatheticBusSumSquares_=0.0f; sympatheticBusSamples_=sympatheticSafetyCount_=0; }
+void VoiceAllocator::resetSympatheticState() {
+    sympatheticPreviousBus_ = 0.0f;
+    sympatheticFilterState_ = 0.0f;
+}
+
+void VoiceAllocator::resetSympatheticDiagnostics() {
+    sympatheticBusPeak_=sympatheticBusSumSquares_=0.0f;
+    sympatheticBusSamples_=sympatheticSafetyCount_=0;
+}
 
 void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config) {
     if (!config.enabled) { renderBlock(outBuffer, frames); return; }

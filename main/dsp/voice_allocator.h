@@ -35,6 +35,9 @@ public:
     float getSympatheticBusPeak() const { return sympatheticBusPeak_; }
     float getSympatheticBusRms() const { return sympatheticBusSamples_ ? std::sqrt(sympatheticBusSumSquares_/sympatheticBusSamples_) : 0.0f; }
     uint32_t getSympatheticSafetyCount() const { return sympatheticSafetyCount_; }
+    // Audio memory only. This deliberately does not erase telemetry.
+    void resetSympatheticState();
+    // Telemetry only. This deliberately does not alter the delayed bus.
     void resetSympatheticDiagnostics();
 
     // Real-time voice metrics
