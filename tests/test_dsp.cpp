@@ -587,6 +587,59 @@ void testSpectralAndRestrikeSanity() {
               << " | restrike RMS 100ms=" << double100.rms << " 250ms=" << double250.rms << " roll=" << roll.rms << "\n";
 }
 
+float spectralEnergy(const std::vector<int32_t>& audio, const std::initializer_list<float>& frequencies) {
+    float energy = 0.0f;
+    for (const float frequency : frequencies) {
+        const float magnitude = goertzelMagnitude(audio, frequency);
+        energy += magnitude * magnitude;
+    }
+    return energy;
+}
+
+void panM5bVoicingAudit() {
+    std::cout << "[Test 9b] M5B velocity/modal/register audit..." << std::endl;
+    constexpr float kD3 = 146.832f;
+    auto note = [](uint8_t midiNote, uint8_t velocity) {
+        midi::MidiEvent e{}; e.type = midi::MidiEventType::NoteOn; e.data1 = midiNote; e.data2 = velocity; return e;
+    };
+    std::ofstream report("pan_m5b_metrics.md");
+    report << "# PAN M5B host metrics\n\n"
+           << "| Velocity | RMS | Attack RMS | Fundamental | 2f | 3f | Upper modes | Upper/fundamental | Brightness proxy | Modal saturation |\n"
+           << "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    float previousRatio = -1.0f;
+    float previousBrightness = -1.0f;
+    for (uint8_t velocity : {30, 70, 110}) {
+        AudioMetrics metrics; uint32_t saturation = 0;
+        const auto audio = renderScheduled({{0, note(50, velocity)}}, 96000, true, metrics, saturation);
+        const float fundamental = spectralEnergy(audio, {kD3});
+        const float octave = spectralEnergy(audio, {2.0f * kD3});
+        const float fifth = spectralEnergy(audio, {3.0f * kD3});
+        const float upper = spectralEnergy(audio, {3.98f * kD3, 5.25f * kD3, 6.62f * kD3, 8.18f * kD3});
+        // A compact Goertzel-bank proxy: no runtime FFT and no firmware cost.
+        const float brightness = spectralEnergy(audio, {3000.0f, 4000.0f, 6000.0f, 8000.0f, 10000.0f}) /
+            std::max(1.0e-12f, spectralEnergy(audio, {kD3, 2.0f*kD3, 3.0f*kD3, 3000.0f, 4000.0f, 6000.0f, 8000.0f, 10000.0f}));
+        const float upperRatio = upper / std::max(1.0e-12f, fundamental);
+        assert(upperRatio > previousRatio && "Upper/fundamental modal energy must grow with velocity");
+        assert(brightness > previousBrightness && "Brightness proxy must grow with velocity");
+        previousRatio = upperRatio;
+        previousBrightness = brightness;
+        report << "| " << static_cast<int>(velocity) << " | " << metrics.rms << " | " << metrics.attackRms
+               << " | " << fundamental << " | " << octave << " | " << fifth << " | " << upper
+               << " | " << upperRatio << " | " << brightness << " | " << saturation << " |\n";
+        writeWavFile((std::string("pan_D3_v") + std::to_string(velocity) + "_new.wav").c_str(), audio.data(), 96000, 48000);
+    }
+    // Continuous register fixtures; these also prove the chosen fixed-Hz split
+    // does not depend on a note table.
+    for (uint8_t midiNote : {50, 57, 62, 69}) {
+        AudioMetrics metrics; uint32_t saturation = 0;
+        const auto audio = renderScheduled({{0, note(midiNote, 70)}}, 96000, true, metrics, saturation);
+        assert(std::isfinite(metrics.rms) && metrics.rms > 0.001f);
+        const char* name = midiNote == 50 ? "D3" : midiNote == 57 ? "A3" : midiNote == 62 ? "D4" : "A4";
+        writeWavFile((std::string("pan_register_") + name + ".wav").c_str(), audio.data(), 96000, 48000);
+    }
+    std::cout << "  -> PASSED: upper-mode and brightness metrics rise monotonically.\n";
+}
+
 void saturationAbAudit() {
     std::cout << "[Test 10] Internal saturation A/B audit..." << std::endl;
     std::ofstream report("saturation_ab_metrics.md");
@@ -851,6 +904,7 @@ int main() {
     testVelocityCalibration();
     testResetDiagnosticsAndVoiceReuse();
     testSpectralAndRestrikeSanity();
+    panM5bVoicingAudit();
     saturationAbAudit();
     generateComparativeWavs();
     testPeakLimiter();

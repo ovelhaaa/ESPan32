@@ -15,7 +15,7 @@ public:
     void setConfig(const ExciterConfig& config) { config_ = config; }
 
     // Trigger strike with MIDI normalized velocity (0.0 to 1.0)
-    void trigger(float velocity);
+    void trigger(float velocity, float hardness = 1.0f, float brightnessScale = 1.0f);
 
     // Render single sample of excitation signal
     float processSample();

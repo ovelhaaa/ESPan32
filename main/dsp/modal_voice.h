@@ -51,6 +51,9 @@ public:
     void setInternalSafetySaturation(bool enabled);
 
 private:
+    void configureStrike(float velocity);
+    float registerPosition() const;
+
     float sampleRate_ = 48000.0f;
     bool active_ = false;
     bool released_ = false;

@@ -68,8 +68,7 @@ void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float v
 
     // Reset filter states for clean attack
     resonators_.reset();
-    resonators_.updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
-    exciter_.trigger(velocity_);
+    configureStrike(velocity_);
 }
 
 void ModalVoice::restrike(float velocity) {
@@ -83,8 +82,34 @@ void ModalVoice::restrike(float velocity) {
     isStealing_ = false;
     stealGain_ = 1.0f;
 
+    configureStrike(velocity_);
+}
+
+float ModalVoice::registerPosition() const {
+    const auto& v = kPanVoicingConfig;
+    const float lo = std::log(v.registerLowHz);
+    const float hi = std::log(v.registerHighHz);
+    return std::clamp((std::log(std::max(fundamentalFrequencyHz_, 1.0f)) - lo) / (hi - lo), 0.0f, 1.0f);
+}
+
+void ModalVoice::configureStrike(float velocity) {
+    const auto& v = kPanVoicingConfig;
+    const float reg = registerPosition();
+    const float hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) *
+        std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
+    const float blend = std::clamp((velocity - v.upperModeSoftVelocity) /
+        (v.upperModeHardVelocity - v.upperModeSoftVelocity), 0.0f, 1.0f);
+    const float gain = v.lowRegisterGain + (v.highRegisterGain - v.lowRegisterGain) * reg;
+    float coupling[kMaxModesPerVoice];
+    for (size_t i = 0; i < kMaxModesPerVoice; ++i) {
+        coupling[i] = (v.softModeCoupling[i] + (v.hardModeCoupling[i] - v.softModeCoupling[i]) * blend) * gain;
+    }
+    const float t60Scale = v.t60LowRegisterScale + (v.t60HighRegisterScale - v.t60LowRegisterScale) * reg;
+    const float brightness = v.lowRegisterBrightness + (v.highRegisterBrightness - v.lowRegisterBrightness) * reg;
+    resonators_.setRegisterBehavior(t60Scale, v.splitBeatTargetHz, v.fixedHzSplit);
     resonators_.updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
-    exciter_.trigger(velocity_);
+    resonators_.setExcitationCoupling(coupling, kMaxModesPerVoice);
+    exciter_.trigger(velocity, hardness, brightness);
 }
 
 void ModalVoice::release() {

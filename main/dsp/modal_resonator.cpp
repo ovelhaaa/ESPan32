@@ -26,6 +26,21 @@ void ModalResonatorBank::reset() {
     }
 }
 
+void ModalResonatorBank::setExcitationCoupling(const float* coupling, size_t count) {
+    for (size_t i = 0; i < modeCount_; ++i) {
+        excitationCoupling_[i] = (coupling && i < count) ? std::max(0.0f, coupling[i]) : 1.0f;
+        // z1/z2 are intentionally untouched: a restrike changes only newly
+        // injected energy, never an already ringing tail.
+        modes_[i].excitationGain = modes_[i].modalAmplitude * excitationCoupling_[i];
+    }
+}
+
+void ModalResonatorBank::setRegisterBehavior(float t60Scale, float splitBeatTargetHz, bool fixedHzSplit) {
+    t60RegisterScale_ = std::clamp(t60Scale, 0.5f, 1.5f);
+    splitBeatTargetHz_ = std::max(0.0f, splitBeatTargetHz);
+    fixedHzSplit_ = fixedHzSplit;
+}
+
 void ModalResonatorBank::setPreset(const ModalPreset& preset) {
     modeCount_ = std::min(static_cast<size_t>(preset.modeCount), kMaxModesPerVoice);
     for (size_t i = 0; i < modeCount_; ++i) {
@@ -61,13 +76,18 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
         const auto& def = presetModes_[i];
 
         // Mode frequency with detune splitting (detune applied strictly once)
-        const float modeFreq = fundamentalFrequencyHz_ * def.ratio * (1.0f + def.detune);
+        float detune = def.detune;
+        if (fixedHzSplit_ && i == 1 && def.ratio == 1.0f && def.detune != 0.0f) {
+            detune = splitBeatTargetHz_ / fundamentalFrequencyHz_;
+        }
+        const float modeFreq = fundamentalFrequencyHz_ * def.ratio * (1.0f + detune);
 
         // Nyquist handling: do NOT clamp to 0.48*fs!
         // Disable or softly fade out modes exceeding audible / sampling boundaries
         if (modeFreq >= nyquistCutoff || modeFreq <= 10.0f) {
             modes_[i].active = false;
-            modes_[i].gain = 0.0f;
+            modes_[i].modalAmplitude = 0.0f;
+            modes_[i].excitationGain = 0.0f;
             modes_[i].a1 = 0.0f;
             modes_[i].a2 = 0.0f;
             continue;
@@ -84,7 +104,7 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
 
         // Calculate angular frequency w and pole radius r
         const float w = (kTwoPi * modeFreq) / sampleRate_;
-        const float effectiveT60 = std::max(0.005f, def.t60 * dampingScale);
+        const float effectiveT60 = std::max(0.005f, def.t60 * dampingScale * t60RegisterScale_);
 
         // r = exp(ln(0.001) / (T60 * fs))
         float r = std::exp(kLn001 / (effectiveT60 * sampleRate_));
@@ -101,7 +121,8 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
         // Setting b0 = sin(w) * modeGain * bankNorm normalizes the attack envelope peak to
         // exactly modeGain * bankNorm, INDEPENDENT of frequency w and INDEPENDENT of T60 decay!
         const float filterNorm = std::sin(w);
-        modes_[i].gain = modeGain * filterNorm * bankNorm * config_.masterGain;
+        modes_[i].modalAmplitude = modeGain * filterNorm * bankNorm * config_.masterGain;
+        modes_[i].excitationGain = modes_[i].modalAmplitude * excitationCoupling_[i];
     }
 }
 
@@ -113,7 +134,7 @@ float ModalResonatorBank::processSample(float excitation) {
 
         auto& m = modes_[i];
         // 2nd-order direct form IIR resonant filter
-        float y = m.gain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
+        float y = m.excitationGain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
 
         // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
         if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {

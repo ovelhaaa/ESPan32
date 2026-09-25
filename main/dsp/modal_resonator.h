@@ -19,6 +19,8 @@ public:
     void setPreset(const ModalPreset& preset);
     void setConfig(const ResonatorConfig& config) { config_ = config; }
     void updatePitchAndDamping(float fundamentalFrequencyHz, float damping);
+    void setExcitationCoupling(const float* coupling, size_t count);
+    void setRegisterBehavior(float t60Scale, float splitBeatTargetHz, bool fixedHzSplit);
 
     // Process a single sample through the resonator bank
     float processSample(float excitation);
@@ -44,6 +46,10 @@ private:
     ModalModeState modes_[kMaxModesPerVoice];
     ModalModeDefinition presetModes_[kMaxModesPerVoice];
     uint32_t internalSaturationCount_ = 0;
+    float excitationCoupling_[kMaxModesPerVoice] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+    float t60RegisterScale_ = 1.0f;
+    float splitBeatTargetHz_ = 0.0f;
+    bool fixedHzSplit_ = false;
     ResonatorConfig config_{};
 };
 

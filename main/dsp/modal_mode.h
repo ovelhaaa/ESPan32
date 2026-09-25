@@ -18,7 +18,10 @@ struct ModalModeDefinition {
 // Runtime state for an active resonator mode
 struct ModalModeState {
     float ratio = 1.0f;
-    float gain = 1.0f;
+    // Static modal identity versus new-strike injection. Updating the latter
+    // never rescales the energy already stored in z1/z2.
+    float modalAmplitude = 1.0f;
+    float excitationGain = 1.0f;
     float t60 = 1.0f;
     float detune = 0.0f;
 

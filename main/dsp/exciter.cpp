@@ -19,8 +19,9 @@ void Exciter::reset() {
     filterState_ = 0.0f;
 }
 
-void Exciter::trigger(float velocity) {
+void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
     const float v = std::clamp(velocity, 0.01f, 1.0f);
+    const float h = std::clamp(hardness, 0.0f, 1.0f);
 
     // 1. Strike amplitude: calibrated velocity curve
     // Vel 20 (~0.15) -> ~0.24, Vel 80 (~0.63) -> ~0.63, Vel 127 (1.0) -> 1.0
@@ -31,22 +32,24 @@ void Exciter::trigger(float velocity) {
     // 2. Transient hardness: high velocity yields a shorter, sharper impulse
     // Soft strike (low v): ~14 samples (soft finger pad / rounded mallet)
     // Hard strike (high v): ~3 samples (hard strike / knuckle)
-    const float durationSamples = 14.0f - 11.0f * v;
+    const float durationSamples = 14.0f - 11.0f * h;
     impulseSamples_ = std::max<uint32_t>(3U, static_cast<uint32_t>(durationSamples));
 
     // 3. Noise burst: duration ~3 ms to 8 ms
-    const float burstSeconds = 0.003f + 0.005f * (1.0f - v);
+    const float burstSeconds = 0.003f + 0.005f * (1.0f - h);
     noiseSamples_ = static_cast<uint32_t>(burstSeconds * sampleRate_);
 
     // 4. Brightness / Cutoff frequency:
     // Low velocity: ~700 Hz (warm, rounded thud)
     // High velocity: ~12,000 Hz (bright, crisp acoustic strike)
-    const float cutoffHz = config_.brightnessMinHz +
-        (config_.brightnessMaxHz - config_.brightnessMinHz) * (v * v);
+    const float cutoffHz = std::clamp((config_.brightnessMinHz +
+        (config_.brightnessMaxHz - config_.brightnessMinHz) * (h * h)) * brightnessScale,
+        config_.brightnessMinHz * 0.65f, config_.brightnessMaxHz);
     const float w = (2.0f * kPi * cutoffHz) / sampleRate_;
     filterCoeff_ = std::clamp(1.0f - std::exp(-w), 0.01f, 0.99f);
 
-    noiseGain_ = strikeAmplitude_ * (0.04f + 0.06f * v) * config_.noiseAmount;
+    // Hardness adds texture, but high velocity is primarily modal coupling.
+    noiseGain_ = strikeAmplitude_ * (0.035f + 0.045f * h) * config_.noiseAmount;
 
     sampleIndex_ = 0;
     filterState_ = 0.0f;
