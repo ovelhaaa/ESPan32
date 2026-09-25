@@ -28,18 +28,23 @@ Gain, brightness, and T60 use continuous interpolation from D3 to A4. Low
 notes get a small gain/T60 lift; high notes receive a small gain, brightness,
 and T60 reduction. The T60 span is 1.10x to 0.90x.
 
-The old relative split (`0.0032`) produces beat rates from about 0.47 Hz at D3
-to 1.41 Hz at A4. M5B uses a fixed 1.0 Hz target expressed as relative detune
-at coefficient-update time. It keeps perceived movement consistent through
-the tested register without changing the main fundamental pitch.
+The relative split (`0.0032`) produces beat rates from about 0.47 Hz at D3 to
+1.41 Hz at A4. The current default is a fixed 1.0 Hz target expressed as a
+relative detune at coefficient-update time. It keeps perceived movement
+consistent through the tested register without changing the main fundamental
+pitch. This is not a final musical choice: it requires hardware listening
+validation against the generated relative/fixed A/B WAVs.
 
 ## Host evidence
 
-Run `ctest --test-dir build-host-ninja --output-on-failure` after building.
-The DSP fixture writes `pan_m5b_metrics.md` and untracked WAVs for D3 velocity
-30/70/110 and D3/A3/D4/A4. Its compact Goertzel bank verifies that both
-upper-mode/fundamental energy and the >3 kHz brightness proxy rise monotonically
-from velocity 30 to 70 to 110. It also retains the 100 ms, 250 ms, and 75 ms
+Run `ctest --test-dir build-host --output-on-failure` after building.
+The DSP fixture writes the authoritative generated report
+`build-host/pan_m5b_metrics.md`, velocity WAVs for D3 (MIDI 50) at 30/70/110,
+register WAVs for D3/A3/D4/A4, and relative/fixed doublet A/B WAVs. Its
+Goertzel bank measures exact PAN-mode energy, `modalBrightnessRatio`, and
+`highModalRatio`; both rise monotonically from velocity 30 to 70 to 110. The
+old >3 kHz bank is intentionally not an acceptance criterion because it is
+mostly leakage for D3. The fixture also retains the 100 ms, 250 ms, and 75 ms
 roll restrike fixtures and output limiter diagnostics.
 
 For a strict M5A/M5B audible A/B, render the `*_old.wav` fixtures from commit

@@ -128,7 +128,7 @@ void uiTaskLoop(void* param) {
     uint32_t demoTick = 0;
 
     // D Kurd / D Celtic Handpan scale notes: D3, A3, Bb3, C4, D4, E4, F4, A4
-    const uint8_t kHandpanScale[] = { 62, 69, 70, 72, 74, 76, 77, 81 };
+    const uint8_t kHandpanScale[] = { 50, 57, 58, 60, 62, 64, 65, 69 };
     const size_t kScaleLen = sizeof(kHandpanScale) / sizeof(kHandpanScale[0]);
     size_t scaleIdx = 0;
 

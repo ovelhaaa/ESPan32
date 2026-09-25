@@ -6,7 +6,7 @@ namespace pocketpan::midi {
 namespace {
 // Note names for standard 12-TET chromatic scale
 const char* const kNoteNames[12] = {
-    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "Bb", "B"
 };
 
 // Formatted note name buffer (e.g. "D3", "G#2")
@@ -50,8 +50,8 @@ const char* MidiMapping::noteToName(uint8_t note) {
     const char* base = kNoteNames[semitone];
     // Format into thread-local / static buffer
     sNoteNameBuffer[0] = base[0];
-    if (base[1] == '#') {
-        sNoteNameBuffer[1] = '#';
+    if (base[1] != '\0') {
+        sNoteNameBuffer[1] = base[1];
         sNoteNameBuffer[2] = static_cast<char>('0' + (octave >= 0 ? octave : 0));
         sNoteNameBuffer[3] = '\0';
     } else {

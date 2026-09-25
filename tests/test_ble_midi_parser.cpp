@@ -42,7 +42,7 @@ void testSingleNoteOn() {
     // Timestamp Low: bit 7=1, bits 6..0 = 0b0100100 (36) -> timestampLow7 = 36
     // Expected timestamp13 = (10 << 7) | 36 = 1280 + 36 = 1316
     // Status: 0x90 (NoteOn, Ch 1)
-    // Note: 62 (D3)
+    // Note: 62 (D4)
     // Velocity: 100
     const uint8_t packet[] = { 0x80 | 10, 0x80 | 36, 0x90, 62, 100 };
     parser.parseBlePacket(packet, sizeof(packet));
@@ -53,7 +53,7 @@ void testSingleNoteOn() {
     assert(gEvents[0].data1 == 62);
     assert(gEvents[0].data2 == 100);
     assert(gEvents[0].timestamp13 == 1316);
-    printf("  PASSED: NoteOn D3 vel 100 with 13-bit timestamp 1316\n");
+    printf("  PASSED: NoteOn D4 vel 100 with 13-bit timestamp 1316\n");
 }
 
 void testNoteOnZeroVelocityAsNoteOff() {

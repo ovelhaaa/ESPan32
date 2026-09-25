@@ -18,6 +18,7 @@
 #include "../main/dsp/synth_engine.h"
 #include "../main/dsp/peak_limiter.h"
 #include "../main/dsp/diagnostic_tone.h"
+#include "../main/dsp/pan_doublet.h"
 #include "../main/midi/midi_mapping.h"
 #include "../main/midi/midi_event.h"
 
@@ -71,6 +72,10 @@ struct AudioMetrics {
     uint32_t softClipCount = 0;
     float attackRms = 0.0f;
     float dcMean = 0.0f;
+    float tailRms = 0.0f;
+    float preLimiterPeak = 0.0f;
+    float maxGainReductionDb = 0.0f;
+    float averageGainReductionDb = 0.0f;
 };
 
 constexpr float kAttackWindowSeconds = 0.100f;
@@ -102,6 +107,11 @@ AudioMetrics computeMetrics(const std::vector<int32_t>& audioStereo, uint32_t so
     double attackSum = 0.0;
     for (size_t i = 0; i < attackSamples; ++i) { const float s = static_cast<float>(audioStereo[i]) / 2147483647.0f; attackSum += s * s; }
     m.attackRms = static_cast<float>(std::sqrt(attackSum / attackSamples));
+    const size_t tailStart = std::min(numSamples, static_cast<size_t>(48000 * 0.5f * 2));
+    const size_t tailEnd = std::min(numSamples, static_cast<size_t>(48000 * 1.5f * 2));
+    double tailSum = 0.0;
+    for (size_t i = tailStart; i < tailEnd; ++i) { const float s = static_cast<float>(audioStereo[i]) / 2147483647.0f; tailSum += s * s; }
+    m.tailRms = tailEnd > tailStart ? static_cast<float>(std::sqrt(tailSum / (tailEnd - tailStart))) : 0.0f;
     return m;
 }
 
@@ -242,7 +252,7 @@ void testT60Decay() {
 // 3. Mode splitting verification (detune applied exactly once)
 void testModeSplitting() {
     std::cout << "[Test 3] Mode Splitting (Beating Doublet Verification)..." << std::endl;
-    constexpr float kFund = 293.665f; // D3
+    const float kFund = midi::MidiMapping::noteToHz(50); // D3
     const auto& m0 = dsp::kPresetPan.modes[0];
     const auto& m1 = dsp::kPresetPan.modes[1];
 
@@ -255,23 +265,23 @@ void testModeSplitting() {
     const float beatFreqHz = std::abs(f1 - f0);
     std::cout << "  Beat frequency: " << beatFreqHz << " Hz" << std::endl;
 
-    // With fund=293.665 and detune=0.0032: 293.665 * 0.0032 = 0.9397 Hz
+    // Relative split remains 0.0032; D3 produces about 0.47 Hz beating.
     assert(std::abs(m1.ratio - 1.0f) < 0.0001f);
     assert(std::abs(m1.detune - 0.0032f) < 0.0001f);
     assert(std::abs(beatFreqHz - (kFund * 0.0032f)) < 0.001f);
-    std::cout << "  -> PASSED: Mode split detune applied exactly once, producing natural ~0.94 Hz beating!\n";
+    std::cout << "  -> PASSED: Mode split detune applied exactly once, producing natural sub-0.5 Hz D3 beating!\n";
 }
 
 // 4. Same-note restrike physical energy accumulation
 void testSameNoteRestrike() {
     std::cout << "[Test 4] Same-Note Restrike (Physical Energy Accumulation)..." << std::endl;
     constexpr float kFs = 48000.0f;
-    constexpr float kFund = 293.665f; // D3
+    const float kFund = midi::MidiMapping::noteToHz(50); // D3
 
     // Voice A: Physical restrike (without resetting resonator modes)
     dsp::ModalVoice voiceA;
     voiceA.init(kFs);
-    voiceA.trigger(62, kFund, 0.70f);
+    voiceA.trigger(50, kFund, 0.70f);
 
     // Run for 3000 samples (~62 ms)
     for (int i = 0; i < 3000; ++i) {
@@ -289,13 +299,13 @@ void testSameNoteRestrike() {
     // Voice B: Hard reset on retrigger (unphysical)
     dsp::ModalVoice voiceB;
     voiceB.init(kFs);
-    voiceB.trigger(62, kFund, 0.70f);
+    voiceB.trigger(50, kFund, 0.70f);
     for (int i = 0; i < 3000; ++i) {
         voiceB.processSample();
     }
     // Hard kill and re-trigger
     voiceB.kill();
-    voiceB.trigger(62, kFund, 0.70f);
+    voiceB.trigger(50, kFund, 0.70f);
     for (int i = 0; i < 500; ++i) {
         voiceB.processSample();
     }
@@ -370,7 +380,7 @@ void testInactiveTriggerClearsResidual() {
     std::cout << "[Test 5b] Inactive trigger clears stale residual..." << std::endl;
     dsp::ModalVoice voice;
     voice.init(48000.0f);
-    voice.trigger(62, 293.665f, 0.8f);
+    voice.trigger(62, midi::MidiMapping::noteToHz(62), 0.8f); // D4
     for (int i = 0; i < 100; ++i) voice.processSample();
     assert(std::abs(voice.getLastSample()) > 1.0e-7f);
     voice.reset();
@@ -387,7 +397,7 @@ void testMultiVoiceDamping() {
     dsp::VoiceAllocator allocator;
     allocator.init(kFs);
 
-    // Voice 1 (D3, note 62) and Voice 2 (A3, note 69)
+    // Voice 1 (D4, note 62) and Voice 2 (A4, note 69)
     allocator.noteOn(62, 0.8f, midi::MidiMapping::noteToHz(62));
     allocator.noteOn(69, 0.8f, midi::MidiMapping::noteToHz(69));
 
@@ -459,7 +469,7 @@ void testGainNormalization() {
     std::cout << "  -> PASSED: Modal normalization is rock-solid across frequencies and T60!\n";
 }
 
-// 8. Velocity calibration metrics (Peak, RMS, Brightness proxy)
+// 8. Velocity calibration metrics (peak and RMS; modal brightness is audited below).
 void testVelocityCalibration() {
     std::cout << "[Test 8] Velocity Dynamic Calibration (20, 50, 80, 110, 127)..." << std::endl;
     constexpr float kFs = 48000.0f;
@@ -476,7 +486,7 @@ void testVelocityCalibration() {
 
         midi::MidiEvent ev;
         ev.type = midi::MidiEventType::NoteOn;
-        ev.data1 = 62; // D3
+        ev.data1 = 62; // D4
         ev.data2 = vel;
         engine.handleMidiEvent(ev);
 
@@ -553,20 +563,26 @@ std::vector<int32_t> renderScheduled(const std::vector<ScheduledEvent>& events, 
         const size_t frames = std::min(kBlock, totalFrames - frame); int32_t block[kBlock * 2]{};
         engine.renderBlock(block, frames); std::memcpy(&audio[frame * 2], block, frames * 2 * sizeof(int32_t));
     }
-    metrics = computeMetrics(audio, engine.getSoftClipCount()); modalSat = engine.getModalInternalSaturationCount();
+    metrics = computeMetrics(audio, engine.getSoftClipCount());
+    metrics.preLimiterPeak = engine.getPreLimiterPeak();
+    metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    metrics.averageGainReductionDb = engine.getAverageGainReductionDb();
+    modalSat = engine.getModalInternalSaturationCount();
     assert(engine.getHardClampCount() == 0 && "Musical scheduled fixtures must not require final hard clipping");
     return audio;
 }
 
 void testSpectralAndRestrikeSanity() {
     std::cout << "[Test 9] PAN spectral/restrike/DC sanity..." << std::endl;
-    auto note = [](uint8_t velocity) { midi::MidiEvent e{}; e.type = midi::MidiEventType::NoteOn; e.data1 = 62; e.data2 = velocity; return e; };
+    const uint8_t kD3Midi = 50;
+    const float kD3Hz = midi::MidiMapping::noteToHz(kD3Midi);
+    auto note = [kD3Midi](uint8_t velocity) { midi::MidiEvent e{}; e.type = midi::MidiEventType::NoteOn; e.data1 = kD3Midi; e.data2 = velocity; return e; };
     AudioMetrics singleMetrics; uint32_t singleSat;
     auto single = renderScheduled({{0, note(90)}}, 96000, true, singleMetrics, singleSat);
     // Broad probes deliberately do not try to resolve the sub-1 Hz PAN doublet.
-    const float fundamental = goertzelMagnitude(single, 293.665f);
-    const float octave = goertzelMagnitude(single, 2.0f * 293.665f);
-    const float fifth = goertzelMagnitude(single, 3.0f * 293.665f);
+    const float fundamental = goertzelMagnitude(single, kD3Hz);
+    const float octave = goertzelMagnitude(single, 2.0f * kD3Hz);
+    const float fifth = goertzelMagnitude(single, 3.0f * kD3Hz);
     const float high = goertzelMagnitude(single, 12000.0f);
     assert(fundamental > 0.001f && octave > 0.001f && fifth > 0.001f);
     assert(high < fundamental * 0.25f && "PAN must not become high-frequency broadband noise");
@@ -598,46 +614,101 @@ float spectralEnergy(const std::vector<int32_t>& audio, const std::initializer_l
 
 void panM5bVoicingAudit() {
     std::cout << "[Test 9b] M5B velocity/modal/register audit..." << std::endl;
-    constexpr float kD3 = 146.832f;
+    constexpr uint8_t kD3Midi = 50;
+    const float kD3 = midi::MidiMapping::noteToHz(kD3Midi);
     auto note = [](uint8_t midiNote, uint8_t velocity) {
         midi::MidiEvent e{}; e.type = midi::MidiEventType::NoteOn; e.data1 = midiNote; e.data2 = velocity; return e;
     };
     std::ofstream report("pan_m5b_metrics.md");
     report << "# PAN M5B host metrics\n\n"
-           << "| Velocity | RMS | Attack RMS | Fundamental | 2f | 3f | Upper modes | Upper/fundamental | Brightness proxy | Modal saturation |\n"
+           << "D3 baseline: MIDI 50, " << kD3 << " Hz. Goertzel probes are exact PAN modal frequencies.\n\n"
+           << "| Velocity | RMS | Attack RMS | f | 2f | 3f | Upper energy | modalBrightnessRatio | highModalRatio | Modal saturation |\n"
            << "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
-    float previousRatio = -1.0f;
-    float previousBrightness = -1.0f;
+    float previousModalBrightness = -1.0f;
+    float previousHighModal = -1.0f;
     for (uint8_t velocity : {30, 70, 110}) {
         AudioMetrics metrics; uint32_t saturation = 0;
-        const auto audio = renderScheduled({{0, note(50, velocity)}}, 96000, true, metrics, saturation);
+        const auto audio = renderScheduled({{0, note(kD3Midi, velocity)}}, 96000, true, metrics, saturation);
         const float fundamental = spectralEnergy(audio, {kD3});
         const float octave = spectralEnergy(audio, {2.0f * kD3});
         const float fifth = spectralEnergy(audio, {3.0f * kD3});
         const float upper = spectralEnergy(audio, {3.98f * kD3, 5.25f * kD3, 6.62f * kD3, 8.18f * kD3});
-        // A compact Goertzel-bank proxy: no runtime FFT and no firmware cost.
-        const float brightness = spectralEnergy(audio, {3000.0f, 4000.0f, 6000.0f, 8000.0f, 10000.0f}) /
-            std::max(1.0e-12f, spectralEnergy(audio, {kD3, 2.0f*kD3, 3.0f*kD3, 3000.0f, 4000.0f, 6000.0f, 8000.0f, 10000.0f}));
-        const float upperRatio = upper / std::max(1.0e-12f, fundamental);
-        assert(upperRatio > previousRatio && "Upper/fundamental modal energy must grow with velocity");
-        assert(brightness > previousBrightness && "Brightness proxy must grow with velocity");
-        previousRatio = upperRatio;
-        previousBrightness = brightness;
+        const float allModes = spectralEnergy(audio, {kD3, 2.0f*kD3, 3.0f*kD3, 3.98f*kD3, 5.25f*kD3, 6.62f*kD3, 8.18f*kD3});
+        const float lowModes = spectralEnergy(audio, {kD3, 2.0f*kD3});
+        const float modalBrightness = spectralEnergy(audio, {3.0f*kD3, 3.98f*kD3, 5.25f*kD3, 6.62f*kD3, 8.18f*kD3}) / std::max(1.0e-12f, allModes);
+        const float highModal = spectralEnergy(audio, {5.25f*kD3, 6.62f*kD3, 8.18f*kD3}) / std::max(1.0e-12f, lowModes);
+        assert(modalBrightness > previousModalBrightness && "Modal brightness must grow with velocity");
+        assert(highModal > previousHighModal && "High-modal ratio must grow with velocity");
+        previousModalBrightness = modalBrightness;
+        previousHighModal = highModal;
         report << "| " << static_cast<int>(velocity) << " | " << metrics.rms << " | " << metrics.attackRms
                << " | " << fundamental << " | " << octave << " | " << fifth << " | " << upper
-               << " | " << upperRatio << " | " << brightness << " | " << saturation << " |\n";
+               << " | " << modalBrightness << " | " << highModal << " | " << saturation << " |\n";
         writeWavFile((std::string("pan_D3_v") + std::to_string(velocity) + "_new.wav").c_str(), audio.data(), 96000, 48000);
     }
-    // Continuous register fixtures; these also prove the chosen fixed-Hz split
-    // does not depend on a note table.
+    report << "\n## Register metrics (velocity 70, current default fixed 1 Hz split)\n\n"
+           << "| Note | MIDI | Hz | RMS | Attack RMS | Tail RMS (500-1500 ms) | modalBrightnessRatio | Pre-limiter peak | Max GR dB | Avg GR dB |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
     for (uint8_t midiNote : {50, 57, 62, 69}) {
         AudioMetrics metrics; uint32_t saturation = 0;
         const auto audio = renderScheduled({{0, note(midiNote, 70)}}, 96000, true, metrics, saturation);
         assert(std::isfinite(metrics.rms) && metrics.rms > 0.001f);
         const char* name = midiNote == 50 ? "D3" : midiNote == 57 ? "A3" : midiNote == 62 ? "D4" : "A4";
+        const float f = midi::MidiMapping::noteToHz(midiNote);
+        const float all = spectralEnergy(audio, {f, 2*f, 3*f, 3.98f*f, 5.25f*f, 6.62f*f, 8.18f*f});
+        const float brightness = spectralEnergy(audio, {3*f, 3.98f*f, 5.25f*f, 6.62f*f, 8.18f*f}) / std::max(1.0e-12f, all);
+        report << "| " << name << " | " << static_cast<int>(midiNote) << " | " << f << " | " << metrics.rms << " | " << metrics.attackRms << " | " << metrics.tailRms << " | " << brightness << " | " << metrics.preLimiterPeak << " | " << metrics.maxGainReductionDb << " | " << metrics.averageGainReductionDb << " |\n";
         writeWavFile((std::string("pan_register_") + name + ".wav").c_str(), audio.data(), 96000, 48000);
     }
-    std::cout << "  -> PASSED: upper-mode and brightness metrics rise monotonically.\n";
+    std::cout << "  -> PASSED: modal brightness ratios rise monotonically.\n";
+}
+
+std::vector<int32_t> renderPanDoubletReference(float fundamentalHz, dsp::PanDoubletMode mode) {
+    constexpr size_t kFrames = 48000 * 4;
+    dsp::ModalResonatorBank bank;
+    bank.init(48000.0f);
+    bank.setRegisterBehavior(1.0f, 1.0f, mode == dsp::PanDoubletMode::FixedHz);
+    bank.updatePitchAndDamping(fundamentalHz, 0.0f);
+    std::vector<int32_t> audio(kFrames * 2);
+    for (size_t frame = 0; frame < kFrames; ++frame) {
+        const float sample = std::clamp(bank.processSample(frame == 0 ? 0.35f : 0.0f), -1.0f, 1.0f);
+        const int32_t pcm = static_cast<int32_t>(sample * 2147483647.0f);
+        audio[frame * 2] = pcm; audio[frame * 2 + 1] = pcm;
+    }
+    return audio;
+}
+
+void testPanDoubletAb() {
+    std::cout << "[Test 9c] PAN doublet relative/fixed A/B..." << std::endl;
+    std::ofstream report("pan_doublet_ab.md");
+    report << "# PAN doublet A/B\n\nCurrent default: fixed 1 Hz. Musical preference requires hardware listening validation.\n\n"
+           << "| Note | MIDI | Fundamental Hz | Relative beat Hz | Fixed beat Hz |\n|---|---:|---:|---:|---:|\n";
+    for (uint8_t midiNote : {50, 57, 62, 69}) {
+        const float f = midi::MidiMapping::noteToHz(midiNote);
+        const char* name = midiNote == 50 ? "D3" : midiNote == 57 ? "A3" : midiNote == 62 ? "D4" : "A4";
+        const float relativeBeat = dsp::computePanDoubletBeatHz(f, dsp::PanDoubletMode::Relative);
+        const float fixedBeat = dsp::computePanDoubletBeatHz(f, dsp::PanDoubletMode::FixedHz);
+        assert(relativeBeat > 0.0f && fixedBeat > 0.0f);
+        assert(std::abs(fixedBeat - 1.0f) < 1.0e-5f);
+        report << "| " << name << " | " << static_cast<int>(midiNote) << " | " << f << " | " << relativeBeat << " | " << fixedBeat << " |\n";
+        const auto relative = renderPanDoubletReference(f, dsp::PanDoubletMode::Relative);
+        const auto fixed = renderPanDoubletReference(f, dsp::PanDoubletMode::FixedHz);
+        writeWavFile((std::string("pan_doublet_") + name + "_relative.wav").c_str(), relative.data(), relative.size() / 2, 48000);
+        writeWavFile((std::string("pan_doublet_") + name + "_fixed.wav").c_str(), fixed.data(), fixed.size() / 2, 48000);
+    }
+    for (uint8_t midiNote : {36, 50, 69, 84}) {
+        const float f = midi::MidiMapping::noteToHz(midiNote);
+        const float detune = dsp::computePanDoubletDetune(f, dsp::PanDoubletMode::FixedHz);
+        assert(std::isfinite(detune) && detune > 0.0f && detune < 0.03f);
+        assert(f * (1.0f + detune) > 0.0f);
+    }
+    std::cout << "  -> PASSED: A/B WAVs and calculated beat rates generated.\n";
+}
+
+void testHandpanDemoScale() {
+    constexpr uint8_t scale[] = {50, 57, 58, 60, 62, 64, 65, 69};
+    constexpr const char* names[] = {"D3", "A3", "Bb3", "C4", "D4", "E4", "F4", "A4"};
+    for (size_t i = 0; i < std::size(scale); ++i) assert(std::string(midi::MidiMapping::noteToName(scale[i])) == names[i]);
 }
 
 void saturationAbAudit() {
@@ -646,8 +717,8 @@ void saturationAbAudit() {
     report << "# Internal modal saturation A/B audit\n\n| Case | Sat On Peak | Sat Off Peak | RMS delta | On ModalSat | Off ModalSat |\n|---|---:|---:|---:|---:|---:|\n";
     auto note=[](uint8_t n,uint8_t velocity){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=velocity; return e; };
     const std::vector<std::pair<const char*, std::vector<ScheduledEvent>>> cases = {
-        {"single D3 vel127", {{0,note(62,127)}}}, {"double strike 100ms", {{0,note(62,100)},{4800,note(62,100)}}},
-        {"rapid roll", {{0,note(62,110)},{1800,note(62,110)},{3600,note(62,110)},{5400,note(62,110)},{7200,note(62,110)}}},
+        {"single D3 vel127", {{0,note(50,127)}}}, {"double strike 100ms", {{0,note(50,100)},{4800,note(50,100)}}},
+        {"rapid roll", {{0,note(50,110)},{1800,note(50,110)},{3600,note(50,110)},{5400,note(50,110)},{7200,note(50,110)}}},
         {"cluster8", {{0,note(62,100)},{0,note(64,100)},{0,note(65,100)},{0,note(67,100)},{0,note(69,100)},{0,note(70,100)},{0,note(72,100)},{0,note(74,100)}}}
     };
     for (const auto& entry : cases) {
@@ -680,14 +751,14 @@ void generateComparativeWavs() {
         report << "| "<<filename<<" | "<<m.peak<<" | "<<m.rms<<" | "<<m.crestFactor<<" | "<<m.softClipCount<<" | "<<sat<<" |\n";
         std::cout<<filename<<" peak="<<m.peak<<" rms="<<m.rms<<" crest="<<m.crestFactor<<" limiter="<<m.softClipCount<<" modalSat="<<sat<<"\n";
     };
-    render("pan_D3_vel40.wav",{{0,event(62,40)}},144000);
-    render("pan_D3_vel90.wav",{{0,event(62,90)}},144000);
-    render("pan_D3_vel127.wav",{{0,event(62,127)}},144000);
-    render("pan_D3_single.wav",{{0,event(62,90)}},144000);
-    render("pan_D3_double_100ms.wav",{{0,event(62,80)},{4800,event(62,95)}},168000);
-    render("pan_D3_double_250ms.wav",{{0,event(62,80)},{12000,event(62,95)}},168000);
-    render("pan_D3_triple.wav",{{0,event(62,80)},{12000,event(62,95)},{24000,event(62,105)}},168000);
-    render("pan_D3_roll.wav",{{0,event(62,85)},{3600,event(62,85)},{7200,event(62,85)},{10800,event(62,85)},{14400,event(62,85)},{18000,event(62,85)},{21600,event(62,85)},{25200,event(62,85)},{28800,event(62,85)},{32400,event(62,85)},{36000,event(62,85)},{39600,event(62,85)},{43200,event(62,85)}},96000);
+    render("pan_D3_vel40.wav",{{0,event(50,40)}},144000);
+    render("pan_D3_vel90.wav",{{0,event(50,90)}},144000);
+    render("pan_D3_vel127.wav",{{0,event(50,127)}},144000);
+    render("pan_D3_single.wav",{{0,event(50,90)}},144000);
+    render("pan_D3_double_100ms.wav",{{0,event(50,80)},{4800,event(50,95)}},168000);
+    render("pan_D3_double_250ms.wav",{{0,event(50,80)},{12000,event(50,95)}},168000);
+    render("pan_D3_triple.wav",{{0,event(50,80)},{12000,event(50,95)},{24000,event(50,105)}},168000);
+    render("pan_D3_roll.wav",{{0,event(50,85)},{3600,event(50,85)},{7200,event(50,85)},{10800,event(50,85)},{14400,event(50,85)},{18000,event(50,85)},{21600,event(50,85)},{25200,event(50,85)},{28800,event(50,85)},{32400,event(50,85)},{36000,event(50,85)},{39600,event(50,85)},{43200,event(50,85)}},96000);
     render("pan_chord.wav",{{0,event(62,85)},{0,event(69,80)},{0,event(77,75)},{0,event(81,80)}},192000);
     render("pan_cluster8.wav",{{0,event(62,100)},{0,event(64,100)},{0,event(65,100)},{0,event(67,100)},
            {0,event(69,100)},{0,event(70,100)},{0,event(72,100)},{0,event(74,100)}},192000);
@@ -904,7 +975,9 @@ int main() {
     testVelocityCalibration();
     testResetDiagnosticsAndVoiceReuse();
     testSpectralAndRestrikeSanity();
+    testHandpanDemoScale();
     panM5bVoicingAudit();
+    testPanDoubletAb();
     saturationAbAudit();
     generateComparativeWavs();
     testPeakLimiter();

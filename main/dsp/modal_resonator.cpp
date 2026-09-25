@@ -1,4 +1,5 @@
 #include "modal_resonator.h"
+#include "pan_doublet.h"
 #include <algorithm>
 #include <cmath>
 
@@ -77,8 +78,10 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
 
         // Mode frequency with detune splitting (detune applied strictly once)
         float detune = def.detune;
-        if (fixedHzSplit_ && i == 1 && def.ratio == 1.0f && def.detune != 0.0f) {
-            detune = splitBeatTargetHz_ / fundamentalFrequencyHz_;
+        if (i == 1 && def.ratio == 1.0f && def.detune != 0.0f) {
+            detune = computePanDoubletDetune(fundamentalFrequencyHz_,
+                fixedHzSplit_ ? PanDoubletMode::FixedHz : PanDoubletMode::Relative,
+                def.detune, splitBeatTargetHz_);
         }
         const float modeFreq = fundamentalFrequencyHz_ * def.ratio * (1.0f + detune);
 

@@ -20,6 +20,8 @@ jobs:
           cat build-host/test_metrics.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/saturation_ab_metrics.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/output_stage_abc_metrics.md >> "$GITHUB_STEP_SUMMARY"
+          cat build-host/pan_m5b_metrics.md >> "$GITHUB_STEP_SUMMARY"
+          cat build-host/pan_doublet_ab.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: ESPan32-audio-tests
@@ -28,6 +30,10 @@ jobs:
             build-host/test_metrics.md
             build-host/saturation_ab_metrics.md
             build-host/output_stage_abc_metrics.md
+            build-host/pan_m5b_metrics.md
+            build-host/pan_doublet_ab.md
+            build-host/pan_doublet_*.wav
+            build-host/pan_register_*.wav
           if-no-files-found: error
 
   esp-idf-build:
