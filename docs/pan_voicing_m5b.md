@@ -43,7 +43,9 @@ The DSP fixture writes the authoritative generated report
 register WAVs for D3/A3/D4/A4, and relative/fixed doublet A/B WAVs. Its
 Goertzel bank measures exact PAN-mode energy, `modalBrightnessRatio`, and
 `highModalRatio`; both rise monotonically from velocity 30 to 70 to 110. The
-old >3 kHz bank is intentionally not an acceptance criterion because it is
+fundamental doublet is included as both `f` and its calculated split frequency
+in the low-mode and all-mode denominators.
+The old >3 kHz bank is intentionally not an acceptance criterion because it is
 mostly leakage for D3. The fixture also retains the 100 ms, 250 ms, and 75 ms
 roll restrike fixtures and output limiter diagnostics.
 

@@ -630,11 +630,15 @@ void panM5bVoicingAudit() {
         AudioMetrics metrics; uint32_t saturation = 0;
         const auto audio = renderScheduled({{0, note(kD3Midi, velocity)}}, 96000, true, metrics, saturation);
         const float fundamental = spectralEnergy(audio, {kD3});
+        const float splitFundamentalHz = kD3 * (1.0f + dsp::computePanDoubletDetune(
+            kD3, dsp::PanDoubletMode::FixedHz));
+        const float splitFundamental = spectralEnergy(audio, {splitFundamentalHz});
         const float octave = spectralEnergy(audio, {2.0f * kD3});
         const float fifth = spectralEnergy(audio, {3.0f * kD3});
         const float upper = spectralEnergy(audio, {3.98f * kD3, 5.25f * kD3, 6.62f * kD3, 8.18f * kD3});
-        const float allModes = spectralEnergy(audio, {kD3, 2.0f*kD3, 3.0f*kD3, 3.98f*kD3, 5.25f*kD3, 6.62f*kD3, 8.18f*kD3});
-        const float lowModes = spectralEnergy(audio, {kD3, 2.0f*kD3});
+        const float allModes = spectralEnergy(audio, {kD3, splitFundamentalHz, 2.0f*kD3,
+            3.0f*kD3, 3.98f*kD3, 5.25f*kD3, 6.62f*kD3, 8.18f*kD3});
+        const float lowModes = fundamental + splitFundamental + octave;
         const float modalBrightness = spectralEnergy(audio, {3.0f*kD3, 3.98f*kD3, 5.25f*kD3, 6.62f*kD3, 8.18f*kD3}) / std::max(1.0e-12f, allModes);
         const float highModal = spectralEnergy(audio, {5.25f*kD3, 6.62f*kD3, 8.18f*kD3}) / std::max(1.0e-12f, lowModes);
         assert(modalBrightness > previousModalBrightness && "Modal brightness must grow with velocity");
@@ -655,7 +659,8 @@ void panM5bVoicingAudit() {
         assert(std::isfinite(metrics.rms) && metrics.rms > 0.001f);
         const char* name = midiNote == 50 ? "D3" : midiNote == 57 ? "A3" : midiNote == 62 ? "D4" : "A4";
         const float f = midi::MidiMapping::noteToHz(midiNote);
-        const float all = spectralEnergy(audio, {f, 2*f, 3*f, 3.98f*f, 5.25f*f, 6.62f*f, 8.18f*f});
+        const float splitF = f * (1.0f + dsp::computePanDoubletDetune(f, dsp::PanDoubletMode::FixedHz));
+        const float all = spectralEnergy(audio, {f, splitF, 2*f, 3*f, 3.98f*f, 5.25f*f, 6.62f*f, 8.18f*f});
         const float brightness = spectralEnergy(audio, {3*f, 3.98f*f, 5.25f*f, 6.62f*f, 8.18f*f}) / std::max(1.0e-12f, all);
         report << "| " << name << " | " << static_cast<int>(midiNote) << " | " << f << " | " << metrics.rms << " | " << metrics.attackRms << " | " << metrics.tailRms << " | " << brightness << " | " << metrics.preLimiterPeak << " | " << metrics.maxGainReductionDb << " | " << metrics.averageGainReductionDb << " |\n";
         writeWavFile((std::string("pan_register_") + name + ".wav").c_str(), audio.data(), 96000, 48000);
