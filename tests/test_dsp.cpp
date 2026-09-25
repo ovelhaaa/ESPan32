@@ -678,6 +678,7 @@ void testM6ModelArchitectureAndBell() {
     float previousUpper = -1.0f;
     for (uint8_t velocity : {30,70,110,127}) {
         const auto bell = renderModel({{0,note(62,velocity)}}, 96000, dsp::InstrumentModel::Bell); assert(bell.hardClampCount == 0 && bell.modalSat == 0);
+        writeWavFile((std::string("bell_D4_v") + std::to_string(velocity) + ".wav").c_str(), bell.audio.data(), 96000, 48000);
         const float f = midi::MidiMapping::noteToHz(62); const float primary = spectralEnergy(bell.audio,{f,2.0f*f});
         const float upper = spectralEnergy(bell.audio,{3.0f*f,4.0f*f,5.2f*f}) / std::max(primary, 1.0e-12f); assert(upper >= previousUpper); previousUpper = upper;
     }
