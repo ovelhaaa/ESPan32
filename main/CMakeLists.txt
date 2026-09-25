@@ -8,6 +8,7 @@ idf_component_register(
         "dsp/exciter.cpp"
         "dsp/modal_voice.cpp"
         "dsp/voice_allocator.cpp"
+        "dsp/peak_limiter.cpp"
         "dsp/synth_engine.cpp"
         "midi/midi_parser.cpp"
         "midi/midi_mapping.cpp"

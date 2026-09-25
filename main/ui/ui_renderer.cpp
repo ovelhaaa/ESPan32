@@ -17,8 +17,8 @@ void UiRenderer::render(const UiState& state) {
         snprintf(b, sizeof(b), "MAX %uus", (unsigned)state.maxBlockTimeUs); display_.drawText(130, 58, b, hardware::colors::LightGray, 1);
         snprintf(b, sizeof(b), "DLINE %u TMO %u", (unsigned)state.deadlineMisses, (unsigned)state.writeTimeouts); display_.drawText(10, 74, b, hardware::colors::LightGray, 1);
         snprintf(b, sizeof(b), "TXERR %u SHORT %u", (unsigned)state.txErrors, (unsigned)state.shortWrites); display_.drawText(10, 90, b, hardware::colors::LightGray, 1);
-        snprintf(b, sizeof(b), "SOURCE %s", state.diagnosticTone); display_.drawText(10, 106, b, hardware::colors::Cyan, 1);
-        display_.drawText(10, 122, "BOOT: SOURCE / HOLD EXIT", hardware::colors::Gray, 1);
+        snprintf(b, sizeof(b), "PEAK %.2f OUT %.2f", state.preLimiterPeak, state.postLimiterPeak); display_.drawText(10, 106, b, hardware::colors::Cyan, 1);
+        snprintf(b, sizeof(b), "GR %.1fdB MAX %.1f L%u C%u", state.currentGainReductionDb, state.maxGainReductionDb, (unsigned)state.limiterActiveSamples, (unsigned)state.hardClampCount); display_.drawText(10, 122, b, hardware::colors::Gray, 1);
     } else {
         renderStatus(state);
     }

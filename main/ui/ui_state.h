@@ -34,6 +34,12 @@ struct UiState {
     uint32_t writeTimeouts = 0;
     uint32_t txErrors = 0;
     uint32_t shortWrites = 0;
+    float preLimiterPeak = 0.0f;
+    float postLimiterPeak = 0.0f;
+    float currentGainReductionDb = 0.0f;
+    float maxGainReductionDb = 0.0f;
+    uint32_t limiterActiveSamples = 0;
+    uint32_t hardClampCount = 0;
     uint32_t internalHeapFree = 0;
     uint32_t largestInternalBlock = 0;
     char diagnosticTone[12] = "PAN";

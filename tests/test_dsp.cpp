@@ -14,6 +14,7 @@
 #include "../main/dsp/modal_voice.h"
 #include "../main/dsp/voice_allocator.h"
 #include "../main/dsp/synth_engine.h"
+#include "../main/dsp/peak_limiter.h"
 #include "../main/dsp/diagnostic_tone.h"
 #include "../main/midi/midi_mapping.h"
 #include "../main/midi/midi_event.h"
@@ -551,6 +552,7 @@ std::vector<int32_t> renderScheduled(const std::vector<ScheduledEvent>& events, 
         engine.renderBlock(block, frames); std::memcpy(&audio[frame * 2], block, frames * 2 * sizeof(int32_t));
     }
     metrics = computeMetrics(audio, engine.getSoftClipCount()); modalSat = engine.getModalInternalSaturationCount();
+    assert(engine.getHardClampCount() == 0 && "Musical scheduled fixtures must not require final hard clipping");
     return audio;
 }
 
@@ -619,6 +621,7 @@ void generateComparativeWavs() {
         }
         writeWavFile(filename,audio.data(),totalFrames,static_cast<int>(kFs));
         auto m=computeMetrics(audio,engine.getSoftClipCount()); auto sat=engine.getModalInternalSaturationCount();
+        assert(engine.getHardClampCount() == 0 && "Musical scheduled fixtures must not require final hard clipping");
         report << "| "<<filename<<" | "<<m.peak<<" | "<<m.rms<<" | "<<m.crestFactor<<" | "<<m.softClipCount<<" | "<<sat<<" |\n";
         std::cout<<filename<<" peak="<<m.peak<<" rms="<<m.rms<<" crest="<<m.crestFactor<<" limiter="<<m.softClipCount<<" modalSat="<<sat<<"\n";
     };
@@ -633,6 +636,52 @@ void generateComparativeWavs() {
     render("pan_chord.wav",{{0,event(62,85)},{0,event(69,80)},{0,event(77,75)},{0,event(81,80)}},192000);
     render("pan_cluster8.wav",{{0,event(62,100)},{0,event(64,100)},{0,event(65,100)},{0,event(67,100)},
            {0,event(69,100)},{0,event(70,100)},{0,event(72,100)},{0,event(74,100)}},192000);
+}
+
+void testPeakLimiter() {
+    std::cout << "[Test 11] Lookahead peak limiter transparency, ceiling, and release..." << std::endl;
+    constexpr float kFs = 48000.0f;
+    constexpr uint32_t kLookahead = 32;
+    dsp::LimiterConfig cfg;
+    cfg.thresholdDb = -3.0f; cfg.ceilingDb = -0.5f; cfg.releaseMs = 80.0f; cfg.lookaheadSamples = kLookahead;
+
+    // A 1 kHz sine below threshold must only acquire the fixed time delay.
+    dsp::PeakLimiter clean;
+    clean.init(kFs); clean.setConfig(cfg);
+    float maxDifference = 0.0f;
+    for (uint32_t i = 0; i < 48000 + kLookahead; ++i) {
+        const float input = 0.5f * std::sin(2.0f * 3.14159265358979323846f * 1000.0f * i / kFs);
+        const float output = clean.processSample(input);
+        if (i >= kLookahead) {
+            const float expected = 0.5f * std::sin(2.0f * 3.14159265358979323846f * 1000.0f * (i - kLookahead) / kFs);
+            maxDifference = std::max(maxDifference, std::abs(output - expected));
+        }
+    }
+    assert(maxDifference < 1.0e-6f);
+    assert(clean.getActiveSampleCount() == 0);
+
+    // Above the ceiling, gain control—not saturation—keeps every output sample safe.
+    dsp::PeakLimiter hot;
+    hot.init(kFs); hot.setConfig(cfg);
+    float peak = 0.0f;
+    for (uint32_t i = 0; i < 48000 + kLookahead; ++i)
+        peak = std::max(peak, std::abs(hot.processSample(1.5f * std::sin(2.0f * 3.14159265358979323846f * 1000.0f * i / kFs))));
+    assert(peak <= std::pow(10.0f, -0.5f / 20.0f) + 1.0e-4f);
+    assert(hot.getMaxGainReductionDb() < -3.0f && hot.getActiveSampleCount() > 0);
+
+    // Validate all candidate releases: gain must recover after a burst, rather
+    // than staying latched or jumping back to unity during the delayed peak.
+    for (float releaseMs : {50.0f, 80.0f, 120.0f}) {
+        cfg.releaseMs = releaseMs;
+        dsp::PeakLimiter release;
+        release.init(kFs); release.setConfig(cfg);
+        for (uint32_t i = 0; i < 128; ++i) release.processSample(1.5f);
+        const float burstGr = release.getCurrentGainReductionDb();
+        for (uint32_t i = 0; i < static_cast<uint32_t>(kFs * 0.5f); ++i) release.processSample(0.2f);
+        assert(burstGr < -3.0f);
+        assert(release.getCurrentGainReductionDb() > -0.1f);
+    }
+    std::cout << "  -> PASSED: linear below threshold; ceiling and release verified.\n";
 }
 
 int main() {
@@ -655,6 +704,7 @@ int main() {
     testSpectralAndRestrikeSanity();
     saturationAbAudit();
     generateComparativeWavs();
+    testPeakLimiter();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

@@ -16,6 +16,14 @@ not a claim that playback or BLE was physically validated.
 | Left-only / right-only routing verified | |
 | No glitches while TFT updates | |
 | PAN single note and 8-note cluster | |
+| Single notes clean (v40/v90/v127) | |
+| 2-note interval clean | |
+| 4-note chord clean | |
+| Cluster8 clean | |
+| Rapid roll clean | |
+| No obvious pumping / harsh waveshaping | |
+| Transient remains natural | |
+| Max observed limiter GR | |
 
 The BOOT button opens Status, MIDI Diagnostic, then Audio Diagnostic. In Audio
 Diagnostic, tap to cycle `SILENCE`, `440 HZ`, `1K HZ`, `1K -12`, `LEFT`,

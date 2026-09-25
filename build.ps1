@@ -69,6 +69,7 @@ switch ($Action) {
             "$ScriptDir/main/dsp/exciter.cpp" `
             "$ScriptDir/main/dsp/modal_voice.cpp" `
             "$ScriptDir/main/dsp/voice_allocator.cpp" `
+            "$ScriptDir/main/dsp/peak_limiter.cpp" `
             "$ScriptDir/main/dsp/synth_engine.cpp" `
             "$ScriptDir/main/midi/midi_mapping.cpp" `
             "$ScriptDir/main/midi/midi_parser.cpp" `

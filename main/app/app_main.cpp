@@ -89,6 +89,12 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     sAudioSnapshot.txErrors = stats.txErrors;
     sAudioSnapshot.shortWrites = stats.shortWrites;
     sAudioSnapshot.cpuLoadPercent = stats.cpuLoadPercent;
+    sAudioSnapshot.preLimiterPeak = sSynth.getPreLimiterPeak();
+    sAudioSnapshot.postLimiterPeak = sSynth.getPostLimiterPeak();
+    sAudioSnapshot.currentGainReductionDb = sSynth.getCurrentGainReductionDb();
+    sAudioSnapshot.maxGainReductionDb = sSynth.getMaxGainReductionDb();
+    sAudioSnapshot.limiterActiveSamples = sSynth.getLimiterActiveSamples();
+    sAudioSnapshot.hardClampCount = sSynth.getHardClampCount();
 
     sAudioSnapshot.midiPushCount = sBleMidiQueue.getPushCount() + sDemoMidiQueue.getPushCount();
     sAudioSnapshot.midiPopCount = sBleMidiQueue.getPopCount() + sDemoMidiQueue.getPopCount();
@@ -159,6 +165,12 @@ void uiTaskLoop(void* param) {
             sUiState.writeTimeouts = snap.writeTimeouts;
             sUiState.txErrors = snap.txErrors;
             sUiState.shortWrites = snap.shortWrites;
+            sUiState.preLimiterPeak = snap.preLimiterPeak;
+            sUiState.postLimiterPeak = snap.postLimiterPeak;
+            sUiState.currentGainReductionDb = snap.currentGainReductionDb;
+            sUiState.maxGainReductionDb = snap.maxGainReductionDb;
+            sUiState.limiterActiveSamples = snap.limiterActiveSamples;
+            sUiState.hardClampCount = snap.hardClampCount;
 
             sUiState.lastNoteNumber = snap.lastNote;
             sUiState.lastVelocity = snap.lastVelocity;

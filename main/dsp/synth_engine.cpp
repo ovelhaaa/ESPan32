@@ -5,35 +5,21 @@
 
 namespace pocketpan::dsp {
 
-namespace {
-// Safety soft-clipper: 100% linear (0.000% THD) below threshold (0.85),
-// smoothly transitioning into a soft saturation knee only if exceeding headroom.
-inline float safetySoftClip(float x, bool& clipped) {
-    const float kThreshold = 0.85f;
-    if (std::abs(x) <= kThreshold) {
-        clipped = false;
-        return x;
-    }
-    clipped = true;
-    if (x > 0.0f) {
-        const float excess = x - kThreshold;
-        return kThreshold + (1.0f - kThreshold) * std::tanh(excess / (1.0f - kThreshold));
-    } else {
-        const float excess = -x - kThreshold;
-        return -(kThreshold + (1.0f - kThreshold) * std::tanh(excess / (1.0f - kThreshold)));
-    }
-}
-}
-
 void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
+    limiter_.init(sampleRate_);
+    // 35 ms avoids gain steps as modal voices naturally become inactive.
+    polyHeadroomRelease_ = std::exp(-1.0f / (sampleRate_ * 0.035f));
     reset();
 }
 
 void SynthEngine::reset() {
     allocator_.reset();
-    softClipCount_ = 0;
+    limiter_.reset();
+    polyHeadroomGain_ = 1.0f;
+    preLimiterPeak_ = postLimiterPeak_ = 0.0f;
+    hardClampCount_ = 0;
     std::fill(monoBuffer_, monoBuffer_ + kMaxBlockFrames, 0.0f);
 }
 
@@ -89,24 +75,29 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
     // 1. Synthesize 8-voice polyphony into mono buffer
     allocator_.renderBlock(monoBuffer_, frames);
 
-    // 2. Mixdown, headroom, soft-limiting, and safe 32-bit conversion
+    // Smooth count-based polyphonic headroom: 1=0 dB, 2=-1.5 dB,
+    // 4=-3 dB, 8=-5 dB. This preserves per-voice modal gains.
+    const float voices = static_cast<float>(allocator_.getActiveVoiceCount());
+    const float targetDb = voices <= 1.0f ? 0.0f : -1.5f * std::log2(voices);
+    const float targetHeadroom = std::pow(10.0f, std::max(targetDb, -5.0f) / 20.0f);
+
+    // 2. Mixdown, headroom, lookahead gain limiting, and safe conversion.
     for (size_t i = 0; i < frames; ++i) {
-        float sample = monoBuffer_[i] * masterGain_;
+        polyHeadroomGain_ = targetHeadroom + polyHeadroomRelease_ * (polyHeadroomGain_ - targetHeadroom);
+        float sample = monoBuffer_[i] * masterGain_ * polyHeadroomGain_;
 
         // NaN / Inf safety guard
         if (std::isnan(sample) || std::isinf(sample)) {
             sample = 0.0f;
         }
 
-        // Output safety soft limiting
-        bool clipped = false;
-        sample = safetySoftClip(sample, clipped);
-        if (clipped) {
-            softClipCount_++;
-        }
+        preLimiterPeak_ = std::max(preLimiterPeak_, std::abs(sample));
+        sample = limiter_.processSample(sample);
+        postLimiterPeak_ = std::max(postLimiterPeak_, std::abs(sample));
 
         // Clamp to [-1.0, 1.0] and convert to 32-bit full-scale integer
         const float clamped = std::clamp(sample, -1.0f, 1.0f);
+        if (clamped != sample) ++hardClampCount_;
         const int32_t sample32 = static_cast<int32_t>(clamped * 2147483647.0f);
 
         // Interleaved stereo duplicate

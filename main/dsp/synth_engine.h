@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include "voice_allocator.h"
+#include "peak_limiter.h"
 #include "../midi/midi_event.h"
 
 namespace pocketpan::dsp {
@@ -30,8 +31,16 @@ public:
     const VoiceAllocator& getVoiceAllocator() const { return allocator_; }
 
     void setMasterVolume(float vol);
-    uint32_t getSoftClipCount() const { return softClipCount_; }
-    void resetSoftClipCount() { softClipCount_ = 0; }
+    // Compatibility names retained for host reports; this is limiter activity,
+    // not nonlinear clipping.
+    uint32_t getSoftClipCount() const { return limiter_.getActiveSampleCount(); }
+    void resetSoftClipCount() { limiter_.reset(); }
+    float getPreLimiterPeak() const { return preLimiterPeak_; }
+    float getPostLimiterPeak() const { return postLimiterPeak_; }
+    float getCurrentGainReductionDb() const { return limiter_.getCurrentGainReductionDb(); }
+    float getMaxGainReductionDb() const { return limiter_.getMaxGainReductionDb(); }
+    uint32_t getLimiterActiveSamples() const { return limiter_.getActiveSampleCount(); }
+    uint32_t getHardClampCount() const { return hardClampCount_; }
     uint32_t getModalInternalSaturationCount() const;
     // Host qualification only; normal firmware uses the PAN model default.
     void setInternalSafetySaturation(bool enabled) { allocator_.setInternalSafetySaturation(enabled); }
@@ -39,7 +48,12 @@ public:
 private:
     float sampleRate_ = 48000.0f;
     float masterGain_ = 0.85f; // Headroom protection
-    uint32_t softClipCount_ = 0;
+    float polyHeadroomGain_ = 1.0f;
+    float polyHeadroomRelease_ = 0.0f;
+    float preLimiterPeak_ = 0.0f;
+    float postLimiterPeak_ = 0.0f;
+    uint32_t hardClampCount_ = 0;
+    PeakLimiter limiter_;
 
     VoiceAllocator allocator_;
 
