@@ -13,6 +13,8 @@ struct PanCalibration {
     float noiseAmount = 1.0f;
     float brightnessMinHz = 700.0f;
     float brightnessMaxHz = 12000.0f;
+    float velocityKnee = 0.85f;
+    float velocityKneeSlope = 0.35f;
     float fundamentalGain = 1.00f;
     float splitGain = 0.38f;
     float octaveGain = 0.70f;
@@ -33,7 +35,10 @@ struct PanVoicingConfig {
     float lowRegisterBrightness = 1.00f;
     float highRegisterBrightness = 0.82f;
     float upperModeSoftVelocity = 0.18f;
-    float upperModeHardVelocity = 0.88f;
+    // Keep upper-mode interpolation active into hard strikes instead of
+    // plateauing around v112; this makes v120–127 brighter by excitation,
+    // not by forcing the output limiter.
+    float upperModeHardVelocity = 0.98f;
     float t60LowRegisterScale = 1.10f;
     float t60HighRegisterScale = 0.90f;
     float splitBeatTargetHz = 1.00f;
@@ -66,6 +71,8 @@ inline constexpr ExciterConfig kPanExciterConfig{
     kPanCalibration.noiseAmount,
     kPanCalibration.brightnessMinHz,
     kPanCalibration.brightnessMaxHz,
+    kPanCalibration.velocityKnee,
+    kPanCalibration.velocityKneeSlope,
 };
 
 inline constexpr ResonatorConfig kPanResonatorConfig{

@@ -9,6 +9,10 @@ struct ExciterConfig {
     float noiseAmount = 1.0f;
     float brightnessMinHz = 700.0f;
     float brightnessMaxHz = 12000.0f;
+    // Smooth top-end energy knee.  Hardness and modal coupling still rise to
+    // v127; only strike energy is gently compressed before the limiter.
+    float velocityKnee = 1.0f;
+    float velocityKneeSlope = 1.0f;
 };
 
 struct ResonatorConfig {

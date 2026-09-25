@@ -26,7 +26,12 @@ void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
     // 1. Strike amplitude: calibrated velocity curve
     // Vel 20 (~0.15) -> ~0.24, Vel 80 (~0.63) -> ~0.63, Vel 127 (1.0) -> 1.0
     const float minStrikeGain = 0.15f;
-    const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * std::pow(v, 1.25f);
+    const float knee = std::clamp(config_.velocityKnee, 0.01f, 1.0f);
+    const float slope = std::clamp(config_.velocityKneeSlope, 0.01f, 1.0f);
+    // A continuous knee keeps v120–127 expressive through hardness and modal
+    // content without making the output limiter a timbre processor.
+    const float energyVelocity = v <= knee ? v : knee + (v - knee) * slope;
+    const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * std::pow(energyVelocity, 1.25f);
     strikeAmplitude_ = strikeGain * config_.gain;
 
     // 2. Transient hardness: high velocity yields a shorter, sharper impulse
