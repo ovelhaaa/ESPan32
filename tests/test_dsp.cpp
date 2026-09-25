@@ -572,6 +572,49 @@ std::vector<int32_t> renderScheduled(const std::vector<ScheduledEvent>& events, 
     return audio;
 }
 
+struct M5cResult { std::vector<int32_t> audio; AudioMetrics metrics; float bodyEnergy=0.0f, bodyPeak=0.0f, bodyRms=0.0f, busPeak=0.0f, busRms=0.0f; uint32_t safety=0, hardClamp=0; };
+
+M5cResult renderM5c(const std::vector<ScheduledEvent>& events, size_t totalFrames, bool body, bool sympathetic) {
+    constexpr size_t kBlock=128; M5cResult result; result.audio.resize(totalFrames*2); size_t eventIndex=0;
+    dsp::SynthEngine engine; engine.init(48000.0f); engine.setBodyEnabled(body); engine.setSympatheticEnabled(sympathetic);
+    for(size_t frame=0; frame<totalFrames; frame+=kBlock) {
+        while(eventIndex<events.size() && events[eventIndex].frame<=frame) engine.handleMidiEvent(events[eventIndex++].event);
+        int32_t block[kBlock*2]{}; const size_t frames=std::min(kBlock,totalFrames-frame); engine.renderBlock(block,frames);
+        std::memcpy(&result.audio[frame*2],block,frames*2*sizeof(int32_t));
+    }
+    result.metrics=computeMetrics(result.audio,engine.getSoftClipCount()); result.metrics.preLimiterPeak=engine.getPreLimiterPeak();
+    result.metrics.maxGainReductionDb=engine.getMaxGainReductionDb(); result.metrics.averageGainReductionDb=engine.getAverageGainReductionDb();
+    result.bodyEnergy=engine.getBodyEnergy(); result.bodyPeak=engine.getBodyPeak(); result.bodyRms=engine.getBodyRms();
+    result.busPeak=engine.getSympatheticBusPeak(); result.busRms=engine.getSympatheticBusRms(); result.safety=engine.getSympatheticSafetyCount(); result.hardClamp=engine.getHardClampCount();
+    return result;
+}
+
+void testM5cBodyAndSympathetic() {
+    std::cout << "[Test 13] M5C global body, sympathetic bus, and stability..." << std::endl;
+    auto note=[](uint8_t n,uint8_t v){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    const std::vector<ScheduledEvent> d3={{0,note(50,110)}};
+    const std::vector<ScheduledEvent> interval={{0,note(50,90)},{24000,note(57,90)}};
+    const std::vector<ScheduledEvent> chord={{0,note(50,90)},{0,note(57,85)},{0,note(62,82)},{0,note(69,78)}};
+    std::vector<ScheduledEvent> rollMutable; for(uint32_t n=0;n<12;++n) rollMutable.push_back({n*3600,note(50,85)}); const std::vector<ScheduledEvent>& roll=rollMutable;
+    const auto dry=renderM5c(d3,96000,false,false), body=renderM5c(d3,96000,true,false), sym=renderM5c(d3,96000,false,true), full=renderM5c(d3,96000,true,true);
+    writeWavFile("pan_m5c_D3_dry.wav",dry.audio.data(),96000,48000); writeWavFile("pan_m5c_D3_body.wav",body.audio.data(),96000,48000);
+    writeWavFile("pan_m5c_D3_sympathetic.wav",sym.audio.data(),96000,48000); writeWavFile("pan_m5c_D3_full.wav",full.audio.data(),96000,48000);
+    const auto intervalDry=renderM5c(interval,96000,false,false), intervalFull=renderM5c(interval,96000,true,true);
+    const auto chordDry=renderM5c(chord,96000,false,false), chordFull=renderM5c(chord,96000,true,true);
+    const auto rollDry=renderM5c(roll,96000,false,false), rollFull=renderM5c(roll,96000,true,true);
+    writeWavFile("pan_m5c_interval_dry.wav",intervalDry.audio.data(),96000,48000); writeWavFile("pan_m5c_interval_full.wav",intervalFull.audio.data(),96000,48000);
+    writeWavFile("pan_m5c_chord_dry.wav",chordDry.audio.data(),96000,48000); writeWavFile("pan_m5c_chord_full.wav",chordFull.audio.data(),96000,48000);
+    writeWavFile("pan_m5c_roll_dry.wav",rollDry.audio.data(),96000,48000); writeWavFile("pan_m5c_roll_full.wav",rollFull.audio.data(),96000,48000);
+    std::ofstream report("pan_m5c_metrics.md"); report << "# PAN M5C metrics\n\n| Fixture | dry RMS | body RMS | sympathetic RMS | output RMS | attack RMS | tail RMS | pre-limiter peak | max/avg GR dB | body energy | bus peak/RMS | hard clamp | safety |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    auto row=[&](const char* name,const M5cResult& r){ report<<"| "<<name<<" | "<<dry.metrics.rms<<" | "<<r.bodyRms<<" | "<<r.busRms<<" | "<<r.metrics.rms<<" | "<<r.metrics.attackRms<<" | "<<r.metrics.tailRms<<" | "<<r.metrics.preLimiterPeak<<" | "<<r.metrics.maxGainReductionDb<<" / "<<r.metrics.averageGainReductionDb<<" | "<<r.bodyEnergy<<" | "<<r.busPeak<<" / "<<r.busRms<<" | "<<r.hardClamp<<" | "<<r.safety<<" |\n"; };
+    row("D3 dry",dry); row("D3 body",body); row("D3 sympathetic",sym); row("D3 full",full); row("interval full",intervalFull); row("chord full",chordFull); row("roll full",rollFull);
+    const std::vector<ScheduledEvent> cluster={{0,note(50,100)},{0,note(57,100)},{0,note(58,100)},{0,note(60,100)},{0,note(62,100)},{0,note(64,100)},{0,note(65,100)},{0,note(69,100)}};
+    for(const std::vector<ScheduledEvent>* fixture : {&d3,&cluster,&roll}) { const auto r=renderM5c(*fixture,480000,true,true); assert(std::isfinite(r.metrics.rms) && r.hardClamp==0 && r.safety==0); }
+    const auto decay=renderM5c(chord,720000,true,true); assert(decay.bodyEnergy < 1.0e-5f && decay.hardClamp==0 && decay.safety==0);
+    assert(body.bodyRms>0.0f && full.bodyRms>0.0f && sym.busPeak>0.0f);
+    std::cout << "  -> PASSED: M5C A/B artifacts, global fixed-Hz body and delayed bus remain stable.\n";
+}
+
 void testSpectralAndRestrikeSanity() {
     std::cout << "[Test 9] PAN spectral/restrike/DC sanity..." << std::endl;
     const uint8_t kD3Midi = 50;
@@ -987,6 +1030,7 @@ int main() {
     generateComparativeWavs();
     testPeakLimiter();
     testOutputStrategyAbc();
+    testM5cBodyAndSympathetic();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

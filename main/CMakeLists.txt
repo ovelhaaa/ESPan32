@@ -5,6 +5,7 @@ idf_component_register(
         "hardware/display.cpp"
         "hardware/ble_midi.cpp"
         "dsp/modal_resonator.cpp"
+        "dsp/body_resonator.cpp"
         "dsp/exciter.cpp"
         "dsp/modal_voice.cpp"
         "dsp/voice_allocator.cpp"

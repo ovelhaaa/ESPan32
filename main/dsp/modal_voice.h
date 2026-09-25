@@ -33,7 +33,7 @@ public:
     void prepareSteal(float fadeDurationMs = 2.5f);
 
     // Process a single audio sample
-    float processSample();
+    float processSample(float externalExcitation = 0.0f);
 
     // Process an entire block
     void processBlock(float* outBuffer, size_t frames);

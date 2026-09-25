@@ -1,6 +1,7 @@
 #include "voice_allocator.h"
 #include <algorithm>
 #include <limits>
+#include <cmath>
 
 namespace pocketpan::dsp {
 
@@ -17,6 +18,7 @@ void VoiceAllocator::reset() {
     }
     for (auto& tail : stealTails_) tail = StealDeclickTail{};
     nextStealTail_ = 0;
+    sympatheticPreviousBus_=sympatheticFilterState_=0.0f; resetSympatheticDiagnostics();
 }
 
 int VoiceAllocator::findVoiceToSteal() const {
@@ -142,6 +144,28 @@ uint32_t VoiceAllocator::getInternalSaturationCount() const {
     uint32_t count = 0;
     for (const auto& voice : voices_) count += voice.getInternalSaturationCount();
     return count;
+}
+
+void VoiceAllocator::resetSympatheticDiagnostics() { sympatheticBusPeak_=sympatheticBusSumSquares_=0.0f; sympatheticBusSamples_=sympatheticSafetyCount_=0; }
+
+void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config) {
+    if (!config.enabled) { renderBlock(outBuffer, frames); return; }
+    const float cutoff=std::clamp(config.lowpassHz,10.0f,sampleRate_*0.45f);
+    sympatheticLowpassCoefficient_=std::exp(-2.0f*3.14159265358979323846f*cutoff/sampleRate_);
+    for(size_t i=0;i<frames;++i) {
+        float sum=0.0f;
+        // One-sample delayed global bus: active/ringing voices only. At this
+        // deliberately tiny gain, residual self-feedback is negligible.
+        const float external=sympatheticPreviousBus_*config.inputGain;
+        for(auto& voice:voices_) if(voice.isActive()) sum+=voice.processSample(external);
+        for(auto& tail:stealTails_) if(tail.active && tail.samplesLeft) { sum+=tail.currentSample; tail.currentSample-=tail.step; if(--tail.samplesLeft==0) tail.active=false; }
+        sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+        float next=sympatheticFilterState_*config.feedbackGain;
+        const float limit=std::max(0.0f,config.maxBusLevel);
+        if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+        sympatheticPreviousBus_=next; outBuffer[i]=sum;
+        sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+    }
 }
 
 void VoiceAllocator::setInternalSafetySaturation(bool enabled) {

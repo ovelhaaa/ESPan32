@@ -98,6 +98,12 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     sAudioSnapshot.gainReductionOver0p1DbSamples = sSynth.getGainReductionOver0p1DbSamples();
     sAudioSnapshot.gainReductionOver1DbSamples = sSynth.getGainReductionOver1DbSamples();
     sAudioSnapshot.hardClampCount = sSynth.getHardClampCount();
+    sAudioSnapshot.bodyPeak = sSynth.getBodyPeak();
+    sAudioSnapshot.bodyRms = sSynth.getBodyRms();
+    sAudioSnapshot.bodyEnergy = sSynth.getBodyEnergy();
+    sAudioSnapshot.sympatheticBusPeak = sSynth.getSympatheticBusPeak();
+    sAudioSnapshot.sympatheticBusRms = sSynth.getSympatheticBusRms();
+    sAudioSnapshot.sympatheticSafetyCount = sSynth.getSympatheticSafetyCount();
 
     sAudioSnapshot.midiPushCount = sBleMidiQueue.getPushCount() + sDemoMidiQueue.getPushCount();
     sAudioSnapshot.midiPopCount = sBleMidiQueue.getPopCount() + sDemoMidiQueue.getPopCount();

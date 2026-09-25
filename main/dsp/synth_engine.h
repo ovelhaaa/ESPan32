@@ -2,8 +2,11 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cmath>
 #include "voice_allocator.h"
 #include "peak_limiter.h"
+#include "body_resonator.h"
+#include "pan_calibration.h"
 #include "../midi/midi_event.h"
 
 namespace pocketpan::dsp {
@@ -48,6 +51,14 @@ public:
     uint32_t getModalInternalSaturationCount() const;
     // Host qualification only; normal firmware uses the PAN model default.
     void setInternalSafetySaturation(bool enabled) { allocator_.setInternalSafetySaturation(enabled); }
+    void setBodyEnabled(bool enabled) { bodyConfig_.body.enabled=enabled; body_.setConfig(bodyConfig_.body); }
+    void setSympatheticEnabled(bool enabled) { bodyConfig_.sympathetic.enabled=enabled; }
+    float getBodyEnergy() const { return body_.getEnergy(); }
+    float getBodyPeak() const { return bodyPeak_; }
+    float getBodyRms() const { return bodySamples_ ? std::sqrt(bodySumSquares_/bodySamples_) : 0.0f; }
+    float getSympatheticBusPeak() const { return allocator_.getSympatheticBusPeak(); }
+    float getSympatheticBusRms() const { return allocator_.getSympatheticBusRms(); }
+    uint32_t getSympatheticSafetyCount() const { return allocator_.getSympatheticSafetyCount(); }
 
 private:
     float sampleRate_ = 48000.0f;
@@ -61,6 +72,8 @@ private:
     PeakLimiter limiter_;
 
     VoiceAllocator allocator_;
+    BodyResonator body_; PanBodyConfig bodyConfig_{};
+    float bodyPeak_=0.0f, bodySumSquares_=0.0f; uint32_t bodySamples_=0;
 
     // Internal mono voice mix buffer
     float monoBuffer_[kMaxBlockFrames];

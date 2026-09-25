@@ -66,6 +66,7 @@ switch ($Action) {
         Write-Host "--> Compiling and running DSP Unit Tests..." -ForegroundColor Green
         & $cxx -O3 -std=c++17 "$ScriptDir/tests/test_dsp.cpp" `
             "$ScriptDir/main/dsp/modal_resonator.cpp" `
+            "$ScriptDir/main/dsp/body_resonator.cpp" `
             "$ScriptDir/main/dsp/exciter.cpp" `
             "$ScriptDir/main/dsp/modal_voice.cpp" `
             "$ScriptDir/main/dsp/voice_allocator.cpp" `

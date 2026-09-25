@@ -2,7 +2,9 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cmath>
 #include "modal_voice.h"
+#include "sympathetic_config.h"
 
 namespace pocketpan::dsp {
 
@@ -29,6 +31,11 @@ public:
 
     // Render polyphonic sum of all active voices into outBuffer
     void renderBlock(float* outBuffer, size_t frames);
+    void renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config);
+    float getSympatheticBusPeak() const { return sympatheticBusPeak_; }
+    float getSympatheticBusRms() const { return sympatheticBusSamples_ ? std::sqrt(sympatheticBusSumSquares_/sympatheticBusSamples_) : 0.0f; }
+    uint32_t getSympatheticSafetyCount() const { return sympatheticSafetyCount_; }
+    void resetSympatheticDiagnostics();
 
     // Real-time voice metrics
     size_t getActiveVoiceCount() const;
@@ -51,6 +58,8 @@ private:
     ModalVoice voices_[kMaxVoices];
     StealDeclickTail stealTails_[kMaxVoices]{};
     size_t nextStealTail_ = 0;
+    float sympatheticPreviousBus_ = 0.0f, sympatheticFilterState_ = 0.0f, sympatheticLowpassCoefficient_ = 0.0f;
+    float sympatheticBusPeak_ = 0.0f, sympatheticBusSumSquares_ = 0.0f; uint32_t sympatheticBusSamples_ = 0, sympatheticSafetyCount_ = 0;
 };
 
 } // namespace pocketpan::dsp

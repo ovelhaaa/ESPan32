@@ -1,4 +1,5 @@
 #include "synth_engine.h"
+#include "pan_calibration.h"
 #include "../midi/midi_mapping.h"
 #include <algorithm>
 #include <cmath>
@@ -8,6 +9,7 @@ namespace pocketpan::dsp {
 void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
+    bodyConfig_=kPanBodyConfig; body_.init(sampleRate_); body_.setConfig(bodyConfig_.body);
     limiter_.init(sampleRate_);
     // Fast attenuation catches simultaneous-note attacks; slower recovery
     // avoids loudness steps while modal voices naturally become inactive.
@@ -22,6 +24,7 @@ void SynthEngine::reset() {
     polyHeadroomGain_ = 1.0f;
     preLimiterPeak_ = postLimiterPeak_ = 0.0f;
     hardClampCount_ = 0;
+    body_.reset(); bodyPeak_=bodySumSquares_=0.0f; bodySamples_=0; allocator_.resetSympatheticDiagnostics();
     std::fill(monoBuffer_, monoBuffer_ + kMaxBlockFrames, 0.0f);
 }
 
@@ -29,6 +32,7 @@ void SynthEngine::resetDiagnostics() {
     limiter_.resetDiagnostics();
     preLimiterPeak_ = postLimiterPeak_ = 0.0f;
     hardClampCount_ = 0;
+    bodyPeak_=bodySumSquares_=0.0f; bodySamples_=0; allocator_.resetSympatheticDiagnostics();
 }
 
 void SynthEngine::setMasterVolume(float vol) {
@@ -81,7 +85,8 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
     if (!outInterleaved || frames == 0) return;
 
     // 1. Synthesize 8-voice polyphony into mono buffer
-    allocator_.renderBlock(monoBuffer_, frames);
+    if (bodyConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, bodyConfig_.sympathetic);
+    else allocator_.renderBlock(monoBuffer_, frames);
 
     // Smooth count-based polyphonic headroom: 1=0 dB, 2=-1.5 dB,
     // 4=-3 dB, 8=-5 dB. This preserves per-voice modal gains.
@@ -94,7 +99,9 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
         const float coefficient = targetHeadroom < polyHeadroomGain_
             ? polyHeadroomAttackCoefficient_ : polyHeadroomReleaseCoefficient_;
         polyHeadroomGain_ = targetHeadroom + coefficient * (polyHeadroomGain_ - targetHeadroom);
-        float sample = monoBuffer_[i] * masterGain_ * polyHeadroomGain_;
+        const float bodySample=body_.processSample(monoBuffer_[i]);
+        bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
+        float sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
 
         // NaN / Inf safety guard
         if (std::isnan(sample) || std::isinf(sample)) {
