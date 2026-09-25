@@ -1,0 +1,6 @@
+C:/progs/ESPan/build-host-m5d/CMakeFiles/test_ble_midi_parser.dir
+C:/progs/ESPan/build-host-m5d/CMakeFiles/test_dsp.dir
+C:/progs/ESPan/build-host-m5d/CMakeFiles/test_telemetry.dir
+C:/progs/ESPan/build-host-m5d/CMakeFiles/test.dir
+C:/progs/ESPan/build-host-m5d/CMakeFiles/edit_cache.dir
+C:/progs/ESPan/build-host-m5d/CMakeFiles/rebuild_cache.dir

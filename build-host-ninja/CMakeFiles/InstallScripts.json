@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/progs/ESPan/build-host-ninja/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,249 @@
+Start testing: Sep 25 19:07 Hora oficial do Brasil
+----------------------------------------------------------
+1/3 Testing: ble_midi_parser
+1/3 Test: ble_midi_parser
+Command: "C:/progs/ESPan/build-host-m5d1/test_ble_midi_parser.exe"
+Directory: C:/progs/ESPan/build-host-m5d1
+"ble_midi_parser" start time: Sep 25 19:07 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+=========================================
+  Pocket Pan: BLE MIDI Parser Test Suite 
+=========================================
+[TEST] BLE MIDI Parser: Single Note On...
+  PASSED: NoteOn D4 vel 100 with 13-bit timestamp 1316
+[TEST] BLE MIDI Parser: NoteOn with velocity 0 as NoteOff...
+  PASSED: Velocity 0 converted to NoteOff
+[TEST] BLE MIDI Parser: NoteOn + NoteOff in same packet...
+  PASSED: Both messages dispatched with respective timestamps
+[TEST] BLE MIDI Parser: Poly Pressure & Channel Pressure...
+  PASSED: PolyPressure and ChannelPressure distinguished and parsed
+[TEST] BLE MIDI Parser: Running Status...
+  PASSED: Running status decoded under BLE timestamp prefixes
+[TEST] BLE MIDI Parser: Interleaved System Real-Time (0xF8)...
+  PASSED: 0xF8 clock dispatched without interrupting NoteOn
+[TEST] BLE MIDI Parser: Truncated and Invalid Packet Recovery...
+  PASSED: Clean recovery from invalid/truncated packets
+
+All BLE MIDI Parser Tests Passed Successfully!
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"ble_midi_parser" end time: Sep 25 19:07 Hora oficial do Brasil
+"ble_midi_parser" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/3 Testing: dsp
+2/3 Test: dsp
+Command: "C:/progs/ESPan/build-host-m5d1/test_dsp.exe"
+Directory: C:/progs/ESPan/build-host-m5d1
+"dsp" start time: Sep 25 19:07 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+=======================================================
+  Pocket Pan / Metal Modal Synth - Comprehensive DSP  
+=======================================================
+
+[Test 0] Diagnostic tone source routing and level...
+  -> PASSED!
+[Test 0b] Diagnostic oscillator 30-second stability...
+  -> PASSED!
+[Test 1] Modal Resonator Frequency Accuracy...
+  Target: 440 Hz | Measured: 439 Hz | Error: 1 Hz
+  -> PASSED!
+[Test 2] Modal Resonator T60 Decay Envelope...
+  Peak Initial Amp = 0.992419 | Amp at t=0.5s = 0.00102411 | Ratio = 0.00103194 (target ~0.001)
+  -> PASSED!
+[Test 3] Mode Splitting (Beating Doublet Verification)...
+  Mode 0: ratio=1, detune=0 -> 146.832 Hz
+  Mode 1: ratio=1, detune=0.0032 -> 147.302 Hz
+  Beat frequency: 0.469879 Hz
+  -> PASSED: Mode split detune applied exactly once, producing natural sub-0.5 Hz D3 beating!
+[Test 4] Same-Note Restrike (Physical Energy Accumulation)...
+  Voice A Energy before restrike: 0.00539152
+  Voice A Energy after physical restrike: 0.732736
+  Voice B Energy after hard kill & retrigger: 0.351562
+  -> PASSED: Same-note restrike preserves acoustic vibration (behavior differs from hard reset)!
+[Test 5] Declicked Voice Stealing Stress (9+ Notes)...
+  Boundary sample delta at steal point: 0.037048
+  -> PASSED: Declicked voice stealing handled 16-note burst without clicks or instability!
+[Test 5b] Inactive trigger clears stale residual...
+  -> PASSED!
+[Test 6] Multi-Voice Independent Damping (Poly Pressure)...
+  Choked note 62 energy: 0 | Open note 69 energy: 0.00874759
+  -> PASSED: Damping is strictly independent per voice!
+[Test 7] Modal Gain Normalization across Frequencies & T60...
+  f =   65.4 Hz | Peak(T60=0.1s): 0.779815 | Peak(T60=5.0s): 0.994568 | Ratio: 1.27539
+  f =  130.8 Hz | Peak(T60=0.1s): 0.880737 | Peak(T60=5.0s): 0.997368 | Ratio: 1.13242
+  f = 293.66 Hz | Peak(T60=0.1s): 0.944895 | Peak(T60=5.0s): 0.998812 | Ratio: 1.05706
+  f =    880 Hz | Peak(T60=0.1s): 0.980602 | Peak(T60=5.0s): 0.998793 | Ratio: 1.01855
+  f =   2500 Hz | Peak(T60=0.1s): 0.992131 | Peak(T60=5.0s): 0.999338 | Ratio: 1.00726
+  -> PASSED: Modal normalization is rock-solid across frequencies and T60!
+[Test 8] Velocity Dynamic Calibration (20, 50, 80, 110, 127)...
+
+  Vel |   Peak   |   RMS    | CrestFac | Limiter Hits
+  ----+----------+----------+----------+-------------
+   10 |   0.1552 |   0.0274 |   5.6620 |            0
+   20 |   0.1952 |   0.0344 |   5.6720 |            0
+   40 |   0.2935 |   0.0516 |   5.6863 |            0
+   64 |   0.4487 |   0.0773 |   5.8047 |            0
+   90 |   0.6604 |   0.1121 |   5.8934 |            0
+  110 |   0.8394 |   0.1410 |   5.9516 |            0
+  127 |   0.9123 |   0.1520 |   6.0039 |            0
+  -> PASSED: Dynamic velocity range is expressive and controlled!
+[Test 9] PAN spectral/restrike/DC sanity...
+  spectral f=0.0307 2f=0.0130 3f=0.0052 high=0.0000 | restrike RMS 100ms=0.1515 250ms=0.1309 roll=0.4067
+[Test 9b] M5B velocity/modal/register audit...
+  [WAV] Exported: pan_D3_v30_new.wav (96000 frames)
+  [WAV] Exported: pan_D3_v70_new.wav (96000 frames)
+  [WAV] Exported: pan_D3_v110_new.wav (96000 frames)
+  [WAV] Exported: pan_register_D3.wav (96000 frames)
+  [WAV] Exported: pan_register_A3.wav (96000 frames)
+  [WAV] Exported: pan_register_D4.wav (96000 frames)
+  [WAV] Exported: pan_register_A4.wav (96000 frames)
+  -> PASSED: modal brightness ratios rise monotonically.
+[Test 9c] PAN doublet relative/fixed A/B...
+  [WAV] Exported: pan_doublet_D3_relative.wav (192000 frames)
+  [WAV] Exported: pan_doublet_D3_fixed.wav (192000 frames)
+  [WAV] Exported: pan_doublet_A3_relative.wav (192000 frames)
+  [WAV] Exported: pan_doublet_A3_fixed.wav (192000 frames)
+  [WAV] Exported: pan_doublet_D4_relative.wav (192000 frames)
+  [WAV] Exported: pan_doublet_D4_fixed.wav (192000 frames)
+  [WAV] Exported: pan_doublet_A4_relative.wav (192000 frames)
+  [WAV] Exported: pan_doublet_A4_fixed.wav (192000 frames)
+  -> PASSED: A/B WAVs and calculated beat rates generated.
+[Test 10] Internal saturation A/B audit...
+
+[Test 9] Generating scheduled WAV regression fixtures...
+  [WAV] Exported: pan_D3_vel40.wav (144000 frames)
+pan_D3_vel40.wav peak=0.3182 rms=0.0372 crest=8.5554 limiter=0 modalSat=0
+  [WAV] Exported: pan_D3_vel90.wav (144000 frames)
+pan_D3_vel90.wav peak=0.6824 rms=0.0720 crest=9.4782 limiter=0 modalSat=0
+  [WAV] Exported: pan_D3_vel127.wav (144000 frames)
+pan_D3_vel127.wav peak=0.9255 rms=0.0937 crest=9.8788 limiter=0 modalSat=0
+  [WAV] Exported: pan_D3_single.wav (144000 frames)
+pan_D3_single.wav peak=0.6824 rms=0.0720 crest=9.4782 limiter=0 modalSat=0
+  [WAV] Exported: pan_D3_double_100ms.wav (168000 frames)
+pan_D3_double_100ms.wav peak=0.9208 rms=0.1145 crest=8.0424 limiter=0 modalSat=0
+  [WAV] Exported: pan_D3_double_250ms.wav (168000 frames)
+pan_D3_double_250ms.wav peak=0.7082 rms=0.0989 crest=7.1574 limiter=0 modalSat=0
+  [WAV] Exported: pan_D3_triple.wav (168000 frames)
+pan_D3_triple.wav peak=0.7082 rms=0.1130 crest=6.2685 limiter=0 modalSat=0
+  [WAV] Exported: pan_D3_roll.wav (96000 frames)
+pan_D3_roll.wav peak=0.9441 rms=0.4067 crest=2.3214 limiter=88676 modalSat=0
+  [WAV] Exported: pan_chord.wav (192000 frames)
+pan_chord.wav peak=0.9441 rms=0.0666 crest=14.1853 limiter=191995 modalSat=0
+  [WAV] Exported: pan_cluster8.wav (192000 frames)
+pan_cluster8.wav peak=0.9441 rms=0.0806 crest=11.7163 limiter=191997 modalSat=0
+[Test 11] Lookahead peak limiter transparency, ceiling, and release...
+  -> PASSED: linear below threshold; ceiling and release verified.
+[Test 12] Output-stage A/B/C and static master-gain audit...
+  [WAV] Exported: pan_chord_old.wav (192000 frames)
+  [WAV] Exported: pan_chord_new.wav (192000 frames)
+  [WAV] Exported: pan_cluster8_old.wav (192000 frames)
+  [WAV] Exported: pan_cluster8_new.wav (192000 frames)
+  [WAV] Exported: pan_roll_old.wav (96000 frames)
+  [WAV] Exported: pan_roll_new.wav (96000 frames)
+  -> PASSED: transparent limiter and reduced-master reference rendered.
+[Test 13] M5C global body, sympathetic bus, and stability...
+  [WAV] Exported: pan_m5c_D3_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c_D3_body.wav (96000 frames)
+  [WAV] Exported: pan_m5c_D3_sympathetic.wav (96000 frames)
+  [WAV] Exported: pan_m5c_D3_full.wav (96000 frames)
+  [WAV] Exported: pan_m5c_interval_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c_interval_full.wav (96000 frames)
+  [WAV] Exported: pan_m5c_chord_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c_chord_full.wav (96000 frames)
+  [WAV] Exported: pan_m5c_roll_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c_roll_full.wav (96000 frames)
+  [WAV] Exported: pan_m5c_D3_body_7.wav (96000 frames)
+  [WAV] Exported: pan_m5c_chord_body_7.wav (96000 frames)
+  [WAV] Exported: pan_m5c_D3_body_11.wav (96000 frames)
+  [WAV] Exported: pan_m5c_chord_body_11.wav (96000 frames)
+  [WAV] Exported: pan_m5c_D3_body_15.wav (96000 frames)
+  [WAV] Exported: pan_m5c_chord_body_15.wav (96000 frames)
+  [WAV] Exported: pan_m5c_D3_body_tail_variant.wav (96000 frames)
+  -> PASSED: M5C A/B artifacts, global fixed-Hz body and delayed bus remain stable.
+[Test 14] M5C.2 body excitation A/B/C/D qualification...
+  [WAV] Exported: pan_m5c2_D3_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_D3_candidate.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_A3_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_A3_candidate.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_D4_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_D4_candidate.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_A4_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_A4_candidate.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_D3_current.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_A3_current.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_chord_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_chord_current.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_chord_candidate.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_roll_dry.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_roll_candidate.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_D3_fullmix.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_D3_transient.wav (96000 frames)
+  [WAV] Exported: pan_m5c2_D3_strikebus.wav (96000 frames)
+  -> PASSED: strike-bus register/tail balance, diagnostics, artifacts, and stability.
+[Test 15] M5D.1 PAN true A/B/C qualification...
+  [WAV] Exported: pan_m5d1_D3_v30_m5c2.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v30_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v30_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v70_m5c2.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v70_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v70_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v110_m5c2.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v110_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v110_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v127_m5c2.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v127_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v127_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v70_m5d_matched.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v70_bright_matched.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v110_m5d_matched.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_v110_bright_matched.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D3_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_A3_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_A3_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D4_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_D4_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_A4_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_A4_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_restrike_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_restrike_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_roll_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_roll_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_chord_m5d.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_chord_m5d_matched.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_chord_bright.wav (96000 frames)
+  [WAV] Exported: pan_m5d1_chord_bright_matched.wav (96000 frames)
+  -> PASSED: M5D.1 true A/B/C, determinism, monotonicity, and guards.
+
+=======================================================
+  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     
+=======================================================
+<end of output>
+Test time =   2.70 sec
+----------------------------------------------------------
+Test Passed.
+"dsp" end time: Sep 25 19:07 Hora oficial do Brasil
+"dsp" time elapsed: 00:00:02
+----------------------------------------------------------
+
+3/3 Testing: telemetry
+3/3 Test: telemetry
+Command: "C:/progs/ESPan/build-host-m5d1/test_telemetry.exe"
+Directory: C:/progs/ESPan/build-host-m5d1
+"telemetry" start time: Sep 25 19:07 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"telemetry" end time: Sep 25 19:07 Hora oficial do Brasil
+"telemetry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Sep 25 19:07 Hora oficial do Brasil

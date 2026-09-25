@@ -1,0 +1,6 @@
+C:/progs/ESPan/build-host-ninja/CMakeFiles/test_ble_midi_parser.dir
+C:/progs/ESPan/build-host-ninja/CMakeFiles/test_dsp.dir
+C:/progs/ESPan/build-host-ninja/CMakeFiles/test_telemetry.dir
+C:/progs/ESPan/build-host-ninja/CMakeFiles/test.dir
+C:/progs/ESPan/build-host-ninja/CMakeFiles/edit_cache.dir
+C:/progs/ESPan/build-host-ninja/CMakeFiles/rebuild_cache.dir

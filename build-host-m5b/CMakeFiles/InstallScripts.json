@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/progs/ESPan/build-host-m5b/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
