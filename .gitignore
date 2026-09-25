@@ -1,6 +1,6 @@
 # ESP-IDF build directory
 build/
-build-host/
+build-host*/
 sdkconfig.old
 sdkconfig
 dependencies.lock
@@ -10,6 +10,13 @@ managed_components/
 *.exe
 *.wav
 test_runner
+
+# Host qualification reports are generated artifacts; design documentation
+# remains versioned under docs/.
+/test_metrics.md
+/saturation_ab_metrics.md
+/output_stage_abc_metrics.md
+/pan_*.md
 
 # Editor / OS files
 .vscode/

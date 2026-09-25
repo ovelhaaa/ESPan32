@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"C:/progs/ESPan/build-host-m5d1/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

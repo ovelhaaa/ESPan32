@@ -1,4 +1,0 @@
-ble_midi_parser 7 0.00208314
-dsp 3 0.899935
-telemetry 7 0.00571274
----
