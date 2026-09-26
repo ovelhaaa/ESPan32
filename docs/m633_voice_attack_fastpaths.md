@@ -143,16 +143,21 @@ path confirmed exercised:
 Candidate 16 also passes the unmodified `test_dsp` PAN `kPanGolden` 12/12 and the
 Bell reference WAVs, i.e. the full engine is unchanged with the fast path on.
 
-### 8. Hardware sustain benchmark
+### 8. Hardware sustain benchmark (ESP32-S3, BLE disconnected)
 
-`PENDING`. The accepted improvement gate (>= 7%, preferred >= 10%, reject
-< 4% on cluster sustain) and the cycle table required by the task cannot be
-produced without the ESP32-S3 run:
+Critical and full matrices, 8192 blocks/fixture, profiling OFF. Full table in
+[hardware/m633_candidate_comparison.md](hardware/m633_candidate_comparison.md).
 
-| Candidate | PAN cluster sustain avg/p99/max | BELL cluster sustain avg/p99/max |
-|---|---|---|
-| 13 (baseline) | 1908 / 2150 / 2410 us | 1895 / 2125 / 2604 us |
-| 14 / 16 | pending | pending |
+| Candidate | PAN cluster sustain avg/p99/max | BELL chord sustain avg/p99/max | BELL cluster sustain avg/p99/max |
+|---|---|---|---|
+| 13 (baseline) | 1921 / 2200 / 2432 us | 1122 / 1350 / 1539 us | 1923 / 2175 / 2386 us |
+| 16 (sustain) | 1770 / 2050 / 2574 us | 974 / 1225 / 1420 us | 1628 / 1875 / 2444 us |
+| Δavg | **-7.9%** | **-13.2%** | **-15.3%** |
+
+All three exceed the >= 7% retain gate, so the sustain fast path is **accepted**.
+Whole-callback CPU also falls (PAN cluster ~73% → ~67.5%, BELL cluster ~72% →
+~61%). The cluster **gates** still fail (PAN cluster avg/p99/max; BELL cluster
+p99/max), so M6.3.3 does not reach the all-green stop condition.
 
 ---
 
@@ -219,8 +224,11 @@ cmake --build build-host-16 --parallel && ctest --test-dir build-host-16 --outpu
 
 ```text
 Phase 0  exactness recovery            PASS (15/15 in-process equivalence)
-Phase 1  sustain fast path             PASS (host PCM exact, all fixtures)
+Phase 1  sustain fast path             PASS (host PCM exact; hardware -7.9%/-13.2%/-15.3%)
 Phase 2  attack fast path              NOT PROMOTED (designed, exactness constraints documented)
-Phase 3  hardware qualification        PENDING (no ESP32-S3 run available)
-M6.3.3                                 PARTIAL
+Phase 3  hardware qualification        PARTIAL (disconnected matrix done; connected needs a BLE central)
+M6.3.3                                 FAIL (PAN cluster gates still red; Bell ablation NOT authorized)
 ```
+
+The 8-voice clusters remain the only red fixtures. The next generic hotspot is
+the modal bank / 8-voice cluster render, not the sustain or attack paths.

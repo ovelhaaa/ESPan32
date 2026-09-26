@@ -1,0 +1,50 @@
+{
+  "milestone": "M6.3.3",
+  "branch": "codex/m632-modal-note-cache",
+  "source_commit": "062aacc",
+  "baseline": {"commit": "dad07a6", "candidate": 13, "description": "microkernel + PreparedNote (M6.3.2)"},
+  "ble_scenario": "disconnected_scan",
+  "ble_scenario_note": "No BLE MIDI central was available; Scenario A only. Connected is the gate and remains pending.",
+  "profile": false,
+  "cpu_mhz": 240,
+  "blocks_per_fixture": 8192,
+  "candidates": {
+    "13": {
+      "composition": "microkernel + PreparedNote (M6.3.2 baseline)",
+      "critical_firmware_sha256": "8f7cbba92908a6114b063268867e094cc6471d44df8c8f1c54720b5fe2ed0424",
+      "critical_firmware_bytes": 642672,
+      "full_firmware_sha256": "67437d635f1159c4b76981910977b3b913df9a42b54af0275d23d63fffe5d67b",
+      "full_firmware_bytes": 642624,
+      "critical_log": "m633_c13_disconnected.log",
+      "full_log": "m633_c13_full_disconnected.log",
+      "pan_exact": 12,
+      "modal_fingerprints": 15,
+      "bell_wav_diffs": []
+    },
+    "16": {
+      "composition": "microkernel + PreparedNote + stable-sustain fast path",
+      "critical_firmware_sha256": "373107303ef5844bb34a4efcb189732fbd0883073bca0195570f6d7de656070c",
+      "critical_firmware_bytes": 643184,
+      "full_firmware_sha256": "fa96c3e318a89aca52494d36e37361b82353dae618aa76c771376b164baeaeea",
+      "full_firmware_bytes": 643136,
+      "critical_log": "m633_c16_disconnected.log",
+      "full_log": "m633_c16_full_disconnected.log",
+      "pan_exact": 12,
+      "modal_fingerprints": 15,
+      "bell_wav_diffs": []
+    }
+  },
+  "sustain_fast_path_gain": {
+    "pan_cluster8_avg_pct": -7.9,
+    "bell_chord4_avg_pct": -13.2,
+    "bell_cluster8_avg_pct": -15.3,
+    "accepted": true
+  },
+  "gates": {
+    "pan_single": "PASS", "pan_chord4": "PASS", "pan_cluster8": "FAIL", "pan_roll": "PASS",
+    "bell_single": "PASS", "bell_chord4": "PASS", "bell_cluster8": "FAIL", "bell_roll": "PASS"
+  },
+  "status": "FAIL",
+  "bell_ablation_authorized": false,
+  "next_hotspot": "modal bank / 8-voice cluster render"
+}
