@@ -43,3 +43,11 @@ set(POCKETPAN_FORENSICS_CRITICAL_ONLY 0 CACHE STRING "Measure only the three fai
 target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE}
     POCKETPAN_FORENSICS_CRITICAL_ONLY=${POCKETPAN_FORENSICS_CRITICAL_ONLY})
+
+if(POCKETPAN_DSP_CANDIDATE STREQUAL "8")
+    # Separate -O3 experiment; never enable fast-math or change global flags.
+    set_source_files_properties(
+        dsp/modal_resonator.cpp dsp/modal_voice.cpp dsp/voice_allocator.cpp
+        dsp/synth_engine.cpp dsp/exciter.cpp dsp/body_resonator.cpp dsp/peak_limiter.cpp
+        PROPERTIES COMPILE_OPTIONS "-O3")
+endif()
