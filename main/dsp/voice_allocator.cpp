@@ -18,6 +18,7 @@ void VoiceAllocator::reset() {
     }
     for (auto& tail : stealTails_) tail = StealDeclickTail{};
     nextStealTail_ = 0;
+    voiceStealCount_ = 0;
     resetSympatheticState();
     resetSympatheticDiagnostics();
 }
@@ -71,6 +72,7 @@ void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequ
     // 3. All 8 voices active: Steal voice with lowest energy using declicked crossfade tail
     int stealIdx = findVoiceToSteal();
     if (stealIdx >= 0 && stealIdx < static_cast<int>(kMaxVoices)) {
+        ++voiceStealCount_;
         float residual = voices_[stealIdx].getLastSample();
         // Reserve an independent fixed tail even near a zero crossing. Besides
         // making burst ownership deterministic, this prevents a later steal

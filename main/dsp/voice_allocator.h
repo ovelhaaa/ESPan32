@@ -48,6 +48,8 @@ public:
     // Real-time voice metrics
     size_t getActiveVoiceCount() const;
     size_t getActiveStealTailCount() const;
+    // Diagnostic telemetry only; it never participates in allocation policy.
+    uint32_t getVoiceStealCount() const { return voiceStealCount_; }
     uint32_t getInternalSaturationCount() const;
     void setInternalSafetySaturation(bool enabled);
     void setModelConfig(const InstrumentModelConfig& config);
@@ -68,6 +70,7 @@ private:
     ModalVoice voices_[kMaxVoices];
     StealDeclickTail stealTails_[kMaxVoices]{};
     size_t nextStealTail_ = 0;
+    uint32_t voiceStealCount_ = 0;
     float sympatheticPreviousBus_ = 0.0f, sympatheticFilterState_ = 0.0f, sympatheticLowpassCoefficient_ = 0.0f;
     float sympatheticBusPeak_ = 0.0f, sympatheticBusSumSquares_ = 0.0f; uint32_t sympatheticBusSamples_ = 0, sympatheticSafetyCount_ = 0;
 };

@@ -57,6 +57,9 @@ public:
     // Host qualification only; normal firmware uses the PAN model default.
     void setInternalSafetySaturation(bool enabled) { allocator_.setInternalSafetySaturation(enabled); }
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) { allocator_.setPanConfigsForTest(exciter, voicing); }
+    // Host qualification override.  It is deliberately not reachable from UI,
+    // MIDI, or persisted firmware settings.
+    void setModelConfigForTest(const InstrumentModelConfig& config) { modelConfig_ = config; allocator_.setModelConfig(modelConfig_); body_.setConfig(modelConfig_.body); }
     void setBodyEnabled(bool enabled) { modelConfig_.body.enabled=enabled; body_.setConfig(modelConfig_.body); }
     // A runtime toggle must not retain delayed feedback from its prior mode.
     void setSympatheticEnabled(bool enabled);

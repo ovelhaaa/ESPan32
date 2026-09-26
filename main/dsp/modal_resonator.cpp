@@ -54,8 +54,8 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
     fundamentalFrequencyHz_ = std::clamp(fundamentalFrequencyHz, 10.0f, 15000.0f);
     currentDamping_ = std::clamp(damping, 0.0f, 1.0f);
 
-    const float nyquistCutoff = 0.48f * sampleRate_;  // ~23.04 kHz @ 48kHz
-    const float fadeStartHz   = 0.40f * sampleRate_;  // ~19.20 kHz @ 48kHz
+    const float nyquistCutoff = nyquistModeCutoff(sampleRate_);  // ~23.04 kHz @ 48kHz
+    const float fadeStartHz   = nyquistModeFadeStart(sampleRate_);  // ~19.20 kHz @ 48kHz
     const float fadeRange     = nyquistCutoff - fadeStartHz;
 
     // Damping factor: scales T60 down smoothly as damping increases (choke / palm mute)
@@ -87,7 +87,7 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
 
         // Nyquist handling: do NOT clamp to 0.48*fs!
         // Disable or softly fade out modes exceeding audible / sampling boundaries
-        if (modeFreq >= nyquistCutoff || modeFreq <= 10.0f) {
+        if (!isModeActiveAtSampleRate(modeFreq, sampleRate_)) {
             modes_[i].active = false;
             modes_[i].modalAmplitude = 0.0f;
             modes_[i].excitationGain = 0.0f;

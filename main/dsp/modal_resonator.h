@@ -9,6 +9,12 @@
 
 namespace pocketpan::dsp {
 
+constexpr float nyquistModeCutoff(float sampleRate) { return 0.48f * sampleRate; }
+constexpr float nyquistModeFadeStart(float sampleRate) { return 0.40f * sampleRate; }
+inline bool isModeActiveAtSampleRate(float frequencyHz, float sampleRate) {
+    return frequencyHz > 10.0f && frequencyHz < nyquistModeCutoff(sampleRate);
+}
+
 class ModalResonatorBank {
 public:
     ModalResonatorBank() = default;
