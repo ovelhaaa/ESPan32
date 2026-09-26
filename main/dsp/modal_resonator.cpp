@@ -133,8 +133,48 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
     }
 }
 
+#if POCKETPAN_DSP_CANDIDATE == 4
+template<size_t N>
+float ModalResonatorBank::processSampleFixed(float excitation) {
+    float outSample = 0.0f;
+
+    #pragma GCC unroll 10
+    for (size_t i = 0; i < N; ++i) {
+
+        auto& m = modes_[i];
+        // 2nd-order direct form IIR resonant filter
+        float y = m.excitationGain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
+
+        // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
+        if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {
+            ++internalSaturationCount_;
+            y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
+        }
+
+        // Denormal flushing
+        if (std::abs(y) < kMinDenormal) {
+            y = 0.0f;
+        }
+
+        m.z2 = m.z1;
+        m.z1 = y;
+        outSample += y;
+    }
+
+    return outSample;
+}
+
+#endif
 float ModalResonatorBank::processSample(float excitation) {
     DSP_PROFILE_SCOPE(Modal);
+#if POCKETPAN_DSP_CANDIDATE == 4
+    // Only a completely active bank can use the branch-free fixed kernel.
+    // Arbitrary presets, sparse active sets and Nyquist pruning fall back.
+    if (activeModeCount_ == modeCount_) {
+        if (modeCount_ == 8) return processSampleFixed<8>(excitation);
+        if (modeCount_ == 10) return processSampleFixed<10>(excitation);
+    }
+#endif
     float outSample = 0.0f;
 
 #if POCKETPAN_DSP_CANDIDATE == 3

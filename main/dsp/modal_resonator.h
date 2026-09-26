@@ -53,6 +53,9 @@ private:
 #if POCKETPAN_DSP_CANDIDATE == 3
     size_t activeIndices_[kMaxModesPerVoice]{};
 #endif
+#if POCKETPAN_DSP_CANDIDATE == 4
+    template<size_t N> float processSampleFixed(float excitation);
+#endif
     ModalModeState modes_[kMaxModesPerVoice];
     ModalModeDefinition presetModes_[kMaxModesPerVoice];
     uint32_t internalSaturationCount_ = 0;
