@@ -133,7 +133,7 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
     }
 }
 
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 10)
+#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9 || POCKETPAN_DSP_CANDIDATE == 10)
 template<size_t N>
 DSP_HOT float ModalResonatorBank::processSampleFixed(float excitation) {
     float outSample = 0.0f;
@@ -195,7 +195,7 @@ DSP_HOT float ModalResonatorBank::processSampleFixed(float excitation) {
 #endif
 DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     DSP_PROFILE_SCOPE(Modal);
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 10)
+#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9 || POCKETPAN_DSP_CANDIDATE == 10)
     // Only a completely active bank can use the branch-free fixed kernel.
     // Arbitrary presets, sparse active sets and Nyquist pruning fall back.
     if (activeModeCount_ == modeCount_) {

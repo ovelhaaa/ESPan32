@@ -53,7 +53,7 @@ private:
 #if POCKETPAN_DSP_CANDIDATE == 3
     size_t activeIndices_[kMaxModesPerVoice]{};
 #endif
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 10)
+#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9 || POCKETPAN_DSP_CANDIDATE == 10)
     template<size_t N> float processSampleFixed(float excitation);
 #endif
     ModalModeState modes_[kMaxModesPerVoice];
