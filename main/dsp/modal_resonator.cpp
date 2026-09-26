@@ -176,6 +176,9 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     }
 #endif
     float outSample = 0.0f;
+#if POCKETPAN_DSP_CANDIDATE == 6
+    const bool safety = config_.internalSafetySaturation;
+#endif
 
 #if POCKETPAN_DSP_CANDIDATE == 3
     for (size_t active = 0; active < activeModeCount_; ++active) {
@@ -190,8 +193,11 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
         float y = m.excitationGain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
 
         // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
+#if POCKETPAN_DSP_CANDIDATE == 6
+        if (std::abs(y) > 2.0f && safety) {
+#else
         if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {
-
+#endif
             ++internalSaturationCount_;
             y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
         }
