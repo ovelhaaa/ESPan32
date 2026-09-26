@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstddef>
 #include "modal_mode.h"
+#include "dsp_profile.h"
 #include "modal_preset.h"
 #include "dsp_config.h"
 
@@ -49,6 +50,9 @@ private:
 
     size_t modeCount_ = 0;
     size_t activeModeCount_ = 0;
+#if POCKETPAN_DSP_CANDIDATE == 3
+    size_t activeIndices_[kMaxModesPerVoice]{};
+#endif
     ModalModeState modes_[kMaxModesPerVoice];
     ModalModeDefinition presetModes_[kMaxModesPerVoice];
     uint32_t internalSaturationCount_ = 0;

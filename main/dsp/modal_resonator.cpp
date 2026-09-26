@@ -98,6 +98,9 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
         }
 
         modes_[i].active = true;
+#if POCKETPAN_DSP_CANDIDATE == 3
+        activeIndices_[activeModeCount_] = i;
+#endif
         activeModeCount_++;
 
         float modeGain = def.gain;
@@ -134,8 +137,13 @@ float ModalResonatorBank::processSample(float excitation) {
     DSP_PROFILE_SCOPE(Modal);
     float outSample = 0.0f;
 
+#if POCKETPAN_DSP_CANDIDATE == 3
+    for (size_t active = 0; active < activeModeCount_; ++active) {
+        const size_t i = activeIndices_[active]; // Ascending original order, even with holes.
+#else
     for (size_t i = 0; i < modeCount_; ++i) {
         if (!modes_[i].active) continue;
+#endif
 
         auto& m = modes_[i];
         // 2nd-order direct form IIR resonant filter
@@ -143,6 +151,7 @@ float ModalResonatorBank::processSample(float excitation) {
 
         // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
         if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {
+
             ++internalSaturationCount_;
             y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
         }
