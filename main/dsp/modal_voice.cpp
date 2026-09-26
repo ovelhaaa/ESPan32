@@ -274,6 +274,52 @@ void ModalVoice::processBlock(float* outBuffer, size_t frames) {
     }
 }
 
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+bool ModalVoice::isAttackSafe() const {
+    // Same epsilon as the historical damping update branch.  While the smoothed
+    // damping is within it, that branch is not taken, so currentDamping_ cannot
+    // move and targetDamping_ cannot change inside a render block.  The exciter
+    // must be running at the block boundary to select the attack specialization;
+    // the path stays exact after it finishes because it shares the exciter's
+    // exact active transition.
+    return active_ && exciter_.isActive() && !isStealing_ &&
+           std::abs(targetDamping_ - currentDamping_) <= 0.0001f;
+}
+
+DSP_HOT float ModalVoice::processSampleAttackStable(float externalExcitation, float* strikeTap) {
+    if (!active_) return 0.0f;
+
+    // Mirror of processSample() with the provably no-op damping-smoothing and
+    // steal-crossfade branches removed.  The exciter, modal kernel, exact
+    // age-aligned lifetime check and lastSample_ are unchanged.
+    age_++;
+
+    float localStrike;
+    { DSP_PROFILE_SCOPE(Exciter); localStrike = exciter_.processSample(); }
+    if (strikeTap) *strikeTap = localStrike;
+    const float exc = localStrike + externalExcitation;
+    const float output = resonators_.processSample(exc);
+
+    if ((age_ & 0x7F) == 0) {
+        estimatedEnergy_ = resonators_.getEnergy();
+        if (!exciter_.isActive() && estimatedEnergy_ < voicingConfig_.silenceThreshold) {
+            active_ = false;
+            estimatedEnergy_ = 0.0f;
+        }
+    }
+
+    lastSample_ = output;
+    return output;
+}
+
+DSP_HOT void ModalVoice::renderAttackBlock(float* outBuffer, size_t frames,
+                                           float externalExcitation) {
+    for (size_t i = 0; i < frames; ++i) {
+        outBuffer[i] += processSampleAttackStable(externalExcitation);
+    }
+}
+#endif
+
 #if POCKETPAN_SUSTAIN_FASTPATH
 bool ModalVoice::isSustainSafe() const {
     // The exact epsilon used by the historical damping update branch: while the

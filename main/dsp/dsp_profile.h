@@ -25,7 +25,7 @@
      POCKETPAN_DSP_CANDIDATE == 11 || POCKETPAN_DSP_CANDIDATE == 12 || \
      POCKETPAN_DSP_CANDIDATE == 13 || POCKETPAN_DSP_CANDIDATE == 14 || \
      POCKETPAN_DSP_CANDIDATE == 15 || POCKETPAN_DSP_CANDIDATE == 16 || \
-     (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 21))
+     (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 25))
 
 // M6.3.4 candidate matrix.  Candidate 16 = 13 + stable sustain is the
 // production-qualified baseline (Phases A).  Candidates 17-19 move one tail
@@ -37,29 +37,45 @@
 //   20 = 16 + accepted combination                      (T4)
 //   21 = 20 + exact attack/exciter fast path            (final)
 #define POCKETPAN_TAIL_BASE \
-    (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 21)
+    (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 25)
 #define POCKETPAN_IRAM_RENDERBLOCK \
     (POCKETPAN_DSP_CANDIDATE == 17 || POCKETPAN_DSP_CANDIDATE == 20 || \
-     POCKETPAN_DSP_CANDIDATE == 21)
+     POCKETPAN_DSP_CANDIDATE == 21 || \
+     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 25))
 #define POCKETPAN_IRAM_LIMITER \
     (POCKETPAN_DSP_CANDIDATE == 18 || POCKETPAN_DSP_CANDIDATE == 20 || \
-     POCKETPAN_DSP_CANDIDATE == 21)
+     POCKETPAN_DSP_CANDIDATE == 21 || \
+     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 25))
 #define POCKETPAN_IRAM_BODY \
     (POCKETPAN_DSP_CANDIDATE == 19 || POCKETPAN_DSP_CANDIDATE == 20 || \
-     POCKETPAN_DSP_CANDIDATE == 21)
+     POCKETPAN_DSP_CANDIDATE == 21 || \
+     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 25))
 
 // M6.3.3 additive fast paths.  Candidate 13 is the measured M6.3.2 production
 // baseline and must stay bit-identical: 14 adds the stable-sustain voice path,
 // 15/16 keep the historical sustain composition.  The production-qualified
-// baseline is candidate 16 = 13 + stable sustain.  Candidates 17-21 are
+// baseline is candidate 16 = 13 + stable sustain.  Candidates 17-25 are
 // additive to 16, so they also carry the sustain fast path.
 #define POCKETPAN_SUSTAIN_FASTPATH \
     (POCKETPAN_DSP_CANDIDATE == 14 || POCKETPAN_DSP_CANDIDATE == 16 || \
      POCKETPAN_TAIL_BASE)
-// The exact attack/exciter segment path is implemented only for the final
-// candidate so candidate 16 stays binary-identical to its validated build.
+
+// M6.3.5 candidate matrix (additive to the validated candidate 20):
+//   22 = 20 + cached sympathetic LPF coefficient        (Phase A1)
+//   23 = 22 + PAN stable-8 sample-outer sustain path     (Phase A2)
+//   24 = 20 + exact attack-voice fast path + exciter     (Phase B)
+//   25 = 23 + attack-voice fast path                     (best combination)
+#define POCKETPAN_SYMPATHETIC_COEFF_CACHE \
+    (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 25)
+#define POCKETPAN_PAN_STABLE8_FASTPATH \
+    (POCKETPAN_DSP_CANDIDATE == 23 || POCKETPAN_DSP_CANDIDATE == 25)
+#define POCKETPAN_ATTACK_VOICE_FASTPATH \
+    (POCKETPAN_DSP_CANDIDATE == 24 || POCKETPAN_DSP_CANDIDATE == 25)
+// The exact attack/exciter segment path.  Candidate 21 introduced it and it is
+// reused verbatim by the attack-voice candidates, so candidate 16 stays
+// binary-identical to its validated build.
 #define POCKETPAN_ATTACK_FASTPATH \
-    (POCKETPAN_DSP_CANDIDATE == 21)
+    (POCKETPAN_DSP_CANDIDATE == 21 || POCKETPAN_ATTACK_VOICE_FASTPATH)
 
 #if defined(ESP_PLATFORM) && POCKETPAN_BOUNDED_IRAM
 #include "esp_attr.h"

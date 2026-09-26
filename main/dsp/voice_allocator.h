@@ -53,6 +53,15 @@ public:
     uint32_t getInternalSaturationCount() const;
     void setInternalSafetySaturation(bool enabled);
     void setModelConfig(const InstrumentModelConfig& config);
+    // M6.3.5 Phase A.  Caches the sympathetic low-pass coefficient at a
+    // configuration boundary so the realtime render path never evaluates the
+    // exponential.  The cached value is the bit-identical result of the
+    // established expression.
+    void setSympatheticConfig(const SympatheticConfig& config);
+#if POCKETPAN_SYMPATHETIC_COEFF_CACHE
+    // Host exactness probe only.  Never present in firmware.
+    float getSympatheticLowpassCoefficientForTest() const { return sympatheticLowpassCoefficient_; }
+#endif
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing);
 #if POCKETPAN_SUSTAIN_FASTPATH
     // Host A/B only: toggles the stable-sustain fast path without rebuilding.
@@ -62,6 +71,17 @@ public:
     // Counts voice-blocks that took the sustain fast path; tests assert it is
     // actually exercised rather than silently bypassed.
     uint32_t getSustainFastPathBlocksForTest() const { return sustainFastPathBlocks_; }
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    // Host A/B only: toggles the attack-voice fast path without rebuilding.
+    void setAttackFastPathEnabledForTest(bool enabled) {
+        for (auto& voice : voices_) voice.setAttackFastPathEnabledForTest(enabled);
+    }
+    uint32_t getAttackFastPathBlocksForTest() const { return attackFastPathBlocks_; }
+#endif
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+    // Counts blocks that took the specialized eight-voice stable sustain path.
+    uint32_t getPanStable8BlocksForTest() const { return panStable8Blocks_; }
 #endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
     // Tables are prepared outside the callback and shared by all eight voices.
@@ -76,6 +96,15 @@ public:
 
 private:
     int findVoiceToSteal() const;
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+    // True when every voice is sustain-safe for the whole block and no steal
+    // declick tail is in flight, i.e. the specialized stable-8 path is exact.
+    bool steady8(const bool* sustainSafe) const;
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    // True when every voice is attack-safe and no steal declick tail is pending.
+    bool attackStable8() const;
+#endif
 
     struct StealDeclickTail {
         bool active = false;
@@ -97,6 +126,12 @@ private:
 #endif
 #if POCKETPAN_SUSTAIN_FASTPATH
     uint32_t sustainFastPathBlocks_ = 0;
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    uint32_t attackFastPathBlocks_ = 0;
+#endif
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+    uint32_t panStable8Blocks_ = 0;
 #endif
 };
 

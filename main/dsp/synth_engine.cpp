@@ -20,6 +20,9 @@ void SynthEngine::init(float sampleRate) {
     model_ = InstrumentModel::Pan;
     modelConfig_ = getInstrumentModelConfig(model_);
     allocator_.setModelConfig(modelConfig_);
+#if POCKETPAN_SYMPATHETIC_COEFF_CACHE
+    allocator_.setSympatheticConfig(modelConfig_.sympathetic);
+#endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
     allocator_.setPreparedNoteTable(&panPreparedNotes_);
 #endif
@@ -53,6 +56,9 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
     modelConfig_ = getInstrumentModelConfig(model_);
     allocator_.init(sampleRate_);
     allocator_.setModelConfig(modelConfig_);
+#if POCKETPAN_SYMPATHETIC_COEFF_CACHE
+    allocator_.setSympatheticConfig(modelConfig_.sympathetic);
+#endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
     allocator_.setPreparedNoteTable(model_ == InstrumentModel::Bell
         ? &bellPreparedNotes_ : &panPreparedNotes_);
@@ -78,6 +84,9 @@ void SynthEngine::setMasterVolume(float vol) {
 void SynthEngine::setSympatheticEnabled(bool enabled) {
     if (modelConfig_.sympathetic.enabled == enabled) return;
     modelConfig_.sympathetic.enabled = enabled;
+#if POCKETPAN_SYMPATHETIC_COEFF_CACHE
+    allocator_.setSympatheticConfig(modelConfig_.sympathetic);
+#endif
     allocator_.resetSympatheticState();
 }
 

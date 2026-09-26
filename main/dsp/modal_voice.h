@@ -54,6 +54,17 @@ public:
     float processSampleSustain(float externalExcitation = 0.0f, float* strikeTap = nullptr);
     void renderSustainBlock(float* outBuffer, size_t frames, float externalExcitation = 0.0f);
 
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    // M6.3.5 Phase B attack-voice fast path.  A voice is attack-safe when it is
+    // active, its exciter is still running, no steal crossfade is in flight and
+    // the smoothed damping has already settled.  Under those conditions the
+    // historical damping and steal branches are provably no-ops for the whole
+    // block, so the sample path can be specialized without any musical change.
+    bool isAttackSafe() const;
+    float processSampleAttackStable(float externalExcitation = 0.0f, float* strikeTap = nullptr);
+    void renderAttackBlock(float* outBuffer, size_t frames, float externalExcitation = 0.0f);
+#endif
+
     // Query state for voice allocator
     bool isActive() const { return active_; }
     bool isReleased() const { return released_; }
@@ -113,6 +124,14 @@ private:
 public:
     void setSustainFastPathEnabledForTest(bool enabled) { sustainFastPathEnabled_ = enabled; }
     bool isSustainFastPathEnabledForTest() const { return sustainFastPathEnabled_; }
+private:
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    // Host A/B only; firmware leaves this at the compiled default.
+    bool attackFastPathEnabled_ = true;
+public:
+    void setAttackFastPathEnabledForTest(bool enabled) { attackFastPathEnabled_ = enabled; }
+    bool isAttackFastPathEnabledForTest() const { return attackFastPathEnabled_; }
 private:
 #endif
 };

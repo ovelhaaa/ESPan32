@@ -27,6 +27,12 @@ void VoiceAllocator::reset() {
 #if POCKETPAN_SUSTAIN_FASTPATH
     sustainFastPathBlocks_ = 0;
 #endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    attackFastPathBlocks_ = 0;
+#endif
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+    panStable8Blocks_ = 0;
+#endif
     resetSympatheticState();
     resetSympatheticDiagnostics();
 }
@@ -155,6 +161,13 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
 
     for (size_t v = 0; v < kMaxVoices; ++v) {
         if (!voices_[v].isActive()) continue;
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+        if (voices_[v].isAttackFastPathEnabledForTest() && voices_[v].isAttackSafe()) {
+            ++attackFastPathBlocks_;
+            voices_[v].renderAttackBlock(outBuffer, frames, 0.0f);
+            continue;
+        }
+#endif
 #if POCKETPAN_SUSTAIN_FASTPATH
         if (voices_[v].isSustainFastPathEnabledForTest() && voices_[v].isSustainSafe()) {
             ++sustainFastPathBlocks_;
@@ -206,8 +219,10 @@ void VoiceAllocator::resetSympatheticDiagnostics() {
 
 DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config) {
     if (!config.enabled) { renderBlock(outBuffer, frames); return; }
+#if !POCKETPAN_SYMPATHETIC_COEFF_CACHE
     const float cutoff=std::clamp(config.lowpassHz,10.0f,sampleRate_*0.45f);
     sympatheticLowpassCoefficient_=std::exp(-2.0f*3.14159265358979323846f*cutoff/sampleRate_);
+#endif
 #if POCKETPAN_SUSTAIN_FASTPATH
     // The decision is taken once per voice per block; the sample-outer loop and
     // voice summation order are unchanged.
@@ -215,6 +230,63 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
     for (size_t v=0; v<kMaxVoices; ++v)
         sustainSafe[v] = voices_[v].isSustainFastPathEnabledForTest() && voices_[v].isSustainSafe();
     for (size_t v=0; v<kMaxVoices; ++v) if (sustainSafe[v]) ++sustainFastPathBlocks_;
+#endif
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+    // Block-stable eight-voice sustain: every voice is active, provably
+    // sustain-safe for the whole block, and no steal tail is in flight.  The
+    // per-sample active/mode branches are hoisted, but the sample-outer loop,
+    // voice 0->7 order and float summation order are byte-for-byte preserved.
+    if (steady8(sustainSafe)) {
+        ++panStable8Blocks_;
+        for (size_t i=0;i<frames;++i) {
+            const float external=sympatheticPreviousBus_*config.inputGain;
+            float sum=0.0f;
+            sum+=voices_[0].processSampleSustain(external);
+            sum+=voices_[1].processSampleSustain(external);
+            sum+=voices_[2].processSampleSustain(external);
+            sum+=voices_[3].processSampleSustain(external);
+            sum+=voices_[4].processSampleSustain(external);
+            sum+=voices_[5].processSampleSustain(external);
+            sum+=voices_[6].processSampleSustain(external);
+            sum+=voices_[7].processSampleSustain(external);
+            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+            float next=sympatheticFilterState_*config.feedbackGain;
+            const float limit=std::max(0.0f,config.maxBusLevel);
+            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+            sympatheticPreviousBus_=next; outBuffer[i]=sum;
+            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+        }
+        return;
+    }
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    // Eight simultaneous attacks on a sympathetic instrument: same sample-outer
+    // dependency, but the per-voice damping/steal/active branches are hoisted.
+    // Voice 0->7 order, float summation order and every state update match the
+    // general path; a voice that ends its attack mid-block is handled by the
+    // shared exciter/lifetime logic inside processSampleAttackStable.
+    if (attackStable8()) {
+        attackFastPathBlocks_ += kMaxVoices;
+        for (size_t i=0;i<frames;++i) {
+            const float external=sympatheticPreviousBus_*config.inputGain;
+            float sum=0.0f;
+            sum+=voices_[0].processSampleAttackStable(external);
+            sum+=voices_[1].processSampleAttackStable(external);
+            sum+=voices_[2].processSampleAttackStable(external);
+            sum+=voices_[3].processSampleAttackStable(external);
+            sum+=voices_[4].processSampleAttackStable(external);
+            sum+=voices_[5].processSampleAttackStable(external);
+            sum+=voices_[6].processSampleAttackStable(external);
+            sum+=voices_[7].processSampleAttackStable(external);
+            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+            float next=sympatheticFilterState_*config.feedbackGain;
+            const float limit=std::max(0.0f,config.maxBusLevel);
+            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+            sympatheticPreviousBus_=next; outBuffer[i]=sum;
+            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+        }
+        return;
+    }
 #endif
     for(size_t i=0;i<frames;++i) {
         float sum=0.0f;
@@ -243,15 +315,77 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
     std::fill(outBuffer, outBuffer + frames, 0.0f);
     std::fill(strikeBuffer, strikeBuffer + frames, 0.0f);
     const bool sympathetic = config.enabled;
+#if !POCKETPAN_SYMPATHETIC_COEFF_CACHE
     if (sympathetic) {
         const float cutoff=std::clamp(config.lowpassHz,10.0f,sampleRate_*0.45f);
         sympatheticLowpassCoefficient_=std::exp(-2.0f*3.14159265358979323846f*cutoff/sampleRate_);
     }
+#endif
 #if POCKETPAN_SUSTAIN_FASTPATH
     bool sustainSafe[kMaxVoices];
     for (size_t v=0; v<kMaxVoices; ++v)
         sustainSafe[v] = voices_[v].isSustainFastPathEnabledForTest() && voices_[v].isSustainSafe();
     for (size_t v=0; v<kMaxVoices; ++v) if (sustainSafe[v]) ++sustainFastPathBlocks_;
+#endif
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+    // Strike-bus sibling of the stable-8 sustain path.  Every exciter has
+    // finished, so the local strike tap is exactly 0 for every sample: the
+    // pre-zeroed strike buffer is already the exact output and no strike math
+    // is performed.  Sample/voice/summation order is unchanged.
+    if (sympathetic && steady8(sustainSafe)) {
+        ++panStable8Blocks_;
+        for (size_t i=0; i<frames; ++i) {
+            const float external = sympatheticPreviousBus_*config.inputGain;
+            float sum=0.0f;
+            sum += voices_[0].processSampleSustain(external);
+            sum += voices_[1].processSampleSustain(external);
+            sum += voices_[2].processSampleSustain(external);
+            sum += voices_[3].processSampleSustain(external);
+            sum += voices_[4].processSampleSustain(external);
+            sum += voices_[5].processSampleSustain(external);
+            sum += voices_[6].processSampleSustain(external);
+            sum += voices_[7].processSampleSustain(external);
+            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+            float next=sympatheticFilterState_*config.feedbackGain;
+            const float limit=std::max(0.0f,config.maxBusLevel);
+            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+            sympatheticPreviousBus_=next;
+            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            outBuffer[i]=sum;
+        }
+        return;
+    }
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    // Eight simultaneous attacks using the strike bus: the local strike taps
+    // are summed in voice order and written to the strike buffer exactly as the
+    // general path does.  Sample-outer sympathetic dependency is preserved.
+    if (attackStable8()) {
+        attackFastPathBlocks_ += kMaxVoices;
+        for (size_t i=0; i<frames; ++i) {
+            const float external = sympathetic ? sympatheticPreviousBus_*config.inputGain : 0.0f;
+            float sum=0.0f, strikes=0.0f, strike=0.0f;
+            sum += voices_[0].processSampleAttackStable(external, &strike); strikes += strike;
+            sum += voices_[1].processSampleAttackStable(external, &strike); strikes += strike;
+            sum += voices_[2].processSampleAttackStable(external, &strike); strikes += strike;
+            sum += voices_[3].processSampleAttackStable(external, &strike); strikes += strike;
+            sum += voices_[4].processSampleAttackStable(external, &strike); strikes += strike;
+            sum += voices_[5].processSampleAttackStable(external, &strike); strikes += strike;
+            sum += voices_[6].processSampleAttackStable(external, &strike); strikes += strike;
+            sum += voices_[7].processSampleAttackStable(external, &strike); strikes += strike;
+            if (sympathetic) {
+                sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+                float next=sympatheticFilterState_*config.feedbackGain;
+                const float limit=std::max(0.0f,config.maxBusLevel);
+                if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+                sympatheticPreviousBus_=next;
+                sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            }
+            outBuffer[i]=sum;
+            strikeBuffer[i]=strikes;
+        }
+        return;
+    }
 #endif
     for (size_t i=0; i<frames; ++i) {
         float sum=0.0f, strikes=0.0f;
@@ -288,6 +422,37 @@ void VoiceAllocator::setInternalSafetySaturation(bool enabled) {
 
 void VoiceAllocator::setModelConfig(const InstrumentModelConfig& config) {
     for (auto& voice : voices_) voice.setModelConfig(config);
+}
+
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+bool VoiceAllocator::steady8(const bool* sustainSafe) const {
+    for (size_t v = 0; v < kMaxVoices; ++v) {
+        if (!sustainSafe[v]) return false;
+    }
+    for (const auto& tail : stealTails_) {
+        if (tail.active) return false;
+    }
+    return true;
+}
+#endif
+
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+bool VoiceAllocator::attackStable8() const {
+    for (size_t v = 0; v < kMaxVoices; ++v) {
+        if (!voices_[v].isAttackFastPathEnabledForTest() || !voices_[v].isAttackSafe()) return false;
+    }
+    for (const auto& tail : stealTails_) {
+        if (tail.active) return false;
+    }
+    return true;
+}
+#endif
+
+void VoiceAllocator::setSympatheticConfig(const SympatheticConfig& config) {
+    // Configuration boundary only.  Same expression, same float result as the
+    // historical in-block computation, so the cached coefficient is exact.
+    const float cutoff = std::clamp(config.lowpassHz, 10.0f, sampleRate_ * 0.45f);
+    sympatheticLowpassCoefficient_ = std::exp(-2.0f * 3.14159265358979323846f * cutoff / sampleRate_);
 }
 
 void VoiceAllocator::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) {

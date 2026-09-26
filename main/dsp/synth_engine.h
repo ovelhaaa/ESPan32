@@ -62,6 +62,9 @@ public:
     void setModelConfigForTest(const InstrumentModelConfig& config) {
         modelConfig_ = config;
         allocator_.setModelConfig(modelConfig_);
+#if POCKETPAN_SYMPATHETIC_COEFF_CACHE
+        allocator_.setSympatheticConfig(modelConfig_.sympathetic);
+#endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
         // Arbitrary host-only configs never borrow canonical-model entries.
         allocator_.setPreparedNoteTable(nullptr);
@@ -81,6 +84,19 @@ public:
         return allocator_.getSustainFastPathBlocksForTest();
     }
 #endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+    void setAttackFastPathEnabledForTest(bool enabled) {
+        allocator_.setAttackFastPathEnabledForTest(enabled);
+    }
+    uint32_t getAttackFastPathBlocksForTest() const {
+        return allocator_.getAttackFastPathBlocksForTest();
+    }
+#endif
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+    uint32_t getPanStable8BlocksForTest() const {
+        return allocator_.getPanStable8BlocksForTest();
+    }
+#endif
     void setBodyEnabled(bool enabled) { modelConfig_.body.enabled=enabled; body_.setConfig(modelConfig_.body); }
     // A runtime toggle must not retain delayed feedback from its prior mode.
     void setSympatheticEnabled(bool enabled);
@@ -88,7 +104,13 @@ public:
     void setBodyConfigForTest(const BodyConfig& config) { modelConfig_.body=config; body_.setConfig(modelConfig_.body); }
     void setStrikeBusGainForTest(float gain) { modelConfig_.strikeBusGain = gain; }
     void setBodyExcitationStrategyForTest(BodyExcitationStrategy strategy) { bodyStrategy_=strategy; }
-    void setSympatheticConfigForTest(const SympatheticConfig& config) { modelConfig_.sympathetic=config; allocator_.resetSympatheticState(); }
+    void setSympatheticConfigForTest(const SympatheticConfig& config) {
+        modelConfig_.sympathetic=config;
+#if POCKETPAN_SYMPATHETIC_COEFF_CACHE
+        allocator_.setSympatheticConfig(config);
+#endif
+        allocator_.resetSympatheticState();
+    }
     float getBodyEnergy() const { return body_.getEnergy(); }
     float getBodyPeak() const { return bodyPeak_; }
     float getBodyRms() const { return bodySamples_ ? std::sqrt(bodySumSquares_/bodySamples_) : 0.0f; }
