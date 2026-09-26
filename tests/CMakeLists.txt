@@ -19,9 +19,13 @@ add_executable(test_telemetry test_telemetry.cpp)
 target_include_directories(test_telemetry PRIVATE ${ROOT}/main)
 target_link_libraries(test_telemetry PRIVATE pthread)
 add_test(NAME telemetry COMMAND test_telemetry)
+add_executable(test_modal_kernel test_modal_kernel.cpp ${ROOT}/main/dsp/modal_resonator.cpp)
+target_include_directories(test_modal_kernel PRIVATE ${ROOT}/main)
+target_compile_definitions(test_modal_kernel PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
+add_test(NAME modal_kernel COMMAND test_modal_kernel ${CMAKE_CURRENT_LIST_DIR}/m631_modal_kernel_hashes.txt)
 
 # These tests intentionally use assert for compact host fixtures; keep the
 # checks enabled even in the Release configuration used by CI.
-foreach(target test_ble_midi_parser test_dsp test_telemetry)
+foreach(target test_ble_midi_parser test_dsp test_telemetry test_modal_kernel)
   target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
 endforeach()
