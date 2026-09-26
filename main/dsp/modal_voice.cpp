@@ -1,4 +1,5 @@
 #include "modal_voice.h"
+#include "dsp_profile.h"
 #include "pan_calibration.h"
 #include <algorithm>
 #include <cmath>
@@ -154,6 +155,7 @@ float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
 
     age_++;
 
+    { DSP_PROFILE_SCOPE(Damping);
     // 1. Damping smoothing filter (avoids zipper noise on aftertouch changes)
     if (std::abs(targetDamping_ - currentDamping_) > 0.0001f) {
         currentDamping_ += dampingSmoothCoeff_ * (targetDamping_ - currentDamping_);
@@ -163,8 +165,10 @@ float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
         }
     }
 
+    }
     // 2. Generate excitation and filter through resonator bank
-    const float localStrike = exciter_.processSample();
+    float localStrike;
+    { DSP_PROFILE_SCOPE(Exciter); localStrike = exciter_.processSample(); }
     if (strikeTap) *strikeTap = localStrike;
     const float exc = localStrike + externalExcitation;
     float output = resonators_.processSample(exc);
@@ -182,6 +186,7 @@ float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
 
     // 4. Energy estimation and automatic voice release
     if ((age_ & 0x7F) == 0) { // Check periodically
+        DSP_PROFILE_SCOPE(Energy);
         estimatedEnergy_ = resonators_.getEnergy();
         if (!exciter_.isActive() && estimatedEnergy_ < voicingConfig_.silenceThreshold) {
             active_ = false;

@@ -13,6 +13,7 @@
 #include "hardware/display.h"
 #include "hardware/ble_midi.h"
 #include "dsp/synth_engine.h"
+#include "polyphony_forensics.h"
 #include "dsp/diagnostic_tone.h"
 #include "midi/midi_event.h"
 #include "midi/midi_mapping.h"
@@ -61,7 +62,9 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     auto consume = [&](auto& queue) { while (queue.pop(ev)) {
         // Diagnostic tones own audio TX. MIDI remains visible in telemetry but
         // intentionally cannot create hidden musical state while diagnostics run.
+        #ifndef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
         if (sDiagnosticTone.isPan()) sSynth.handleMidiEvent(ev);
+#endif
 
         // Record raw numeric event data for telemetry (no string formatting on Core 0)
         sAudioSnapshot.lastNote = ev.data1;
@@ -83,8 +86,12 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
 
     // 2. One producer owns TX: diagnostics intentionally silence/reset PAN,
     // while MIDI is still consumed for its diagnostic display.
+    #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    pocketpan::forensics::render(sSynth, outInterleaved, frames);
+#else
     if (sDiagnosticTone.isPan()) sSynth.renderBlock(outInterleaved, frames);
     else sDiagnosticTone.render(outInterleaved, frames, static_cast<float>(pocketpan::board::audio::kSampleRate));
+#endif
 
     // 3. Publish at ~47 Hz (one in eight 128-frame blocks), above the 30 Hz UI
     // rate while avoiding needless cross-core atomic traffic on every block.
@@ -243,6 +250,10 @@ void uiTaskLoop(void* param) {
         }
 
         sUiState.bleConnected = sBleMidi.isConnected();
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+        pocketpan::forensics::ready.store(sBleMidi.isMidiReady(), std::memory_order_release);
+        pocketpan::forensics::logCompleted();
+#endif
         sBleMidi.poll(); // low-rate BLE RSSI request; never called by audio task
         sUiState.bleIntervalUnits = sBleMidi.connectionIntervalUnits();
         sUiState.bleLatency = sBleMidi.connectionLatency();
@@ -311,6 +322,16 @@ extern "C" void app_main(void) {
     ESP_LOGI(kTag, "  Hardware: TENSTAR TS-ESP32-S3 (Feather TFT)");
     ESP_LOGI(kTag, "===============================================");
 
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    ESP_LOGI(kTag, "[FORENSICS] candidate=%d profile=%d cpu_mhz=%d optimization_perf=%d",
+             POCKETPAN_DSP_CANDIDATE,
+#ifdef CONFIG_POCKETPAN_DSP_PROFILE
+             1,
+#else
+             0,
+#endif
+             CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ, CONFIG_COMPILER_OPTIMIZATION_PERF);
+#endif
     // 1. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
 

@@ -12,6 +12,8 @@ add_executable(test_dsp test_dsp.cpp
  ${ROOT}/main/dsp/voice_allocator.cpp ${ROOT}/main/dsp/synth_engine.cpp ${ROOT}/main/dsp/instrument_model.cpp ${ROOT}/main/midi/midi_mapping.cpp)
 target_sources(test_dsp PRIVATE ${ROOT}/main/dsp/peak_limiter.cpp)
 target_include_directories(test_dsp PRIVATE ${ROOT}/main)
+set(POCKETPAN_DSP_CANDIDATE 0 CACHE STRING "Isolated M6.3.1 DSP experiment")
+target_compile_definitions(test_dsp PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
 add_test(NAME dsp COMMAND test_dsp)
 add_executable(test_telemetry test_telemetry.cpp)
 target_include_directories(test_telemetry PRIVATE ${ROOT}/main)

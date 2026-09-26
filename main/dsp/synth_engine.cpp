@@ -1,4 +1,5 @@
 #include "synth_engine.h"
+#include "dsp_profile.h"
 #include "pan_calibration.h"
 #include "../midi/midi_mapping.h"
 #include <algorithm>
@@ -113,10 +114,12 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
 
     // 1. Synthesize 8-voice polyphony into mono buffer
     const bool useStrikeBus = modelConfig_.body.enabled && bodyStrategy_ == BodyExcitationStrategy::StrikeBus;
+    { DSP_PROFILE_SCOPE(Allocator);
     if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, modelConfig_.sympathetic);
     else if (modelConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, modelConfig_.sympathetic);
     else allocator_.renderBlock(monoBuffer_, frames);
 
+    }
     // Smooth count-based polyphonic headroom: 1=0 dB, 2=-1.5 dB,
     // 4=-3 dB, 8=-5 dB. This preserves per-voice modal gains.
     const float voices = static_cast<float>(allocator_.getActiveVoiceCount());
@@ -125,6 +128,8 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
 
     // 2. Mixdown, headroom, lookahead gain limiting, and safe conversion.
     for (size_t i = 0; i < frames; ++i) {
+        float sample;
+        { DSP_PROFILE_SCOPE(Mix);
         const float coefficient = targetHeadroom < polyHeadroomGain_
             ? polyHeadroomAttackCoefficient_ : polyHeadroomReleaseCoefficient_;
         polyHeadroomGain_ = targetHeadroom + coefficient * (polyHeadroomGain_ - targetHeadroom);
@@ -135,10 +140,13 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
         } else if (useStrikeBus) {
             bodyExcitation = strikeBuffer_[i] * modelConfig_.strikeBusGain;
         }
-        const float bodySample=body_.processSample(bodyExcitation);
+        float bodySample;
+        { DSP_PROFILE_SCOPE(Body); bodySample=body_.processSample(bodyExcitation); }
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
-        float sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
+        sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
 
+        }
+        { DSP_PROFILE_SCOPE(Limiter);
         // NaN / Inf safety guard
         if (std::isnan(sample) || std::isinf(sample)) {
             sample = 0.0f;
@@ -148,6 +156,8 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
         sample = limiter_.processSample(sample);
         postLimiterPeak_ = std::max(postLimiterPeak_, std::abs(sample));
 
+        }
+        { DSP_PROFILE_SCOPE(Pcm);
         // Clamp to [-1.0, 1.0] and convert to 32-bit full-scale integer
         const float clamped = std::clamp(sample, -1.0f, 1.0f);
         if (clamped != sample) ++hardClampCount_;
@@ -156,6 +166,7 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
         // Interleaved stereo duplicate
         outInterleaved[i * 2]     = sample32;
         outInterleaved[i * 2 + 1] = sample32;
+        }
     }
 }
 

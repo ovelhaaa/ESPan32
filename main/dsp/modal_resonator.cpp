@@ -1,4 +1,5 @@
 #include "modal_resonator.h"
+#include "dsp_profile.h"
 #include "pan_doublet.h"
 #include <algorithm>
 #include <cmath>
@@ -130,6 +131,7 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
 }
 
 float ModalResonatorBank::processSample(float excitation) {
+    DSP_PROFILE_SCOPE(Modal);
     float outSample = 0.0f;
 
     for (size_t i = 0; i < modeCount_; ++i) {

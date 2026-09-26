@@ -14,4 +14,25 @@ menu "Pocket Pan configuration"
             When set, the UI starts on the MIDI diagnostic page instead of the
             Status page.
 
+    config POCKETPAN_POLYPHONY_FORENSICS
+        bool "Run automatic polyphony forensics fixtures (diagnostic only)"
+        default n
+        help
+            Owns synthesis; drains external MIDI without playing it. Waits for
+            BLE Ready then measures PAN/BELL 0/1/2/4/6/8, chord and roll.
+
+    config POCKETPAN_DSP_PROFILE
+        bool "Instrument DSP phases with the CPU cycle counter"
+        default n
+        depends on POCKETPAN_POLYPHONY_FORENSICS
+        help
+            Diagnostic build only. Nested probes perturb measured timing;
+            compare candidates with this option OFF. Disabled probes compile out.
+
+    config POCKETPAN_FORENSICS_BLOCKS
+        int "Blocks per diagnostic fixture"
+        default 8192
+        range 1024 16384
+        depends on POCKETPAN_POLYPHONY_FORENSICS
+
 endmenu

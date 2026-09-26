@@ -1,6 +1,7 @@
 # ESP-IDF build directory
 build/
 build-host*/
+tests/build-ninja/
 sdkconfig.old
 sdkconfig
 dependencies.lock

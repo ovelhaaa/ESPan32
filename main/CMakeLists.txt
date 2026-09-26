@@ -35,3 +35,11 @@ idf_component_register(
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+
+# Isolated experiments: 0 is the unchanged baseline. Changing these cache
+# values rebuilds only this component; production defaults remain unchanged.
+set(POCKETPAN_DSP_CANDIDATE 0 CACHE STRING "Isolated M6.3.1 DSP experiment")
+set(POCKETPAN_FORENSICS_CRITICAL_ONLY 0 CACHE STRING "Measure only the three failing fixtures")
+target_compile_definitions(${COMPONENT_LIB} PRIVATE
+    POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE}
+    POCKETPAN_FORENSICS_CRITICAL_ONLY=${POCKETPAN_FORENSICS_CRITICAL_ONLY})
