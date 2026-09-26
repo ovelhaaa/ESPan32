@@ -1,0 +1,49 @@
+{
+  "milestone": "M6.3.2",
+  "baseline_commit": "5377b4f",
+  "baseline_candidate": 9,
+  "toolchain": "xtensa-esp32s3-elf-gcc 13.2.0, ESP-IDF 5.3, -O2",
+  "functions": {
+    "candidate_9_ModalResonatorBank::processSample(float)": {
+      "implementation": "fixed 8/10-mode C++ kernel (D)",
+      "xcc_instructions": 1377,
+      "mul_s": 20,
+      "madd_s": 76,
+      "add_s": 115,
+      "sub_s": 14
+    },
+    "candidate_13_ModalResonatorBank::processSample(float)": {
+      "implementation": "fixed 8/10-mode microkernel (A), safety/normal resolved statically",
+      "xcc_instructions": 1671,
+      "mul_s": 35,
+      "madd_s": 110,
+      "add_s": 156,
+      "sub_s": 20
+    }
+  },
+  "recurrence": {
+    "source_expression": "y = excitationGain * excitation + a1 * z1 + a2 * z2",
+    "source_association": "(excitationGain * excitation + a1 * z1) + a2 * z2",
+    "emitted_sequence_per_mode": [
+      "f0 = a1 * z1                       ; mul.s",
+      "f0 = excitationGain * excitation + f0 ; madd.s",
+      "f0 = a2 * z2 + f0                  ; madd.s"
+    ],
+    "note": "The compiler emits (a1*z1 + eg*x) + a2*z2 instead of (eg*x + a1*z1) + a2*z2. IEEE-754 addition is commutative, so the result is bit-identical; no addition is reassociated.",
+    "state_write_order": "z2 = z1 ; z1 = y",
+    "sum_order": "running sum accumulated with add.s in ascending mode index (mode0..mode7 PAN, mode0..mode9 Bell)",
+    "hardware_fpu": true,
+    "tanh_saturation_preserved": true,
+    "denormal_flush_preserved": true,
+    "per_sample_dispatch_to_flash": false,
+    "argument_swap_only": true
+  },
+  "host_equivalence": {
+    "test_dsp": "PASS",
+    "test_modal_kernel_15_fingerprints": "PASS",
+    "test_prepared_note_grid": "PASS",
+    "pan_pcm_12_of_12_exact": true,
+    "pan_bell_pan_exact": true,
+    "bell_reference_wav_byte_identical": true
+  }
+}

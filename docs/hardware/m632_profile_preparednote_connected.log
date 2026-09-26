@@ -1,0 +1,200 @@
+[0;32mI (122) esp_image: segment 1: paddr=0002ef4c vaddr=3fc9bc[0;32mI (4486) forensics: [CURVE] model=PAN fixture=5 voices=8 class=steady n=1018 avg_us=2119.50 p99_us=2475 max_us=2694 deadline=1 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (4486) forensics: [HIST] fixture=5 class=steady lower_us=2050 n=272[0m
+[0;32mI (4496) forensics: [HIST] fixture=5 class=steady lower_us=2075 n=419[0m
+[0;32mI (4506) forensics: [HIST] fixture=5 class=steady lower_us=2100 n=123[0m
+[0;32mI (4506) forensics: [HIST] fixture=5 class=steady lower_us=2125 n=35[0m
+[0;32mI (4516) forensics: [HIST] fixture=5 class=steady lower_us=2150 n=17[0m
+[0;32mI (4526) forensics: [HIST] fixture=5 class=steady lower_us=2175 n=9[0m
+[0;32mI (4526) forensics: [HIST] fixture=5 class=steady lower_us=2200 n=10[0m
+[0;32mI (4536) forensics: [HIST] fixture=5 class=steady lower_us=2225 n=24[0m
+[0;32mI (4546) forensics: [HIST] fixture=5 class=steady lower_us=2250 n=8[0m
+[0;32mI (4556) forensics: [HIST] fixture=5 class=steady lower_us=2275 n=27[0m
+[0;32mI (4556) forensics: [HIST] fixture=5 class=steady lower_us=2300 n=32[0m
+[0;32mI (4566) forensics: [HIST] fixture=5 class=steady lower_us=2325 n=9[0m
+[0;32mI (4576) forensics: [HIST] fixture=5 class=steady lower_us=2350 n=10[0m
+[0;32mI (4576) forensics: [HIST] fixture=5 class=steady lower_us=2375 n=6[0m
+[0;32mI (4586) forensics: [HIST] fixture=5 class=steady lower_us=2400 n=2[0m
+[0;32mI (4596) forensics: [HIST] fixture=5 class=steady lower_us=2425 n=3[0m
+[0;32mI (4596) forensics: [HIST] fixture=5 class=steady lower_us=2450 n=5[0m
+[0;32mI (4606) forensics: [HIST] fixture=5 class=steady lower_us=2475 n=1[0m
+[0;32mI (4616) forensics: [HIST] fixture=5 class=steady lower_us=2500 n=1[0m
+[0;32mI (4626) forensics: [HIST] fixture=5 class=steady lower_us=2525 n=3[0m
+[0;32mI (4626) forensics: [HIST] fixture=5 class=steady lower_us=2575 n=1[0m
+[0;32mI (4636) forensics: [HIST] fixture=5 class=steady lower_us=2675 n=1[0m
+[0;32mI (4646) forensics: [CURVE] model=PAN fixture=5 voices=8 class=event n=6 avg_us=3281.33 p99_us=3500 max_us=3484 deadline=6 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (4656) forensics: [HIST] fixture=5 class=event lower_us=3175 n=1[0m
+[0;32mI (4666) forensics: [HIST] fixture=5 class=event lower_us=3225 n=3[0m
+[0;32mI (4676) forensics: [HIST] fixture=5 class=event lower_us=3275 n=1[0m
+[0;32mI (4676) forensics: [HIST] fixture=5 class=event lower_us=3475 n=1[0m
+[0;32mI (4686) forensics: [PROFILE_TOTAL] fixture=5 class=steady cycles_per_block=546352.09 n=32[0m
+[0;32mI (4696) forensics: [PHASE] fixture=5 class=steady phase=0 cycles_per_block=439321.50 n=32[0m
+[0;32mI (4706) forensics: [PHASE] fixture=5 class=steady phase=1 cycles_per_block=262340.12 n=32[0m
+[0;32mI (4716) forensics: [PHASE] fixture=5 class=steady phase=2 cycles_per_block=26648.66 n=32[0m
+[0;32mI (4716) forensics: [PHASE] fixture=5 class=steady phase=3 cycles_per_block=21513.47 n=32[0m
+[0;32mI (4726) forensics: [PHASE] fixture=5 class=steady phase=4 cycles_per_block=1546.31 n=32[0m
+[0;32mI (4736) forensics: [PHASE] fixture=5 class=steady phase=5 cycles_per_block=23871.22 n=32[0m
+[0;32mI (4746) forensics: [PHASE] fixture=5 class=steady phase=6 cycles_per_block=33240.91 n=32[0m
+[0;32mI (4756) forensics: [PHASE] fixture=5 class=steady phase=7 cycles_per_block=58099.41 n=32[0m
+[0;32mI (4766) forensics: [PHASE] fixture=5 class=steady phase=8 cycles_per_block=4197.28 n=32[0m
+[0;32mI (4776) forensics: [PHASE] fixture=5 class=steady phase=9 cycles_per_block=0.00 n=32[0m
+[0;32mI (4786) forensics: [PHASE] fixture=5 class=steady phase=10 cycles_per_block=0.00 n=32[0m
+[0;32mI (4786) forensics: [PHASE] fixture=5 class=steady phase=11 cycles_per_block=0.00 n=32[0m
+[0;32mI (4796) forensics: [PHASE] fixture=5 class=steady phase=12 cycles_per_block=0.00 n=32[0m
+[0;32mI (4806) forensics: [PHASE] fixture=5 class=steady phase=13 cycles_per_block=0.00 n=32[0m
+[0;32mI (4816) forensics: [PHASE] fixture=5 class=steady phase=14 cycles_per_block=0.00 n=32[0m
+[0;32mI (4826) forensics: [PHASE] fixture=5 class=steady phase=15 cycles_per_block=0.00 n=32[0m
+[0;32mI (4836) forensics: [PHASE] fixture=5 class=steady phase=16 cycles_per_block=0.00 n=32[0m
+[0;32mI (4846) forensics: [PROFILE_TOTAL] fixture=5 class=event cycles_per_block=787520.17 n=6[0m
+[0;32mI (4846) forensics: [PHASE] fixture=5 class=event phase=0 cycles_per_block=577444.83 n=6[0m
+[0;32mI (4856) forensics: [PHASE] fixture=5 class=event phase=1 cycles_per_block=263203.67 n=6[0m
+[0;32mI (4866) forensics: [PHASE] fixture=5 class=event phase=2 cycles_per_block=163661.00 n=6[0m
+[0;32mI (4876) forensics: [PHASE] fixture=5 class=event phase=3 cycles_per_block=21789.67 n=6[0m
+[0;32mI (4886) forensics: [PHASE] fixture=5 class=event phase=4 cycles_per_block=1871.67 n=6[0m
+[0;32mI (4896) forensics: [PHASE] fixture=5 class=event phase=5 cycles_per_block=24793.67 n=6[0m
+[0;32mI (4906) forensics: [PHASE] fixture=5 class=event phase=6 cycles_per_block=35260.33 n=6[0m
+[0;32mI (4916) forensics: [PHASE] fixture=5 class=event phase=7 cycles_per_block=71788.50 n=6[0m
+[0;32mI (4916) forensics: [PHASE] fixture=5 class=event phase=8 cycles_per_block=4531.50 n=6[0m
+[0;32mI (4926) forensics: [PHASE] fixture=5 class=event phase=9 cycles_per_block=2889.33 n=6[0m
+[0;32mI (4936) forensics: [PHASE] fixture=5 class=event phase=10 cycles_per_block=3345.17 n=6[0m
+[0;32mI (4946) forensics: [PHASE] fixture=5 class=event phase=11 cycles_per_block=10516.17 n=6[0m
+[0;32mI (4956) forensics: [PHASE] fixture=5 class=event phase=12 cycles_per_block=7019.50 n=6[0m
+[0;32mI (4966) forensics: [PHASE] fixture=5 class=event phase=13 cycles_per_block=4991.00 n=6[0m
+[0;32mI (4976) forensics: [PHASE] fixture=5 class=event phase=14 cycles_per_block=21346.50 n=6[0m
+[0;32mI (4986) forensics: [PHASE] fixture=5 class=event phase=15 cycles_per_block=3125.33 n=6[0m
+[0;32mI (4986) forensics: [PHASE] fixture=5 class=event phase=16 cycles_per_block=12479.83 n=6[0m
+[0;32mI (5806) pocket_pan_main: [AUDIO] model=PAN blocks=1848 avg_us=1277 p99_us=0 max_us=4489 cpu_load=47.9 deadline=8 timeout=0 tx_error=0 short=0[0m
+[0;32mI (5806) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (5816) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-65 reconnects=0 last_disconnect=0[0m
+[0;32mI (5826) pocket_pan_main: [MEM] internal_free=141435 largest_internal=38912[0m
+[0;32mI (7216) forensics: [CURVE] model=BELL fixture=14 voices=4 class=steady n=1018 avg_us=1280.28 p99_us=1575 max_us=1714 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (7226) forensics: [HIST] fixture=14 class=steady lower_us=1200 n=262[0m
+[0;32mI (7226) forensics: [HIST] fixture=14 class=steady lower_us=1225 n=365[0m
+[0;32mI (7236) forensics: [HIST] fixture=14 class=steady lower_us=1250 n=61[0m
+[0;32mI (7246) forensics: [HIST] fixture=14 class=steady lower_us=1275 n=24[0m
+[0;32mI (7246) forensics: [HIST] fixture=14 class=steady lower_us=1300 n=98[0m
+[0;32mI (7256) forensics: [HIST] fixture=14 class=steady lower_us=1325 n=35[0m
+[0;32mI (7266) forensics: [HIST] fixture=14 class=steady lower_us=1350 n=15[0m
+[0;32mI (7276) forensics: [HIST] fixture=14 class=steady lower_us=1375 n=23[0m
+[0;32mI (7276) forensics: [HIST] fixture=14 class=steady lower_us=1400 n=38[0m
+[0;32mI (7286) forensics: [HIST] fixture=14 class=steady lower_us=1425 n=31[0m
+[0;32mI (7296) forensics: [HIST] fixture=14 class=steady lower_us=1450 n=12[0m
+[0;32mI (7296) forensics: [HIST] fixture=14 class=steady lower_us=1475 n=24[0m
+[0;32mI (7306) forensics: [HIST] fixture=14 class=steady lower_us=1500 n=9[0m
+[0;32mI (7316) forensics: [HIST] fixture=14 class=steady lower_us=1525 n=6[0m
+[0;32mI (7326) forensics: [HIST] fixture=14 class=steady lower_us=1550 n=7[0m
+[0;32mI (7326) forensics: [HIST] fixture=14 class=steady lower_us=1575 n=1[0m
+[0;32mI (7336) forensics: [HIST] fixture=14 class=steady lower_us=1600 n=1[0m
+[0;32mI (7346) forensics: [HIST] fixture=14 class=steady lower_us=1625 n=3[0m
+[0;32mI (7346) forensics: [HIST] fixture=14 class=steady lower_us=1650 n=2[0m
+[0;32mI (7356) forensics: [HIST] fixture=14 class=steady lower_us=1700 n=1[0m
+[0;32mI (7366) forensics: [CURVE] model=BELL fixture=14 voices=4 class=event n=6 avg_us=2040.14 p99_us=2150 max_us=2140 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (7376) forensics: [HIST] fixture=14 class=event lower_us=1950 n=1[0m
+[0;32mI (7386) forensics: [HIST] fixture=14 class=event lower_us=1975 n=1[0m
+[0;32mI (7396) forensics: [HIST] fixture=14 class=event lower_us=2000 n=2[0m
+[0;32mI (7396) forensics: [HIST] fixture=14 class=event lower_us=2125 n=2[0m
+[0;32mI (7406) forensics: [PROFILE_TOTAL] fixture=14 class=steady cycles_per_block=326545.44 n=32[0m
+[0;32mI (7416) forensics: [PHASE] fixture=14 class=steady phase=0 cycles_per_block=237671.03 n=32[0m
+[0;32mI (7426) forensics: [PHASE] fixture=14 class=steady phase=1 cycles_per_block=160875.28 n=32[0m
+[0;32mI (7436) forensics: [PHASE] fixture=14 class=steady phase=2 cycles_per_block=13733.00 n=32[0m
+[0;32mI (7446) forensics: [PHASE] fixture=14 class=steady phase=3 cycles_per_block=10757.16 n=32[0m
+[0;32mI (7456) forensics: [PHASE] fixture=14 class=steady phase=4 cycles_per_block=965.50 n=32[0m
+[0;32mI (7456) forensics: [PHASE] fixture=14 class=steady phase=5 cycles_per_block=2880.75 n=32[0m
+[0;32mI (7466) forensics: [PHASE] fixture=14 class=steady phase=6 cycles_per_block=12574.97 n=32[0m
+[0;32mI (7476) forensics: [PHASE] fixture=14 class=steady phase=7 cycles_per_block=61514.81 n=32[0m
+[0;32mI (7486) forensics: [PHASE] fixture=14 class=steady phase=8 cycles_per_block=4465.81 n=32[0m
+[0;32mI (7496) forensics: [PHASE] fixture=14 class=steady phase=9 cycles_per_block=0.00 n=32[0m
+[0;32mI (7506) forensics: [PHASE] fixture=14 class=steady phase=10 cycles_per_block=0.00 n=32[0m
+[0;32mI (7516) forensics: [PHASE] fixture=14 class=steady phase=11 cycles_per_block=0.00 n=32[0m
+[0;32mI (7526) forensics: [PHASE] fixture=14 class=steady phase=12 cycles_per_block=0.00 n=32[0m
+[0;32mI (7526) forensics: [PHASE] fixture=14 class=steady phase=13 cycles_per_block=0.00 n=32[0m
+[0;32mI (7536) forensics: [PHASE] fixture=14 class=steady phase=14 cycles_per_block=0.00 n=32[0m
+[0;32mI (7546) forensics: [PHASE] fixture=14 class=steady phase=15 cycles_per_block=0.00 n=32[0m
+[0;32mI (7556) forensics: [PHASE] fixture=14 class=steady phase=16 cycles_per_block=0.00 n=32[0m
+[0;32mI (7566) forensics: [PROFILE_TOTAL] fixture=14 class=event cycles_per_block=489633.33 n=6[0m
+[0;32mI (7576) forensics: [PHASE] fixture=14 class=event phase=0 cycles_per_block=316003.50 n=6[0m
+[0;32mI (7586) forensics: [PHASE] fixture=14 class=event phase=1 cycles_per_block=160777.00 n=6[0m
+[0;32mI (7596) forensics: [PHASE] fixture=14 class=event phase=2 cycles_per_block=90876.33 n=6[0m
+[0;32mI (7596) forensics: [PHASE] fixture=14 class=event phase=3 cycles_per_block=10757.83 n=6[0m
+[0;32mI (7606) forensics: [PHASE] fixture=14 class=event phase=4 cycles_per_block=1381.83 n=6[0m
+[0;32mI (7616) forensics: [PHASE] fixture=14 class=event phase=5 cycles_per_block=3231.83 n=6[0m
+[0;32mI (7626) forensics: [PHASE] fixture=14 class=event phase=6 cycles_per_block=13809.50 n=6[0m
+[0;32mI (7636) forensics: [PHASE] fixture=14 class=event phase=7 cycles_per_block=65575.33 n=6[0m
+[0;32mI (7646) forensics: [PHASE] fixture=14 class=event phase=8 cycles_per_block=4549.00 n=6[0m
+[0;32mI (7656) forensics: [PHASE] fixture=14 class=event phase=9 cycles_per_block=2572.83 n=6[0m
+[0;32mI (7666) forensics: [PHASE] fixture=14 class=event phase=10 cycles_per_block=2811.00 n=6[0m
+[0;32mI (7666) forensics: [PHASE] fixture=14 class=event phase=11 cycles_per_block=8219.00 n=6[0m
+[0;32mI (7676) forensics: [PHASE] fixture=14 class=event phase=12 cycles_per_block=6224.83 n=6[0m
+[0;32mI (7686) forensics: [PHASE] fixture=14 class=event phase=13 cycles_per_block=3760.33 n=6[0m
+[0;32mI (7696) forensics: [PHASE] fixture=14 class=event phase=14 cycles_per_block=22612.50 n=6[0m
+[0;32mI (7706) forensics: [PHASE] fixture=14 class=event phase=15 cycles_per_block=2962.00 n=6[0m
+[0;32mI (7716) forensics: [PHASE] fixture=14 class=event phase=16 cycles_per_block=13023.17 n=6[0m
+[0;32mI (9946) forensics: [CURVE] model=BELL fixture=13 voices=8 class=steady n=1018 avg_us=2199.52 p99_us=2475 max_us=2723 deadline=1 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (9956) forensics: [HIST] fixture=13 class=steady lower_us=2125 n=419[0m
+[0;32mI (9956) forensics: [HIST] fixture=13 class=steady lower_us=2150 n=235[0m
+[0;32mI (9966) forensics: [HIST] fixture=13 class=steady lower_us=2175 n=47[0m
+[0;32mI (9976) forensics: [HIST] fixture=13 class=steady lower_us=2200 n=18[0m
+[0;32mI (9976) forensics: [HIST] fixture=13 class=steady lower_us=2225 n=54[0m
+[0;32mI (9986) forensics: [HIST] fixture=13 class=steady lower_us=2250 n=49[0m
+[0;32mI (9996) forensics: [HIST] fixture=13 class=steady lower_us=2275 n=23[0m
+[0;32mI (10006) forensics: [HIST] fixture=13 class=steady lower_us=2300 n=35[0m
+[0;32mI (10006) forensics: [HIST] fixture=13 class=steady lower_us=2325 n=44[0m
+[0;32mI (10016) forensics: [HIST] fixture=13 class=steady lower_us=2350 n=32[0m
+[0;32mI (10026) forensics: [HIST] fixture=13 class=steady lower_us=2375 n=34[0m
+[0;32mI (10026) forensics: [HIST] fixture=13 class=steady lower_us=2400 n=14[0m
+[0;32mI (10036) forensics: [HIST] fixture=13 class=steady lower_us=2425 n=3[0m
+[0;32mI (10046) forensics: [HIST] fixture=13 class=steady lower_us=2450 n=2[0m
+[0;32mI (10056) forensics: [HIST] fixture=13 class=steady lower_us=2475 n=3[0m
+[0;32mI (10056) forensics: [HIST] fixture=13 class=steady lower_us=2500 n=2[0m
+[0;32mI (10066) forensics: [HIST] fixture=13 class=steady lower_us=2550 n=1[0m
+[0;32mI (10076) forensics: [HIST] fixture=13 class=steady lower_us=2575 n=1[0m
+[0;32mI (10076) forensics: [HIST] fixture=13 class=steady lower_us=2600 n=1[0m
+[0;32mI (10086) forensics: [HIST] fixture=13 class=steady lower_us=2700 n=1[0m
+[0;32mI (10096) forensics: [CURVE] model=BELL fixture=13 voices=8 class=event n=6 avg_us=3343.70 p99_us=3575 max_us=3568 deadline=6 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (10106) forensics: [HIST] fixture=13 class=event lower_us=3200 n=1[0m
+[0;32mI (10116) forensics: [HIST] fixture=13 class=event lower_us=3250 n=3[0m
+[0;32mI (10126) forensics: [HIST] fixture=13 class=event lower_us=3475 n=1[0m
+[0;32mI (10126) forensics: [HIST] fixture=13 class=event lower_us=3550 n=1[0m
+[0;32mI (10136) forensics: [PROFILE_TOTAL] fixture=13 class=steady cycles_per_block=565563.12 n=32[0m
+[0;32mI (10146) forensics: [PHASE] fixture=13 class=steady phase=0 cycles_per_block=473998.12 n=32[0m
+[0;32mI (10156) forensics: [PHASE] fixture=13 class=steady phase=1 cycles_per_block=321793.06 n=32[0m
+[0;32mI (10166) forensics: [PHASE] fixture=13 class=steady phase=2 cycles_per_block=26612.78 n=32[0m
+[0;32mI (10176) forensics: [PHASE] fixture=13 class=steady phase=3 cycles_per_block=21519.62 n=32[0m
+[0;32mI (10186) forensics: [PHASE] fixture=13 class=steady phase=4 cycles_per_block=1886.75 n=32[0m
+[0;32mI (10196) forensics: [PHASE] fixture=13 class=steady phase=5 cycles_per_block=2901.31 n=32[0m
+[0;32mI (10196) forensics: [PHASE] fixture=13 class=steady phase=6 cycles_per_block=12621.09 n=32[0m
+[0;32mI (10206) forensics: [PHASE] fixture=13 class=steady phase=7 cycles_per_block=61887.62 n=32[0m
+[0;32mI (10216) forensics: [PHASE] fixture=13 class=steady phase=8 cycles_per_block=4487.38 n=32[0m
+[0;32mI (10226) forensics: [PHASE] fixture=13 class=steady phase=9 cycles_per_block=0.00 n=32[0m
+[0;32mI (10236) forensics: [PHASE] fixture=13 class=steady phase=10 cycles_per_block=0.00 n=32[0m
+[0;32mI (10246) forensics: [PHASE] fixture=13 class=steady phase=11 cycles_per_block=0.00 n=32[0m
+[0;32mI (10256) forensics: [PHASE] fixture=13 class=steady phase=12 cycles_per_block=0.00 n=32[0m
+[0;32mI (10266) forensics: [PHASE] fixture=13 class=steady phase=13 cycles_per_block=0.00 n=32[0m
+[0;32mI (10276) forensics: [PHASE] fixture=13 class=steady phase=14 cycles_per_block=0.00 n=32[0m
+[0;32mI (10276) forensics: [PHASE] fixture=13 class=steady phase=15 cycles_per_block=0.00 n=32[0m
+[0;32mI (10286) forensics: [PHASE] fixture=13 class=steady phase=16 cycles_per_block=0.00 n=32[0m
+[0;32mI (10296) forensics: [PROFILE_TOTAL] fixture=13 class=event cycles_per_block=802487.67 n=6[0m
+[0;32mI (10306) forensics: [PHASE] fixture=13 class=event phase=0 cycles_per_block=613531.50 n=6[0m
+[0;32mI (10316) forensics: [PHASE] fixture=13 class=event phase=1 cycles_per_block=321985.67 n=6[0m
+[0;32mI (10326) forensics: [PHASE] fixture=13 class=event phase=2 cycles_per_block=164535.00 n=6[0m
+[0;32mI (10336) forensics: [PHASE] fixture=13 class=event phase=3 cycles_per_block=22152.83 n=6[0m
+[0;32mI (10346) forensics: [PHASE] fixture=13 class=event phase=4 cycles_per_block=1943.17 n=6[0m
+[0;32mI (10356) forensics: [PHASE] fixture=13 class=event phase=5 cycles_per_block=3222.33 n=6[0m
+[0;32mI (10356) forensics: [PHASE] fixture=13 class=event phase=6 cycles_per_block=13312.50 n=6[0m
+[0;32mI (10366) forensics: [PHASE] fixture=13 class=event phase=7 cycles_per_block=69490.67 n=6[0m
+[0;32mI (10376) forensics: [PHASE] fixture=13 class=event phase=8 cycles_per_block=4510.00 n=6[0m
+[0;32mI (10386) forensics: [PHASE] fixture=13 class=event phase=9 cycles_per_block=2921.67 n=6[0m
+[0;32mI (10396) forensics: [PHASE] fixture=13 class=event phase=10 cycles_per_block=3350.17 n=6[0m
+[0;32mI (10406) forensics: [PHASE] fixture=13 class=event phase=11 cycles_per_block=9721.67 n=6[0m
+[0;32mI (10416) forensics: [PHASE] fixture=13 class=event phase=12 cycles_per_block=7500.17 n=6[0m
+[0;32mI (10426) forensics: [PHASE] fixture=13 class=event phase=13 cycles_per_block=5328.33 n=6[0m
+[0;32mI (10426) forensics: [PHASE] fixture=13 class=event phase=14 cycles_per_block=25925.50 n=6[0m
+[0;32mI (10436) forensics: [PHASE] fixture=13 class=event phase=15 cycles_per_block=3139.33 n=6[0m
+[0;32mI (10446) forensics: [PHASE] fixture=13 class=event phase=16 cycles_per_block=12285.67 n=6[0m
+[0;32mI (10816) pocket_pan_main: [AUDIO] model=PAN blocks=3726 avg_us=5 p99_us=2475 max_us=4489 cpu_load=0.2 deadline=15 timeout=0 tx_error=0 short=0[0m
+[0;32mI (10816) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (10826) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-65 reconnects=0 last_disconnect=0[0m
+[0;32mI (10836) pocket_pan_main: [MEM] internal_free=141435 largest_internal=38912[0m
+[0;32mI (15826) pocket_pan_main: [AUDIO] model=PAN blocks=5604 avg_us=5 p99_us=2450 max_us=4489 cpu_load=0.2 deadline=15 timeout=0 tx_error=0 short=0[0m
+[0;32mI (15826) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (15836) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-65 reconnects=0 last_disconnect=0[0m
+[0;32mI (15846) pocket_pan_main: [MEM] internal_free=141435 largest_internal=38912[0m
