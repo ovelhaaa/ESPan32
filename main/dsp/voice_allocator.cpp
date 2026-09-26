@@ -1,4 +1,5 @@
 #include "voice_allocator.h"
+#include "dsp_profile.h"
 #include <algorithm>
 #include <limits>
 #include <cmath>
@@ -112,7 +113,7 @@ void VoiceAllocator::setChannelPressure(float pressure) {
     }
 }
 
-void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
+DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
     std::fill(outBuffer, outBuffer + frames, 0.0f);
 
     for (size_t v = 0; v < kMaxVoices; ++v) {
@@ -159,7 +160,7 @@ void VoiceAllocator::resetSympatheticDiagnostics() {
     sympatheticBusSamples_=sympatheticSafetyCount_=0;
 }
 
-void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config) {
+DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config) {
     if (!config.enabled) { renderBlock(outBuffer, frames); return; }
     const float cutoff=std::clamp(config.lowpassHz,10.0f,sampleRate_*0.45f);
     sympatheticLowpassCoefficient_=std::exp(-2.0f*3.14159265358979323846f*cutoff/sampleRate_);
@@ -179,7 +180,7 @@ void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const Sympathe
     }
 }
 
-void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* strikeBuffer, size_t frames,
+DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* strikeBuffer, size_t frames,
                                               const SympatheticConfig& config) {
     std::fill(outBuffer, outBuffer + frames, 0.0f);
     std::fill(strikeBuffer, strikeBuffer + frames, 0.0f);

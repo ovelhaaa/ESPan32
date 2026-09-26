@@ -150,7 +150,7 @@ void ModalVoice::prepareSteal(float fadeDurationMs) {
     stealDecr_ = 1.0f / fadeFrames;
 }
 
-float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
+DSP_HOT float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
     if (!active_) return 0.0f;
 
     age_++;

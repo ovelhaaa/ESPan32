@@ -5,6 +5,12 @@
 #ifndef POCKETPAN_FORENSICS_CRITICAL_ONLY
 #define POCKETPAN_FORENSICS_CRITICAL_ONLY 0
 #endif
+#if defined(ESP_PLATFORM) && POCKETPAN_DSP_CANDIDATE == 5
+#include "esp_attr.h"
+#define DSP_HOT IRAM_ATTR
+#else
+#define DSP_HOT
+#endif
 
 // With profiling disabled, all probes disappear at preprocessing time.
 #ifdef ESP_PLATFORM

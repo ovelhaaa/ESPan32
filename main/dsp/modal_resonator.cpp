@@ -165,7 +165,7 @@ float ModalResonatorBank::processSampleFixed(float excitation) {
 }
 
 #endif
-float ModalResonatorBank::processSample(float excitation) {
+DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     DSP_PROFILE_SCOPE(Modal);
 #if POCKETPAN_DSP_CANDIDATE == 4
     // Only a completely active bank can use the branch-free fixed kernel.
