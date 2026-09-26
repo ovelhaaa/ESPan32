@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cmath>
 #include "voice_allocator.h"
+#include "dsp_profile.h"
 #include "peak_limiter.h"
 #include "body_resonator.h"
 #include "pan_calibration.h"
@@ -76,6 +77,9 @@ public:
     uint32_t getSympatheticSafetyCount() const { return allocator_.getSympatheticSafetyCount(); }
 
 private:
+#if POCKETPAN_DSP_CANDIDATE == 2
+    float headroomByVoices_[kMaxVoices + 1]{};
+#endif
     float sampleRate_ = 48000.0f;
     float masterGain_ = 0.85f; // Headroom protection
     float polyHeadroomGain_ = 1.0f;
