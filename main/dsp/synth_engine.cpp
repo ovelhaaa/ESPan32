@@ -4,6 +4,7 @@
 #include "../midi/midi_mapping.h"
 #include <algorithm>
 #include <cmath>
+#include <type_traits>
 
 namespace pocketpan::dsp {
 
@@ -127,6 +128,10 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
     const float targetHeadroom = std::pow(10.0f, std::max(targetDb, -5.0f) / 20.0f);
 
     // 2. Mixdown, headroom, lookahead gain limiting, and safe conversion.
+#if POCKETPAN_DSP_CANDIDATE == 1
+    auto renderOutput = [&](auto bodyEnabled) {
+    constexpr bool processBody = decltype(bodyEnabled)::value;
+#endif
     for (size_t i = 0; i < frames; ++i) {
         float sample;
         { DSP_PROFILE_SCOPE(Mix);
@@ -141,7 +146,14 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
             bodyExcitation = strikeBuffer_[i] * modelConfig_.strikeBusGain;
         }
         float bodySample;
-        { DSP_PROFILE_SCOPE(Body); bodySample=body_.processSample(bodyExcitation); }
+        { DSP_PROFILE_SCOPE(Body);
+#if POCKETPAN_DSP_CANDIDATE == 1
+          if constexpr (processBody) bodySample=body_.processSample(bodyExcitation);
+          else bodySample=0.0f;
+#else
+          bodySample=body_.processSample(bodyExcitation);
+#endif
+        }
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
         sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
 
@@ -168,6 +180,11 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
         outInterleaved[i * 2 + 1] = sample32;
         }
     }
+#if POCKETPAN_DSP_CANDIDATE == 1
+    };
+    if (modelConfig_.body.enabled) renderOutput(std::true_type{});
+    else renderOutput(std::false_type{});
+#endif
 }
 
 } // namespace pocketpan::dsp
