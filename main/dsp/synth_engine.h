@@ -59,7 +59,20 @@ public:
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) { allocator_.setPanConfigsForTest(exciter, voicing); }
     // Host qualification override.  It is deliberately not reachable from UI,
     // MIDI, or persisted firmware settings.
-    void setModelConfigForTest(const InstrumentModelConfig& config) { modelConfig_ = config; allocator_.setModelConfig(modelConfig_); body_.setConfig(modelConfig_.body); }
+    void setModelConfigForTest(const InstrumentModelConfig& config) {
+        modelConfig_ = config;
+        allocator_.setModelConfig(modelConfig_);
+#if POCKETPAN_PREPARED_NOTE_CACHE
+        // Arbitrary host-only configs never borrow canonical-model entries.
+        allocator_.setPreparedNoteTable(nullptr);
+#endif
+        body_.setConfig(modelConfig_.body);
+    }
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    void setPreparedNoteCacheEnabledForTest(bool enabled) {
+        allocator_.setPreparedNoteCacheEnabledForTest(enabled);
+    }
+#endif
     void setBodyEnabled(bool enabled) { modelConfig_.body.enabled=enabled; body_.setConfig(modelConfig_.body); }
     // A runtime toggle must not retain delayed feedback from its prior mode.
     void setSympatheticEnabled(bool enabled);
@@ -93,6 +106,13 @@ private:
     float bodyTransientCoefficient_ = 0.0f;
     float bodyPeak_=0.0f, bodySumSquares_=0.0f; uint32_t bodySamples_=0;
     InstrumentModel model_ = InstrumentModel::Pan;
+
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    // Exactly two shared tables (not one per voice), prepared before I2S is
+    // started.  Model selection in the audio callback only swaps a pointer.
+    PreparedNoteTable panPreparedNotes_{};
+    PreparedNoteTable bellPreparedNotes_{};
+#endif
 
     // Internal mono voice mix buffer
     float monoBuffer_[kMaxBlockFrames];

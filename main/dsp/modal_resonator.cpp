@@ -11,6 +11,33 @@ constexpr float kPi = 3.14159265358979323846f;
 constexpr float kTwoPi = 2.0f * kPi;
 constexpr float kLn001 = -6.907755278982137f; // ln(0.001) for T60 radius calculation
 constexpr float kMinDenormal = 1.0e-15f;
+
+#if POCKETPAN_MODAL_MICROKERNEL
+// The expression and the state write ordering deliberately match the accepted
+// D+E recurrence.  The only change in the microkernel is how fixed, fully
+// active mode state is presented to the compiler.
+template<bool Safety>
+inline float processMicroMode(ModalModeState& m, float excitation,
+                              uint32_t& internalSaturationCount) {
+    float y = m.excitationGain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
+
+    if constexpr (Safety) {
+        if (std::abs(y) > 2.0f) {
+            ++internalSaturationCount;
+            y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f))
+                           : (-2.0f + 0.5f * std::tanh(y + 2.0f));
+        }
+    }
+
+    if (std::abs(y) < kMinDenormal) {
+        y = 0.0f;
+    }
+
+    m.z2 = m.z1;
+    m.z1 = y;
+    return y;
+}
+#endif
 }
 
 void ModalResonatorBank::init(float sampleRate) {
@@ -26,6 +53,15 @@ void ModalResonatorBank::reset() {
         modes_[i].z1 = 0.0f;
         modes_[i].z2 = 0.0f;
     }
+}
+
+void ModalResonatorBank::setConfig(const ResonatorConfig& config) {
+    config_ = config;
+#if POCKETPAN_MODAL_MICROKERNEL
+    // Safety is part of the selected fixed kernel, so resolve it only when
+    // configuration changes, never in the sample recurrence.
+    refreshMicroKernel();
+#endif
 }
 
 void ModalResonatorBank::setExcitationCoupling(const float* coupling, size_t count) {
@@ -128,9 +164,53 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
         modes_[i].modalAmplitude = modeGain * filterNorm * bankNorm * config_.masterGain;
         modes_[i].excitationGain = modes_[i].modalAmplitude * excitationCoupling_[i];
     }
+
+#if POCKETPAN_MODAL_MICROKERNEL
+    // A pitch/damping change can create a sparse Nyquist-pruned set.  Resolve
+    // eligibility here so the sample path never reinterprets holes as a
+    // shorter prefix.
+    refreshMicroKernel();
+#endif
 }
 
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9)
+void ModalResonatorBank::capturePreparedNote(PreparedNote& note) const {
+    note.modeCount = static_cast<uint8_t>(modeCount_);
+    note.fundamentalFrequencyHz = fundamentalFrequencyHz_;
+    note.activeMask = 0;
+    for (size_t i = 0; i < modeCount_; ++i) {
+        const auto& mode = modes_[i];
+        if (mode.active) note.activeMask |= static_cast<uint16_t>(1u << i);
+        note.a1[i] = mode.a1;
+        note.a2[i] = mode.a2;
+        note.modalAmplitude[i] = mode.modalAmplitude;
+    }
+}
+
+bool ModalResonatorBank::applyPreparedNote(const PreparedNote& note) {
+    if (note.modeCount != modeCount_) return false;
+
+    fundamentalFrequencyHz_ = std::clamp(note.fundamentalFrequencyHz, 10.0f, 15000.0f);
+    currentDamping_ = 0.0f;
+    activeModeCount_ = 0;
+
+    for (size_t i = 0; i < modeCount_; ++i) {
+        auto& mode = modes_[i];
+        const bool active = (note.activeMask & static_cast<uint16_t>(1u << i)) != 0;
+        mode.active = active;
+        mode.modalAmplitude = active ? note.modalAmplitude[i] : 0.0f;
+        mode.excitationGain = 0.0f; // restored by the dynamic coupling step.
+        mode.a1 = active ? note.a1[i] : 0.0f;
+        mode.a2 = active ? note.a2[i] : 0.0f;
+        if (active) ++activeModeCount_;
+    }
+
+#if POCKETPAN_MODAL_MICROKERNEL
+    refreshMicroKernel();
+#endif
+    return true;
+}
+
+#if POCKETPAN_FIXED_MODAL_KERNEL
 template<size_t N>
 DSP_HOT float ModalResonatorBank::processSampleFixed(float excitation) {
     float outSample = 0.0f;
@@ -162,9 +242,68 @@ DSP_HOT float ModalResonatorBank::processSampleFixed(float excitation) {
 }
 
 #endif
+
+#if POCKETPAN_MODAL_MICROKERNEL
+void ModalResonatorBank::refreshMicroKernel() {
+    microKernel_ = MicroKernel::Generic;
+    if (activeModeCount_ != modeCount_) return;
+
+    if (modeCount_ == 8) {
+        microKernel_ = config_.internalSafetySaturation
+            ? MicroKernel::Process8Safety : MicroKernel::Process8Normal;
+    } else if (modeCount_ == 10) {
+        microKernel_ = config_.internalSafetySaturation
+            ? MicroKernel::Process10Safety : MicroKernel::Process10Normal;
+    }
+}
+
+template<bool Safety>
+__attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+    ModalModeState* __restrict const hot = modes_;
+    float outSample = 0.0f;
+    outSample += processMicroMode<Safety>(hot[0], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[1], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[2], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[3], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[4], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[5], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[6], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[7], excitation, internalSaturationCount_);
+    return outSample;
+}
+
+template<bool Safety>
+__attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+    ModalModeState* __restrict const hot = modes_;
+    float outSample = 0.0f;
+    outSample += processMicroMode<Safety>(hot[0], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[1], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[2], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[3], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[4], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[5], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[6], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[7], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[8], excitation, internalSaturationCount_);
+    outSample += processMicroMode<Safety>(hot[9], excitation, internalSaturationCount_);
+    return outSample;
+}
+#endif
+
 DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     DSP_PROFILE_SCOPE(Modal);
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9)
+#if POCKETPAN_MODAL_MICROKERNEL
+    // The mode/safety tag is resolved by coefficient/configuration updates,
+    // outside this recurrence.  Sparse and Nyquist-pruned banks are always
+    // routed to the original indexed fallback below.
+    switch (microKernel_) {
+        case MicroKernel::Process8Safety: return processSampleMicro8<true>(excitation);
+        case MicroKernel::Process8Normal: return processSampleMicro8<false>(excitation);
+        case MicroKernel::Process10Safety: return processSampleMicro10<true>(excitation);
+        case MicroKernel::Process10Normal: return processSampleMicro10<false>(excitation);
+        case MicroKernel::Generic: break;
+    }
+#elif POCKETPAN_FIXED_MODAL_KERNEL
     // Only a completely active bank can use the branch-free fixed kernel.
     // Arbitrary presets, sparse active sets and Nyquist pruning fall back.
     if (activeModeCount_ == modeCount_) {

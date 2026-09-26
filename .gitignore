@@ -1,7 +1,9 @@
 # ESP-IDF build directory
 build/
 build-host*/
+build-*/
 tests/build-ninja/
+tests/__pycache__/
 sdkconfig.old
 sdkconfig
 dependencies.lock

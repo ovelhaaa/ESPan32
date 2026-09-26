@@ -1,5 +1,6 @@
 #include "voice_allocator.h"
 #include "dsp_profile.h"
+#include "../midi/midi_mapping.h"
 #include <algorithm>
 #include <limits>
 #include <cmath>
@@ -11,6 +12,9 @@ void VoiceAllocator::init(float sampleRate) {
     for (size_t i = 0; i < kMaxVoices; ++i) {
         voices_[i].init(sampleRate_);
     }
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    preparedNoteTable_ = nullptr;
+#endif
 }
 
 void VoiceAllocator::reset() {
@@ -55,23 +59,53 @@ int VoiceAllocator::findVoiceToSteal() const {
 
 void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequencyHz) {
     // 1. If this note is already active, restrike that voice (accumulate energy physically)
-    for (size_t i = 0; i < kMaxVoices; ++i) {
-        if (voices_[i].isActive() && voices_[i].getMidiNote() == note) {
-            voices_[i].restrike(velocity);
-            return;
+    int sameNoteIndex = -1;
+    {
+        DSP_PROFILE_SCOPE(VoiceAllocation);
+        for (size_t i = 0; i < kMaxVoices; ++i) {
+            if (voices_[i].isActive() && voices_[i].getMidiNote() == note) {
+                sameNoteIndex = static_cast<int>(i);
+                break;
+            }
         }
     }
+    if (sameNoteIndex >= 0) {
+        voices_[sameNoteIndex].restrike(velocity);
+        return;
+    }
+
+    const PreparedNote* prepared = nullptr;
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    {
+        DSP_PROFILE_SCOPE(PreparedLookup);
+        if (preparedNoteCacheEnabled_ && preparedNoteTable_) {
+            prepared = preparedNoteTable_->find(note, fundamentalFrequencyHz);
+        }
+    }
+#endif
 
     // 2. Look for a completely free/inactive voice
-    for (size_t i = 0; i < kMaxVoices; ++i) {
-        if (!voices_[i].isActive()) {
-            voices_[i].trigger(note, fundamentalFrequencyHz, velocity);
-            return;
+    int freeVoiceIndex = -1;
+    {
+        DSP_PROFILE_SCOPE(VoiceAllocation);
+        for (size_t i = 0; i < kMaxVoices; ++i) {
+            if (!voices_[i].isActive()) {
+                freeVoiceIndex = static_cast<int>(i);
+                break;
+            }
         }
+    }
+    if (freeVoiceIndex >= 0) {
+        voices_[freeVoiceIndex].trigger(note, fundamentalFrequencyHz, velocity, prepared);
+        return;
     }
 
     // 3. All 8 voices active: Steal voice with lowest energy using declicked crossfade tail
-    int stealIdx = findVoiceToSteal();
+    int stealIdx;
+    {
+        DSP_PROFILE_SCOPE(VoiceAllocation);
+        stealIdx = findVoiceToSteal();
+    }
     if (stealIdx >= 0 && stealIdx < static_cast<int>(kMaxVoices)) {
         ++voiceStealCount_;
         float residual = voices_[stealIdx].getLastSample();
@@ -85,7 +119,7 @@ void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequ
         tail.samplesLeft = 32;
         tail.step = residual / 32.0f;
         voices_[stealIdx].kill();
-        voices_[stealIdx].trigger(note, fundamentalFrequencyHz, velocity);
+        voices_[stealIdx].trigger(note, fundamentalFrequencyHz, velocity, prepared);
     }
 }
 
@@ -224,7 +258,30 @@ void VoiceAllocator::setModelConfig(const InstrumentModelConfig& config) {
 
 void VoiceAllocator::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) {
     for (auto& voice : voices_) voice.setPanConfigsForTest(exciter, voicing);
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    // Test-injected voicing is deliberately not one of the two canonical
+    // tables prepared at boot.
+    preparedNoteTable_ = nullptr;
+#endif
 }
+
+#if POCKETPAN_PREPARED_NOTE_CACHE
+void VoiceAllocator::preparePreparedNoteTable(const InstrumentModelConfig& config,
+                                              PreparedNoteTable& table) const {
+    table = PreparedNoteTable{};
+    ModalVoice preparer;
+    preparer.init(sampleRate_);
+    preparer.setModelConfig(config);
+    for (uint16_t note = kPreparedNoteFirst; note <= kPreparedNoteLast; ++note) {
+        PreparedNote& entry = table.entries[note - kPreparedNoteFirst];
+        if (!preparer.prepareNote(static_cast<uint8_t>(note),
+                                  midi::MidiMapping::noteToHz(static_cast<uint8_t>(note)), entry)) {
+            return;
+        }
+    }
+    table.ready = true;
+}
+#endif
 
 size_t VoiceAllocator::getActiveVoiceCount() const {
     size_t count = 0;

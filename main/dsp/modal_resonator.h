@@ -7,6 +7,7 @@
 #include "dsp_profile.h"
 #include "modal_preset.h"
 #include "dsp_config.h"
+#include "prepared_note.h"
 
 namespace pocketpan::dsp {
 
@@ -24,10 +25,16 @@ public:
     void reset();
 
     void setPreset(const ModalPreset& preset);
-    void setConfig(const ResonatorConfig& config) { config_ = config; }
+    void setConfig(const ResonatorConfig& config);
     void updatePitchAndDamping(float fundamentalFrequencyHz, float damping);
     void setExcitationCoupling(const float* coupling, size_t count);
     void setRegisterBehavior(float t60Scale, float splitBeatTargetHz, bool fixedHzSplit);
+
+    // Snapshot/apply only the deterministic, initial-undamped portion of a
+    // NoteOn coefficient update.  State history and velocity coupling remain
+    // outside this object and are never cached.
+    void capturePreparedNote(PreparedNote& note) const;
+    bool applyPreparedNote(const PreparedNote& note);
 
     // Process a single sample through the resonator bank
     float processSample(float excitation);
@@ -50,8 +57,24 @@ private:
 
     size_t modeCount_ = 0;
     size_t activeModeCount_ = 0;
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9)
+#if POCKETPAN_FIXED_MODAL_KERNEL
     template<size_t N> float processSampleFixed(float excitation);
+#endif
+#if POCKETPAN_MODAL_MICROKERNEL
+    enum class MicroKernel : uint8_t {
+        Generic,
+        Process8Safety,
+        Process8Normal,
+        Process10Safety,
+        Process10Normal,
+    };
+    void refreshMicroKernel();
+    // The fixed 8/10-mode kernels must live in the same IRAM-resident
+    // processSample body; out-of-line weak copies were measured in flash and
+    // are the source of the candidate-11 regression.
+    template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
+    template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
+    MicroKernel microKernel_ = MicroKernel::Generic;
 #endif
     ModalModeState modes_[kMaxModesPerVoice];
     ModalModeDefinition presetModes_[kMaxModesPerVoice];

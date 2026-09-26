@@ -54,6 +54,15 @@ public:
     void setInternalSafetySaturation(bool enabled);
     void setModelConfig(const InstrumentModelConfig& config);
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing);
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    // Tables are prepared outside the callback and shared by all eight voices.
+    void preparePreparedNoteTable(const InstrumentModelConfig& config,
+                                  PreparedNoteTable& table) const;
+    void setPreparedNoteTable(const PreparedNoteTable* table) { preparedNoteTable_ = table; }
+    // Host qualification hook; it has no UI/MIDI/persisted route.
+    void setPreparedNoteCacheEnabledForTest(bool enabled) { preparedNoteCacheEnabled_ = enabled; }
+    bool isPreparedNoteCacheEnabledForTest() const { return preparedNoteCacheEnabled_; }
+#endif
     const ModalVoice& getVoice(size_t index) const { return voices_[index]; }
 
 private:
@@ -73,6 +82,10 @@ private:
     uint32_t voiceStealCount_ = 0;
     float sympatheticPreviousBus_ = 0.0f, sympatheticFilterState_ = 0.0f, sympatheticLowpassCoefficient_ = 0.0f;
     float sympatheticBusPeak_ = 0.0f, sympatheticBusSumSquares_ = 0.0f; uint32_t sympatheticBusSamples_ = 0, sympatheticSafetyCount_ = 0;
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    const PreparedNoteTable* preparedNoteTable_ = nullptr;
+    bool preparedNoteCacheEnabled_ = true;
+#endif
 };
 
 } // namespace pocketpan::dsp

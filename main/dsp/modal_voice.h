@@ -17,7 +17,8 @@ public:
     void reset();
 
     // Trigger strike with MIDI note and velocity [0.0, 1.0] (resets filter states for clean attack)
-    void trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity);
+    void trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity,
+                 const PreparedNote* prepared = nullptr);
 
     // Retrigger same physical note: adds energy to existing vibration without zeroing resonator states
     void restrike(float velocity);
@@ -58,9 +59,15 @@ public:
     // Host qualification only. Defaults remain the frozen PAN calibration.
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing);
 
+    // Used only while prebuilding the fixed NoteOn tables before audio starts.
+    // It delegates all modal math to the established bank update routine.
+    bool prepareNote(uint8_t midiNote, float fundamentalFrequencyHz,
+                     PreparedNote& prepared) const;
+
 private:
-    void configureStrike(float velocity);
+    void configureStrike(float velocity, const PreparedNote* prepared = nullptr);
     float registerPosition() const;
+    float registerPositionFor(float fundamentalFrequencyHz) const;
 
     float sampleRate_ = 48000.0f;
     bool active_ = false;

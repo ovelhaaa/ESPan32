@@ -10,9 +10,19 @@ namespace pocketpan::dsp {
 void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    // Model changes are applied by the audio callback.  Build both fixed
+    // tables now, before the callback/I2S transport exists, so no coefficient
+    // table generation or heap work can occur at a realtime boundary.
+    allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Pan), panPreparedNotes_);
+    allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Bell), bellPreparedNotes_);
+#endif
     model_ = InstrumentModel::Pan;
     modelConfig_ = getInstrumentModelConfig(model_);
     allocator_.setModelConfig(modelConfig_);
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    allocator_.setPreparedNoteTable(&panPreparedNotes_);
+#endif
     body_.init(sampleRate_); body_.setConfig(modelConfig_.body);
     // Cheap one-pole reference for the host-only transient candidate (~1 ms).
     bodyTransientCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.001f));
@@ -43,6 +53,10 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
     modelConfig_ = getInstrumentModelConfig(model_);
     allocator_.init(sampleRate_);
     allocator_.setModelConfig(modelConfig_);
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    allocator_.setPreparedNoteTable(model_ == InstrumentModel::Bell
+        ? &bellPreparedNotes_ : &panPreparedNotes_);
+#endif
     body_.init(sampleRate_);
     body_.setConfig(modelConfig_.body);
     limiter_.init(sampleRate_);
@@ -80,8 +94,15 @@ void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
                 // Velocity 0 is standard MIDI Note Off
                 allocator_.noteOff(event.data1);
             } else {
-                const float freqHz = midi::MidiMapping::noteToHz(event.data1);
-                const float vel = midi::MidiMapping::toNormalizedFloat(event.data2);
+                float freqHz;
+                float vel;
+                {
+                    // Keep MIDI mapping/normalization separate from allocator
+                    // and trigger work in the profile breakdown.
+                    DSP_PROFILE_SCOPE(MidiDispatch);
+                    freqHz = midi::MidiMapping::noteToHz(event.data1);
+                    vel = midi::MidiMapping::toNormalizedFloat(event.data2);
+                }
                 allocator_.noteOn(event.data1, vel, freqHz);
             }
             break;

@@ -70,23 +70,34 @@ void ModalVoice::reset() {
     resonators_.reset();
 }
 
-void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity) {
-    midiNote_ = midiNote;
-    fundamentalFrequencyHz_ = fundamentalFrequencyHz;
-    velocity_ = velocity;
-    age_ = 0;
-    released_ = false;
-    active_ = true;
-    // A newly allocated voice has not rendered this strike yet. Do not expose
-    // the final sample from its previous lifetime to a subsequent steal.
-    lastSample_ = 0.0f;
+void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity,
+                         const PreparedNote* prepared) {
+    {
+        DSP_PROFILE_SCOPE(TriggerOther);
+        midiNote_ = midiNote;
+        fundamentalFrequencyHz_ = fundamentalFrequencyHz;
+        velocity_ = velocity;
+        age_ = 0;
+        released_ = false;
+        active_ = true;
+        // A newly allocated voice has not rendered this strike yet. Do not expose
+        // the final sample from its previous lifetime to a subsequent steal.
+        lastSample_ = 0.0f;
 
-    isStealing_ = false;
-    stealGain_ = 1.0f;
+        isStealing_ = false;
+        stealGain_ = 1.0f;
 
-    // Reset filter states for clean attack
-    resonators_.reset();
-    configureStrike(velocity_);
+        // Reset filter states for clean attack
+        resonators_.reset();
+    }
+    // A reused voice can retain pressure state after it becomes inactive.  In
+    // that case the historical dynamic update is authoritative.  The cache is
+    // intentionally new-trigger-only and never changes a damped attack.
+    const bool canUsePrepared = prepared && currentDamping_ == 0.0f &&
+        targetDamping_ == 0.0f &&
+        prepared->matches(midiNote_, fundamentalFrequencyHz_) &&
+        prepared->modeCount == resonators_.getModeCount();
+    configureStrike(velocity_, canUsePrepared ? prepared : nullptr);
 }
 
 void ModalVoice::restrike(float velocity) {
@@ -100,34 +111,93 @@ void ModalVoice::restrike(float velocity) {
     isStealing_ = false;
     stealGain_ = 1.0f;
 
-    configureStrike(velocity_);
+    // A restrike is physically accumulative and keeps the existing resonator
+    // state.  It must always recalculate at the current damping state.
+    configureStrike(velocity_, nullptr);
 }
 
 float ModalVoice::registerPosition() const {
+    return registerPositionFor(fundamentalFrequencyHz_);
+}
+
+float ModalVoice::registerPositionFor(float fundamentalFrequencyHz) const {
     const auto& v = voicingConfig_;
     const float lo = std::log(v.registerLowHz);
     const float hi = std::log(v.registerHighHz);
-    return std::clamp((std::log(std::max(fundamentalFrequencyHz_, 1.0f)) - lo) / (hi - lo), 0.0f, 1.0f);
+    return std::clamp((std::log(std::max(fundamentalFrequencyHz, 1.0f)) - lo) / (hi - lo), 0.0f, 1.0f);
 }
 
-void ModalVoice::configureStrike(float velocity) {
+bool ModalVoice::prepareNote(uint8_t midiNote, float fundamentalFrequencyHz,
+                             PreparedNote& prepared) const {
+    PreparedNote result{};
+    result.midiNote = midiNote;
+
     const auto& v = voicingConfig_;
-    const float reg = registerPosition();
-    const float hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) *
-        std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
-    const float blend = std::clamp((velocity - v.upperModeSoftVelocity) /
-        (v.upperModeHardVelocity - v.upperModeSoftVelocity), 0.0f, 1.0f);
-    const float gain = v.lowRegisterGain + (v.highRegisterGain - v.lowRegisterGain) * reg;
-    float coupling[kMaxModesPerVoice];
-    for (size_t i = 0; i < kMaxModesPerVoice; ++i) {
-        coupling[i] = (v.softModeCoupling[i] + (v.hardModeCoupling[i] - v.softModeCoupling[i]) * blend) * gain;
+    const float reg = registerPositionFor(fundamentalFrequencyHz);
+    const float t60Scale = v.t60LowRegisterScale +
+        (v.t60HighRegisterScale - v.t60LowRegisterScale) * reg;
+
+    // Reuse the exact normal coefficient routine rather than maintaining a
+    // second exp/cos/sin implementation for the table builder.
+    ModalResonatorBank scratch = resonators_;
+    scratch.setRegisterBehavior(t60Scale, v.splitBeatTargetHz, v.fixedHzSplit);
+    scratch.updatePitchAndDamping(fundamentalFrequencyHz, 0.0f);
+    scratch.capturePreparedNote(result);
+    prepared = result;
+    return result.modeCount == resonators_.getModeCount();
+}
+
+void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
+    const auto& v = voicingConfig_;
+
+    float reg;
+    float gain;
+    float t60Scale;
+    float brightness;
+    {
+        DSP_PROFILE_SCOPE(TriggerRegister);
+        reg = registerPosition();
+        gain = v.lowRegisterGain + (v.highRegisterGain - v.lowRegisterGain) * reg;
+        t60Scale = v.t60LowRegisterScale + (v.t60HighRegisterScale - v.t60LowRegisterScale) * reg;
+        brightness = v.lowRegisterBrightness + (v.highRegisterBrightness - v.lowRegisterBrightness) * reg;
     }
-    const float t60Scale = v.t60LowRegisterScale + (v.t60HighRegisterScale - v.t60LowRegisterScale) * reg;
-    const float brightness = v.lowRegisterBrightness + (v.highRegisterBrightness - v.lowRegisterBrightness) * reg;
-    resonators_.setRegisterBehavior(t60Scale, v.splitBeatTargetHz, v.fixedHzSplit);
-    resonators_.updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
-    resonators_.setExcitationCoupling(coupling, kMaxModesPerVoice);
-    exciter_.trigger(velocity, hardness, brightness);
+
+    float hardness;
+    float blend;
+    {
+        DSP_PROFILE_SCOPE(TriggerOther);
+        hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) *
+            std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
+        blend = std::clamp((velocity - v.upperModeSoftVelocity) /
+            (v.upperModeHardVelocity - v.upperModeSoftVelocity), 0.0f, 1.0f);
+    }
+
+    float coupling[kMaxModesPerVoice];
+    {
+        DSP_PROFILE_SCOPE(TriggerCoupling);
+        for (size_t i = 0; i < kMaxModesPerVoice; ++i) {
+            coupling[i] = (v.softModeCoupling[i] + (v.hardModeCoupling[i] - v.softModeCoupling[i]) * blend) * gain;
+        }
+    }
+
+    {
+        DSP_PROFILE_SCOPE(TriggerCoefficients);
+        resonators_.setRegisterBehavior(t60Scale, v.splitBeatTargetHz, v.fixedHzSplit);
+        // Prepared entries are initial-damping coefficient snapshots only.
+        // If a defensive validation ever rejects one, retain exact baseline
+        // behavior rather than using a partially applied entry.
+        if (!prepared || !resonators_.applyPreparedNote(*prepared)) {
+            resonators_.updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
+        }
+    }
+    {
+        DSP_PROFILE_SCOPE(TriggerCoupling);
+        resonators_.setExcitationCoupling(coupling, kMaxModesPerVoice);
+    }
+    {
+        DSP_PROFILE_SCOPE(TriggerExciter);
+        exciter_.trigger(velocity, hardness, brightness);
+    }
 }
 
 void ModalVoice::release() {

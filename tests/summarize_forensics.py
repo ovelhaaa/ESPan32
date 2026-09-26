@@ -4,6 +4,26 @@ import sys
 from pathlib import Path
 
 
+# Phase values 0..8 are the M6.3.1 render probes.  M6.3.2 appends these
+# trigger probes, keeping the original numeric values stable for old logs.
+TRIGGER_PHASES = {
+    9: "MIDI dispatch",
+    10: "voice allocation",
+    11: "register/pitch",
+    12: "modal coefficients",
+    13: "coupling",
+    14: "exciter setup",
+    15: "prepared lookup",
+    16: "other trigger work",
+}
+
+
+def profile_class(fields):
+    # M6.3.1 profile rows had no class because only sparse steady blocks were
+    # sampled.  Treat them as steady so existing captures remain readable.
+    return fields.get("class", "steady")
+
+
 def read(path):
     rows = {}
     phases = {}
@@ -16,9 +36,9 @@ def read(path):
                 key += 8  # First capture used model-relative IDs.
             rows[key, fields["class"]] = fields
         if "[PHASE]" in line:
-            phases[int(fields["fixture"]), int(fields["phase"])] = float(fields["cycles_per_block"])
+            phases[int(fields["fixture"]), profile_class(fields), int(fields["phase"])] = float(fields["cycles_per_block"])
         if "[PROFILE_TOTAL]" in line:
-            totals[int(fields["fixture"])] = float(fields["cycles_per_block"])
+            totals[int(fields["fixture"]), profile_class(fields)] = float(fields["cycles_per_block"])
     return rows, phases, totals
 
 
@@ -41,19 +61,39 @@ def summary(path):
         print("\nIncremental cost per additional voice:")
         for j in range(1, 6):
             print(f"- {xs[j-1]:g}->{xs[j]:g}: {(ys[j]-ys[j-1])/(xs[j]-xs[j-1]):.2f} us/voice")
-    for i in sorted(totals):
-        p = [phases.get((i, j), 0) for j in range(9)]
+    profile_keys = sorted(totals, key=lambda key: (key[0], key[1] != "steady", key[1]))
+    for i, profile_kind in profile_keys:
+        total = totals[i, profile_kind]
+        p = {phase: cycles for (fixture, kind, phase), cycles in phases.items()
+             if fixture == i and kind == profile_kind}
+        if not total:
+            print(f"\nProfile fixture {i} ({profile_kind}): no sampled blocks.")
+            continue
+
         # Allocator and mix include nested scopes; partition without double counting.
-        modal = p[1]
-        voice = p[0] - p[1]
-        body = p[5]
-        output = p[7] + p[8]
-        other = totals[i] - p[0] - body - output
-        print(f"\nProfile fixture {i}: total {totals[i]/240:.2f} us; modal {modal/totals[i]*100:.1f}%, voice/allocator residual {voice/totals[i]*100:.1f}%, body {body/totals[i]*100:.1f}%, limiter/PCM {output/totals[i]*100:.1f}%, other {other/totals[i]*100:.1f}%.")
-        voices = float(rows[i, "steady"]["voices"])
-        if voices:
-            modes = 8 if i < 8 or i in (16, 18) else 9 if i == 17 else 10
-            print(f"Modal diagnostic cost: {modal/240/voices:.2f} us/voice/block, {modal/240/voices/modes:.2f} us/voice/mode/block. Includes probe overhead; use unprofiled differences for optimization decisions.")
+        modal = p.get(1, 0)
+        voice = p.get(0, 0) - modal
+        body = p.get(5, 0)
+        output = p.get(7, 0) + p.get(8, 0)
+
+        if profile_kind == "steady":
+            other = total - p.get(0, 0) - body - output
+            print(f"\nProfile fixture {i} (steady): total {total/240:.2f} us; modal {modal/total*100:.1f}%, voice/allocator residual {voice/total*100:.1f}%, body {body/total*100:.1f}%, limiter/PCM {output/total*100:.1f}%, other {other/total*100:.1f}%.")
+            row = rows.get((i, "steady"))
+            if row and (voices := float(row["voices"])):
+                modes = 8 if i < 8 or i in (16, 18) else 9 if i == 17 else 10
+                print(f"Modal diagnostic cost: {modal/240/voices:.2f} us/voice/block, {modal/240/voices/modes:.2f} us/voice/mode/block. Includes probe overhead; use unprofiled differences for optimization decisions.")
+            continue
+
+        trigger = sum(p.get(phase, 0) for phase in TRIGGER_PHASES)
+        render = p.get(0, 0) + body + output
+        other = total - trigger - render
+        breakdown = ", ".join(
+            f"{label} {p.get(phase, 0)/240:.2f} us"
+            for phase, label in TRIGGER_PHASES.items()
+        )
+        print(f"\nProfile fixture {i} ({profile_kind}): total {total/240:.2f} us; trigger probes {trigger/240:.2f} us ({trigger/total*100:.1f}%); render {render/240:.2f} us; unaccounted/mix {other/240:.2f} us.")
+        print(f"Trigger breakdown: {breakdown}.")
 
 
 if __name__ == "__main__":

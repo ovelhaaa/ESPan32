@@ -36,9 +36,14 @@ struct Result {
     Timing steady, event;
     uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0;
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-    uint64_t phases[dsp::profile::Count]{};
-    uint64_t profileTotal = 0;
-    uint32_t profiled = 0;
+    // Keep the sparse steady samples and every NoteOn block separate.  Event
+    // blocks include deliberate trigger work, so blending them into the
+    // steady average hides precisely the cost this fixture is meant to find.
+    struct Profile {
+        uint64_t phases[dsp::profile::Count]{};
+        uint64_t total = 0;
+        uint32_t count = 0;
+    } steadyProfile, eventProfile;
 #endif
 };
 inline Result results[19]{};
@@ -94,7 +99,11 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         synth.reset(); // Reset cost deliberately excluded from event timing.
     }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-    dsp::profile::enabled = block % 32 == 1;
+    // Sample steady render blocks sparsely to limit probe perturbation, but
+    // profile every event block: normally none of the 188-block event
+    // cadence coincides with the old modulo-32 sampling point.
+    const bool profiled = event || block % 32 == 1;
+    dsp::profile::enabled = profiled;
     std::fill(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), 0);
 #endif
     const uint32_t start = esp_cpu_get_cycle_count();
@@ -113,10 +122,11 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     if (synth.getVoiceAllocator().getActiveVoiceCount() != counts[kind]) ++r.badVoices;
     if (!ready.load(std::memory_order_acquire)) ++r.bleLost;
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-    if (dsp::profile::enabled) {
-        r.profileTotal += elapsed;
-        for (unsigned i = 0; i < dsp::profile::Count; ++i) r.phases[i] += dsp::profile::cycles[i];
-        ++r.profiled;
+    if (profiled) {
+        auto& profile = event ? r.eventProfile : r.steadyProfile;
+        profile.total += elapsed;
+        for (unsigned i = 0; i < dsp::profile::Count; ++i) profile.phases[i] += dsp::profile::cycles[i];
+        ++profile.count;
     }
     dsp::profile::enabled = false;
 #endif
@@ -142,11 +152,18 @@ inline void logCompleted() {
                     e ? "event" : "steady", i * 25, (unsigned)t.bins[i]);
         }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-        ESP_LOGI("forensics", "[PROFILE_TOTAL] fixture=%u cycles_per_block=%.2f n=%u", id,
-            r.profiled ? double(r.profileTotal) / r.profiled : 0, (unsigned)r.profiled);
-        for (unsigned i = 0; i < dsp::profile::Count; ++i)
-            ESP_LOGI("forensics", "[PHASE] fixture=%u phase=%u cycles_per_block=%.2f n=%u", id, i,
-                r.profiled ? double(r.phases[i]) / r.profiled : 0, (unsigned)r.profiled);
+        for (unsigned e = 0; e < 2; ++e) {
+            const auto& profile = e ? r.eventProfile : r.steadyProfile;
+            const char* profileClass = e ? "event" : "steady";
+            ESP_LOGI("forensics", "[PROFILE_TOTAL] fixture=%u class=%s cycles_per_block=%.2f n=%u", id,
+                profileClass, profile.count ? double(profile.total) / profile.count : 0, (unsigned)profile.count);
+            // Count deliberately follows dsp::profile::Phase, including the
+            // M6.3.2 trigger-path phases appended after the M6.3.1 values.
+            for (unsigned i = 0; i < dsp::profile::Count; ++i)
+                ESP_LOGI("forensics", "[PHASE] fixture=%u class=%s phase=%u cycles_per_block=%.2f n=%u", id,
+                    profileClass, i, profile.count ? double(profile.phases[i]) / profile.count : 0,
+                    (unsigned)profile.count);
+        }
 #endif
         ++logged;
     }
