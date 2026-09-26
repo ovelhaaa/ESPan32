@@ -1,0 +1,21 @@
+{
+  "candidate": 9,
+  "name": "final",
+  "head": "2bb0443696d859a2fd260379b75b676785182a5f",
+  "firmware_sha256": "c249a674d4d26dbdceffaac0f2093382fd7144c7776f2557b12d25da0908f97b",
+  "ble_scenario": "connected",
+  "critical_only": false,
+  "profile": false,
+  "cpu_mhz": 240,
+  "host": "PASS",
+  "pan_exact": 12,
+  "switch_exact": true,
+  "bell_wav_diffs": [],
+  "iram_sections": {
+    ".iram0.vectors": 1027,
+    ".iram0.text": 96011,
+    ".iram0.text_end": 241,
+    ".iram0.data": 0,
+    ".iram0.bss": 0
+  }
+}

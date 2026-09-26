@@ -1,0 +1,21 @@
+{
+  "candidate": 9,
+  "name": "disconnected",
+  "head": "5377b4f416c82fb8e9cdcd93107c8e16c68b8f5c",
+  "firmware_sha256": "18009212afcf414a88161e8eb5611757e48b0ee9ce0be758dd4b129c332e0dfa",
+  "ble_scenario": "disconnected_scan",
+  "critical_only": true,
+  "profile": false,
+  "cpu_mhz": 240,
+  "host": "PASS",
+  "pan_exact": 12,
+  "switch_exact": true,
+  "bell_wav_diffs": [],
+  "iram_sections": {
+    ".iram0.vectors": 1027,
+    ".iram0.text": 96011,
+    ".iram0.text_end": 241,
+    ".iram0.data": 0,
+    ".iram0.bss": 0
+  }
+}
