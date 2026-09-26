@@ -1,4 +1,5 @@
 #include "audio_i2s.h"
+#include "block_timing_histogram.h"
 
 #ifdef ESP_PLATFORM
 #include "esp_check.h"
@@ -79,7 +80,8 @@ bool AudioI2S::init(AudioRenderCallback callback, void* userData) {
     userData_ = userData;
     stats_.blocksProcessed.store(0); stats_.deadlineMisses.store(0);
     stats_.writeTimeouts.store(0); stats_.txErrors.store(0); stats_.shortWrites.store(0);
-    stats_.maxBlockTimeUs.store(0); stats_.avgBlockTimeUs.store(0); stats_.cpuLoadPercent.store(0.0f);
+    stats_.maxBlockTimeUs.store(0); stats_.avgBlockTimeUs.store(0); stats_.p99BlockTimeUs.store(0); stats_.cpuLoadPercent.store(0.0f);
+    timingResetRequested_.store(false, std::memory_order_relaxed);
 
     // 1. PCM5102 SCK clock requirement:
     // If PCM5102 SCK is wired to ESP32-S3 GPIO10, force GPIO10 strictly LOW with pulldown.
@@ -231,8 +233,13 @@ AudioStats AudioI2S::getStats() const {
     out.shortWrites = stats_.shortWrites.load(std::memory_order_relaxed);
     out.maxBlockTimeUs = stats_.maxBlockTimeUs.load(std::memory_order_relaxed);
     out.avgBlockTimeUs = stats_.avgBlockTimeUs.load(std::memory_order_relaxed);
+    out.p99BlockTimeUs = stats_.p99BlockTimeUs.load(std::memory_order_relaxed);
     out.cpuLoadPercent = stats_.cpuLoadPercent.load(std::memory_order_relaxed);
     return out;
+}
+
+void AudioI2S::resetTimingStats() {
+    timingResetRequested_.store(true, std::memory_order_release);
 }
 
 void AudioI2S::audioTaskEntry(void* arg) {
@@ -257,6 +264,7 @@ void AudioI2S::audioTaskLoop() {
 
     uint64_t totalProcessTimeUs = 0;
     uint32_t windowBlocks = 0;
+    BlockTimingHistogram timingHistogram;
     // A run of zero-byte writes means the GDMA stopped delivering finished
     // descriptors (bit clock or ISR stalled). Rebuild the channel once rather
     // than logging the same timeout forever.
@@ -277,6 +285,16 @@ void AudioI2S::audioTaskLoop() {
         uint32_t processTimeUs = static_cast<uint32_t>(tRenderDone - tStart);
 
         // Update real-time profiling stats
+        if (timingResetRequested_.exchange(false, std::memory_order_acq_rel)) {
+            totalProcessTimeUs = 0;
+            windowBlocks = 0;
+            timingHistogram.reset();
+            stats_.deadlineMisses.store(0, std::memory_order_relaxed);
+            stats_.maxBlockTimeUs.store(0, std::memory_order_relaxed);
+            stats_.avgBlockTimeUs.store(0, std::memory_order_relaxed);
+            stats_.p99BlockTimeUs.store(0, std::memory_order_relaxed);
+            stats_.cpuLoadPercent.store(0.0f, std::memory_order_relaxed);
+        }
         if (processTimeUs >= static_cast<uint32_t>(blockBudgetUs)) {
             stats_.deadlineMisses.fetch_add(1, std::memory_order_relaxed);
         }
@@ -284,6 +302,10 @@ void AudioI2S::audioTaskLoop() {
         while (processTimeUs > oldMax && !stats_.maxBlockTimeUs.compare_exchange_weak(oldMax, processTimeUs, std::memory_order_relaxed)) {}
         totalProcessTimeUs += processTimeUs;
         windowBlocks++;
+        if (timingHistogram.add(processTimeUs)) {
+            stats_.p99BlockTimeUs.store(timingHistogram.p99Us(), std::memory_order_relaxed);
+            timingHistogram.reset();
+        }
         if (windowBlocks >= 100) {
             const uint32_t avg = static_cast<uint32_t>(totalProcessTimeUs / windowBlocks);
             stats_.avgBlockTimeUs.store(avg, std::memory_order_relaxed);
@@ -346,6 +368,7 @@ bool AudioI2S::init(AudioRenderCallback, void*) { initialized_ = true; return tr
 bool AudioI2S::start() { running_.store(true); return true; }
 void AudioI2S::stop() { running_.store(false); }
 void AudioI2S::deinit() { initialized_ = false; }
+void AudioI2S::resetTimingStats() { timingResetRequested_.store(true); }
 AudioStats AudioI2S::getStats() const {
     AudioStats out; out.blocksProcessed = stats_.blocksProcessed.load(); return out;
 }

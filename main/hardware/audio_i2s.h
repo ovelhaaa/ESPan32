@@ -23,6 +23,7 @@ struct AudioStats {
     uint32_t shortWrites = 0;
     uint32_t maxBlockTimeUs = 0;
     uint32_t avgBlockTimeUs = 0;
+    uint32_t p99BlockTimeUs = 0;
     float cpuLoadPercent = 0.0f;
 };
 
@@ -40,6 +41,9 @@ public:
     void deinit();
 
     AudioStats getStats() const;
+    // The audio task applies this at its next block boundary.  It resets timing
+    // diagnostics only, so a PAN/BELL switch starts a fresh qualification window.
+    void resetTimingStats();
 
 private:
 #ifdef ESP_PLATFORM
@@ -62,9 +66,10 @@ private:
 
     struct AtomicAudioStats {
         std::atomic<uint32_t> blocksProcessed{0}, deadlineMisses{0}, writeTimeouts{0};
-        std::atomic<uint32_t> txErrors{0}, shortWrites{0}, maxBlockTimeUs{0}, avgBlockTimeUs{0};
+        std::atomic<uint32_t> txErrors{0}, shortWrites{0}, maxBlockTimeUs{0}, avgBlockTimeUs{0}, p99BlockTimeUs{0};
         std::atomic<float> cpuLoadPercent{0.0f};
     } stats_;
+    std::atomic<bool> timingResetRequested_{false};
 };
 
 } // namespace pocketpan::hardware

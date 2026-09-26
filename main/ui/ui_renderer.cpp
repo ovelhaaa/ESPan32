@@ -12,9 +12,8 @@ void UiRenderer::render(const UiState& state) {
         display_.drawText(8, 5, "AUDIO DIAG", hardware::colors::White, 1);
         char b[40];
         snprintf(b, sizeof(b), "SR %u  BLOCK 128", 48000U); display_.drawText(10, 26, b, hardware::colors::LightGray, 1);
-        snprintf(b, sizeof(b), "LOAD %2.1f%%", state.cpuLoadPercent); display_.drawText(10, 42, b, hardware::colors::LightGray, 1);
-        snprintf(b, sizeof(b), "AVG %uus", (unsigned)state.avgBlockTimeUs); display_.drawText(10, 58, b, hardware::colors::LightGray, 1);
-        snprintf(b, sizeof(b), "MAX %uus", (unsigned)state.maxBlockTimeUs); display_.drawText(130, 58, b, hardware::colors::LightGray, 1);
+        snprintf(b, sizeof(b), "AVG %uus  P99 %uus", (unsigned)state.avgBlockTimeUs, (unsigned)state.p99BlockTimeUs); display_.drawText(10, 42, b, hardware::colors::LightGray, 1);
+        snprintf(b, sizeof(b), "MAX %uus  LOAD %2.1f%%", (unsigned)state.maxBlockTimeUs, state.cpuLoadPercent); display_.drawText(10, 58, b, hardware::colors::LightGray, 1);
         snprintf(b, sizeof(b), "DLINE %u TMO %u", (unsigned)state.deadlineMisses, (unsigned)state.writeTimeouts); display_.drawText(10, 74, b, hardware::colors::LightGray, 1);
         snprintf(b, sizeof(b), "TXERR %u SHORT %u", (unsigned)state.txErrors, (unsigned)state.shortWrites); display_.drawText(10, 90, b, hardware::colors::LightGray, 1);
         snprintf(b, sizeof(b), "PEAK %.2f OUT %.2f", state.preLimiterPeak, state.postLimiterPeak); display_.drawText(10, 106, b, hardware::colors::Cyan, 1);

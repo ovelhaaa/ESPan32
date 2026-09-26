@@ -50,6 +50,7 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
         const auto model = sBellModelSelected.load(std::memory_order_acquire)
             ? pocketpan::dsp::InstrumentModel::Bell : pocketpan::dsp::InstrumentModel::Pan;
         sSynth.setInstrumentModel(model);
+        sAudio.resetTimingStats();
     }
     if (sSynthResetRequested.exchange(false, std::memory_order_acq_rel)) {
         sSynth.killAllVoices();
@@ -92,6 +93,7 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     const auto stats = sAudio.getStats();
     sAudioSnapshot.activeVoices = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
     sAudioSnapshot.avgBlockTimeUs = stats.avgBlockTimeUs;
+    sAudioSnapshot.p99BlockTimeUs = stats.p99BlockTimeUs;
     sAudioSnapshot.maxBlockTimeUs = stats.maxBlockTimeUs;
     sAudioSnapshot.deadlineMisses = stats.deadlineMisses;
     sAudioSnapshot.writeTimeouts = stats.writeTimeouts;
@@ -181,6 +183,7 @@ void uiTaskLoop(void* param) {
             sUiState.activeVoices = snap.activeVoices;
             sUiState.cpuLoadPercent = snap.cpuLoadPercent;
             sUiState.avgBlockTimeUs = snap.avgBlockTimeUs;
+            sUiState.p99BlockTimeUs = snap.p99BlockTimeUs;
             sUiState.maxBlockTimeUs = snap.maxBlockTimeUs;
             sUiState.deadlineMisses = snap.deadlineMisses;
             sUiState.writeTimeouts = snap.writeTimeouts;
@@ -284,8 +287,8 @@ void uiTaskLoop(void* param) {
 #ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
         if (nowMs - lastLogMs >= 5000) {
             lastLogMs = nowMs;
-            ESP_LOGI(kTag, "[AUDIO] blocks=%u avg_us=%u max_us=%u deadline=%u timeout=%u tx_error=%u short=%u",
-                     (unsigned)sAudio.getStats().blocksProcessed, (unsigned)sUiState.avgBlockTimeUs, (unsigned)sUiState.maxBlockTimeUs,
+            ESP_LOGI(kTag, "[AUDIO] model=%s blocks=%u avg_us=%u p99_us=%u max_us=%u cpu_load=%.1f deadline=%u timeout=%u tx_error=%u short=%u",
+                     sBellModelSelected.load(std::memory_order_acquire) ? "BELL" : "PAN", (unsigned)sAudio.getStats().blocksProcessed, (unsigned)sUiState.avgBlockTimeUs, (unsigned)sUiState.p99BlockTimeUs, (unsigned)sUiState.maxBlockTimeUs, sUiState.cpuLoadPercent,
                      (unsigned)sUiState.deadlineMisses, (unsigned)sUiState.writeTimeouts, (unsigned)sUiState.txErrors, (unsigned)sUiState.shortWrites);
             ESP_LOGI(kTag, "[MIDI] push=%u pop=%u drop=%u hwm=%u last=(n=%u v=%u t=%u hex=%02X%02X%02X)",
                      (unsigned)sUiState.midiPushCount, (unsigned)sUiState.midiPopCount, (unsigned)sUiState.midiDrops, (unsigned)sUiState.midiHighWater,

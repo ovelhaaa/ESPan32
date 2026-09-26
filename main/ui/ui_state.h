@@ -29,6 +29,7 @@ struct UiState {
     uint8_t maxVoices = 8;
     float cpuLoadPercent = 0.0f;
     uint32_t avgBlockTimeUs = 0;
+    uint32_t p99BlockTimeUs = 0;
     uint32_t maxBlockTimeUs = 0;
     uint32_t deadlineMisses = 0;
     uint32_t writeTimeouts = 0;
