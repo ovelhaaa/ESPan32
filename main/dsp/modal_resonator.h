@@ -39,8 +39,32 @@ public:
     // Process a single sample through the resonator bank
     float processSample(float excitation);
 
+    // Exact scalar recurrence accepted in M6.3.1, independent of the selected
+    // fast kernel.  It is the definition of correctness for the fast paths and
+    // is compiled unconditionally so production and host tests share one code
+    // path; only its public differential-test hook is gated.
+    float processSampleReference(float excitation);
+
     // Process an entire block of samples in place or from input to output buffer
     void processBlock(const float* inExcitation, float* outSignal, size_t frames);
+
+#ifdef POCKETPAN_MODAL_DIFFERENTIAL_TEST
+    // Host-only kernel equivalence harness.  These never exist in firmware.
+    struct ModeDebug {
+        bool active = false;
+        float excitationGain = 0.0f, a1 = 0.0f, a2 = 0.0f, z1 = 0.0f, z2 = 0.0f;
+    };
+    size_t modeCountForTest() const { return modeCount_; }
+    ModeDebug modeDebugForTest(size_t i) const {
+        ModeDebug d;
+        if (i < kMaxModesPerVoice) {
+            const auto& m = modes_[i];
+            d.active = m.active; d.excitationGain = m.excitationGain;
+            d.a1 = m.a1; d.a2 = m.a2; d.z1 = m.z1; d.z2 = m.z2;
+        }
+        return d;
+    }
+#endif
 
     // Current estimated instantaneous energy of the resonant modes
     float getEnergy() const;

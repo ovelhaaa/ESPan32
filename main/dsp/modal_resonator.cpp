@@ -311,11 +311,14 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
         if (modeCount_ == 10) return processSampleFixed<10>(excitation);
     }
 #endif
+    return processSampleReference(excitation);
+}
+
+float ModalResonatorBank::processSampleReference(float excitation) {
     float outSample = 0.0f;
 
     for (size_t i = 0; i < modeCount_; ++i) {
         if (!modes_[i].active) continue;
-
 
         auto& m = modes_[i];
         // 2nd-order direct form IIR resonant filter
@@ -323,7 +326,6 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
 
         // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
         if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {
-
             ++internalSaturationCount_;
             y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
         }

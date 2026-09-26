@@ -73,6 +73,14 @@ public:
         allocator_.setPreparedNoteCacheEnabledForTest(enabled);
     }
 #endif
+#if POCKETPAN_SUSTAIN_FASTPATH
+    void setSustainFastPathEnabledForTest(bool enabled) {
+        allocator_.setSustainFastPathEnabledForTest(enabled);
+    }
+    uint32_t getSustainFastPathBlocksForTest() const {
+        return allocator_.getSustainFastPathBlocksForTest();
+    }
+#endif
     void setBodyEnabled(bool enabled) { modelConfig_.body.enabled=enabled; body_.setConfig(modelConfig_.body); }
     // A runtime toggle must not retain delayed feedback from its prior mode.
     void setSympatheticEnabled(bool enabled);

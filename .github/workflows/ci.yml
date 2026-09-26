@@ -15,6 +15,12 @@ jobs:
         run: cmake --build build-host --config Release --parallel
       - name: Run host tests
         run: ctest --test-dir build-host --output-on-failure
+      - name: Configure M6.3.3 fast-path host tests (candidate 16)
+        run: cmake -S tests -B build-host-c16 -DCMAKE_BUILD_TYPE=Release -DPOCKETPAN_DSP_CANDIDATE=16
+      - name: Build M6.3.3 fast-path host tests
+        run: cmake --build build-host-c16 --config Release --parallel
+      - name: Run M6.3.3 fast-path host tests
+        run: ctest --test-dir build-host-c16 --output-on-failure
       - name: Publish metrics summary
         run: |
           cat build-host/test_metrics.md >> "$GITHUB_STEP_SUMMARY"

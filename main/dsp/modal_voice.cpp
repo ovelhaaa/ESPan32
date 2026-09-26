@@ -274,4 +274,64 @@ void ModalVoice::processBlock(float* outBuffer, size_t frames) {
     }
 }
 
+#if POCKETPAN_SUSTAIN_FASTPATH
+bool ModalVoice::isSustainSafe() const {
+    // The exact epsilon used by the historical damping update branch: while the
+    // smoothed damping is within it, that branch is not taken, so currentDamping_
+    // cannot move and targetDamping_ cannot change inside a render block.
+    return active_ && !exciter_.isActive() && !isStealing_ &&
+           std::abs(targetDamping_ - currentDamping_) <= 0.0001f;
+}
+
+DSP_HOT float ModalVoice::processSampleSustain(float externalExcitation, float* strikeTap) {
+    if (!active_) return 0.0f;
+
+    // Mirror of processSample() with the provably no-op sustain branches
+    // (damping smooth, exciter render, steal crossfade) removed.  The modal
+    // kernel, age bookkeeping, lifetime check and lastSample_ are unchanged.
+    age_++;
+    if (strikeTap) *strikeTap = 0.0f; // exciter inactive: local strike is exactly 0
+    const float output = resonators_.processSample(externalExcitation);
+
+    if ((age_ & 0x7F) == 0) {
+        estimatedEnergy_ = resonators_.getEnergy();
+        if (estimatedEnergy_ < voicingConfig_.silenceThreshold) {
+            active_ = false;
+            estimatedEnergy_ = 0.0f;
+        }
+    }
+
+    lastSample_ = output;
+    return output;
+}
+
+DSP_HOT void ModalVoice::renderSustainBlock(float* outBuffer, size_t frames,
+                                            float externalExcitation) {
+    // Segment the block at the exact age-aligned lifetime check so no per-sample
+    // branch is needed.  The deactivation sample and lastSample_ match the
+    // general path bit-for-bit.
+    size_t done = 0;
+    while (done < frames) {
+        const size_t until = 128u - (age_ & 0x7Fu);
+        const size_t segment = std::min(until, frames - done);
+        float last = lastSample_;
+        for (size_t k = 0; k < segment; ++k) {
+            ++age_;
+            last = resonators_.processSample(externalExcitation);
+            outBuffer[done + k] += last;
+        }
+        lastSample_ = last;
+        done += segment;
+        if ((age_ & 0x7Fu) == 0u) {
+            estimatedEnergy_ = resonators_.getEnergy();
+            if (estimatedEnergy_ < voicingConfig_.silenceThreshold) {
+                active_ = false;
+                estimatedEnergy_ = 0.0f;
+                return;
+            }
+        }
+    }
+}
+#endif
+
 } // namespace pocketpan::dsp

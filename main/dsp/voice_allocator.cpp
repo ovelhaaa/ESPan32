@@ -24,6 +24,9 @@ void VoiceAllocator::reset() {
     for (auto& tail : stealTails_) tail = StealDeclickTail{};
     nextStealTail_ = 0;
     voiceStealCount_ = 0;
+#if POCKETPAN_SUSTAIN_FASTPATH
+    sustainFastPathBlocks_ = 0;
+#endif
     resetSympatheticState();
     resetSympatheticDiagnostics();
 }
@@ -152,6 +155,13 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
 
     for (size_t v = 0; v < kMaxVoices; ++v) {
         if (!voices_[v].isActive()) continue;
+#if POCKETPAN_SUSTAIN_FASTPATH
+        if (voices_[v].isSustainFastPathEnabledForTest() && voices_[v].isSustainSafe()) {
+            ++sustainFastPathBlocks_;
+            voices_[v].renderSustainBlock(outBuffer, frames, 0.0f);
+            continue;
+        }
+#endif
 
         for (size_t i = 0; i < frames; ++i) {
             outBuffer[i] += voices_[v].processSample();
@@ -198,12 +208,26 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
     if (!config.enabled) { renderBlock(outBuffer, frames); return; }
     const float cutoff=std::clamp(config.lowpassHz,10.0f,sampleRate_*0.45f);
     sympatheticLowpassCoefficient_=std::exp(-2.0f*3.14159265358979323846f*cutoff/sampleRate_);
+#if POCKETPAN_SUSTAIN_FASTPATH
+    // The decision is taken once per voice per block; the sample-outer loop and
+    // voice summation order are unchanged.
+    bool sustainSafe[kMaxVoices];
+    for (size_t v=0; v<kMaxVoices; ++v)
+        sustainSafe[v] = voices_[v].isSustainFastPathEnabledForTest() && voices_[v].isSustainSafe();
+    for (size_t v=0; v<kMaxVoices; ++v) if (sustainSafe[v]) ++sustainFastPathBlocks_;
+#endif
     for(size_t i=0;i<frames;++i) {
         float sum=0.0f;
         // One-sample delayed global bus: active/ringing voices only. At this
         // deliberately tiny gain, residual self-feedback is negligible.
         const float external=sympatheticPreviousBus_*config.inputGain;
-        for(auto& voice:voices_) if(voice.isActive()) sum+=voice.processSample(external);
+        for(size_t v=0;v<kMaxVoices;++v) if(voices_[v].isActive()) {
+#if POCKETPAN_SUSTAIN_FASTPATH
+            if (sustainSafe[v]) sum+=voices_[v].processSampleSustain(external);
+            else
+#endif
+            sum+=voices_[v].processSample(external);
+        }
         for(auto& tail:stealTails_) if(tail.active && tail.samplesLeft) { sum+=tail.currentSample; tail.currentSample-=tail.step; if(--tail.samplesLeft==0) tail.active=false; }
         sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
         float next=sympatheticFilterState_*config.feedbackGain;
@@ -223,12 +247,22 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
         const float cutoff=std::clamp(config.lowpassHz,10.0f,sampleRate_*0.45f);
         sympatheticLowpassCoefficient_=std::exp(-2.0f*3.14159265358979323846f*cutoff/sampleRate_);
     }
+#if POCKETPAN_SUSTAIN_FASTPATH
+    bool sustainSafe[kMaxVoices];
+    for (size_t v=0; v<kMaxVoices; ++v)
+        sustainSafe[v] = voices_[v].isSustainFastPathEnabledForTest() && voices_[v].isSustainSafe();
+    for (size_t v=0; v<kMaxVoices; ++v) if (sustainSafe[v]) ++sustainFastPathBlocks_;
+#endif
     for (size_t i=0; i<frames; ++i) {
         float sum=0.0f, strikes=0.0f;
         const float external = sympathetic ? sympatheticPreviousBus_*config.inputGain : 0.0f;
-        for (auto& voice:voices_) if (voice.isActive()) {
+        for (size_t v=0; v<kMaxVoices; ++v) if (voices_[v].isActive()) {
             float strike=0.0f;
-            sum += voice.processSample(external, &strike);
+#if POCKETPAN_SUSTAIN_FASTPATH
+            if (sustainSafe[v]) sum += voices_[v].processSampleSustain(external, &strike);
+            else
+#endif
+            sum += voices_[v].processSample(external, &strike);
             strikes += strike;
         }
         for(auto& tail:stealTails_) if(tail.active && tail.samplesLeft) {

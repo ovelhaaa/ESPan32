@@ -54,6 +54,15 @@ public:
     void setInternalSafetySaturation(bool enabled);
     void setModelConfig(const InstrumentModelConfig& config);
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing);
+#if POCKETPAN_SUSTAIN_FASTPATH
+    // Host A/B only: toggles the stable-sustain fast path without rebuilding.
+    void setSustainFastPathEnabledForTest(bool enabled) {
+        for (auto& voice : voices_) voice.setSustainFastPathEnabledForTest(enabled);
+    }
+    // Counts voice-blocks that took the sustain fast path; tests assert it is
+    // actually exercised rather than silently bypassed.
+    uint32_t getSustainFastPathBlocksForTest() const { return sustainFastPathBlocks_; }
+#endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
     // Tables are prepared outside the callback and shared by all eight voices.
     void preparePreparedNoteTable(const InstrumentModelConfig& config,
@@ -85,6 +94,9 @@ private:
 #if POCKETPAN_PREPARED_NOTE_CACHE
     const PreparedNoteTable* preparedNoteTable_ = nullptr;
     bool preparedNoteCacheEnabled_ = true;
+#endif
+#if POCKETPAN_SUSTAIN_FASTPATH
+    uint32_t sustainFastPathBlocks_ = 0;
 #endif
 };
 

@@ -44,6 +44,16 @@ public:
     // Process an entire block
     void processBlock(float* outBuffer, size_t frames);
 
+    // M6.3.3 stable-sustain fast path.  A voice is sustain-safe when it is
+    // active, the exciter has finished, no damping transition is in flight and
+    // no steal crossfade is running.  In that state the historical per-sample
+    // damping, exciter and steal checks are provably no-ops, so the sample path
+    // only advances age, runs the same modal kernel and performs the exact
+    // lifetime/energy check.  The decision is taken once per voice per block.
+    bool isSustainSafe() const;
+    float processSampleSustain(float externalExcitation = 0.0f, float* strikeTap = nullptr);
+    void renderSustainBlock(float* outBuffer, size_t frames, float externalExcitation = 0.0f);
+
     // Query state for voice allocator
     bool isActive() const { return active_; }
     bool isReleased() const { return released_; }
@@ -97,6 +107,14 @@ private:
     ResonatorConfig resonatorConfig_ = kPanResonatorConfig;
     ModalVoicingConfig voicingConfig_ = kPanVoicingConfig;
     const ModalPreset* modalPreset_ = &kPresetPan;
+#if POCKETPAN_SUSTAIN_FASTPATH
+    // Host A/B only; firmware leaves this at the compiled default.
+    bool sustainFastPathEnabled_ = true;
+public:
+    void setSustainFastPathEnabledForTest(bool enabled) { sustainFastPathEnabled_ = enabled; }
+    bool isSustainFastPathEnabledForTest() const { return sustainFastPathEnabled_; }
+private:
+#endif
 };
 
 } // namespace pocketpan::dsp
