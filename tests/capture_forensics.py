@@ -1,6 +1,7 @@
 """Capture COM device output verbatim; never overwrite existing hardware evidence."""
 import argparse
 import time
+import sys
 from pathlib import Path
 import serial
 
@@ -26,3 +27,5 @@ with args.output.open("xb") as report, serial.Serial(args.port, 115200, timeout=
             # Allow final phase and I/O messages to be captured too.
             end = min(end, time.monotonic() + 6)
     print(f"Captured {curves}/{args.rows} curve rows to {args.output}", flush=True)
+    if curves != args.rows:
+        sys.exit(2)

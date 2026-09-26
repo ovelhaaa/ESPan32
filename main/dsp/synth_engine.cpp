@@ -4,7 +4,6 @@
 #include "../midi/midi_mapping.h"
 #include <algorithm>
 #include <cmath>
-#include <type_traits>
 
 namespace pocketpan::dsp {
 
@@ -22,15 +21,6 @@ void SynthEngine::init(float sampleRate) {
     // avoids loudness steps while modal voices naturally become inactive.
     polyHeadroomAttackCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.003f));
     polyHeadroomReleaseCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.050f));
-#if POCKETPAN_DSP_CANDIDATE == 2
-    // Evaluate with this target's libm once, preserving every resulting bit.
-    // A literal table would couple PCM exactness to the host/target libm pair.
-    for (unsigned n = 0; n <= kMaxVoices; ++n) {
-        const float voices = static_cast<float>(n);
-        const float db = voices <= 1.0f ? 0.0f : -1.5f * std::log2(voices);
-        headroomByVoices_[n] = std::pow(10.0f, std::max(db, -5.0f) / 20.0f);
-    }
-#endif
     reset();
 }
 
@@ -132,19 +122,11 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
     }
     // Smooth count-based polyphonic headroom: 1=0 dB, 2=-1.5 dB,
     // 4=-3 dB, 8=-5 dB. This preserves per-voice modal gains.
-#if POCKETPAN_DSP_CANDIDATE == 2
-    const float targetHeadroom = headroomByVoices_[allocator_.getActiveVoiceCount()];
-#else
     const float voices = static_cast<float>(allocator_.getActiveVoiceCount());
     const float targetDb = voices <= 1.0f ? 0.0f : -1.5f * std::log2(voices);
     const float targetHeadroom = std::pow(10.0f, std::max(targetDb, -5.0f) / 20.0f);
 
-#endif
     // 2. Mixdown, headroom, lookahead gain limiting, and safe conversion.
-#if POCKETPAN_DSP_CANDIDATE == 1
-    auto renderOutput = [&](auto bodyEnabled) {
-    constexpr bool processBody = decltype(bodyEnabled)::value;
-#endif
     for (size_t i = 0; i < frames; ++i) {
         float sample;
         { DSP_PROFILE_SCOPE(Mix);
@@ -159,14 +141,7 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
             bodyExcitation = strikeBuffer_[i] * modelConfig_.strikeBusGain;
         }
         float bodySample;
-        { DSP_PROFILE_SCOPE(Body);
-#if POCKETPAN_DSP_CANDIDATE == 1
-          if constexpr (processBody) bodySample=body_.processSample(bodyExcitation);
-          else bodySample=0.0f;
-#else
-          bodySample=body_.processSample(bodyExcitation);
-#endif
-        }
+        { DSP_PROFILE_SCOPE(Body); bodySample=body_.processSample(bodyExcitation); }
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
         sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
 
@@ -193,11 +168,6 @@ void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
         outInterleaved[i * 2 + 1] = sample32;
         }
     }
-#if POCKETPAN_DSP_CANDIDATE == 1
-    };
-    if (modelConfig_.body.enabled) renderOutput(std::true_type{});
-    else renderOutput(std::false_type{});
-#endif
 }
 
 } // namespace pocketpan::dsp

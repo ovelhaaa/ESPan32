@@ -36,9 +36,9 @@ idf_component_register(
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 
-# Isolated experiments: 0 is the unchanged baseline. Changing these cache
-# values rebuilds only this component; production defaults remain unchanged.
-set(POCKETPAN_DSP_CANDIDATE 0 CACHE STRING "Isolated M6.3.1 DSP experiment")
+# Accepted default: fixed kernels plus bounded IRAM placement. Baseline 0,
+# fixed-only 4 and IRAM-only 5 remain available for controlled A/B builds.
+set(POCKETPAN_DSP_CANDIDATE 9 CACHE STRING "M6.3.1 kernel: 0 baseline, 4 fixed, 5 IRAM, 9 fixed + IRAM")
 set(POCKETPAN_FORENSICS_CRITICAL_ONLY 0 CACHE STRING "Measure only the three failing fixtures")
 set(POCKETPAN_FORENSICS_DISCONNECTED 0 CACHE STRING "Diagnostic BLE scan without connecting")
 target_compile_definitions(${COMPONENT_LIB} PRIVATE
@@ -46,10 +46,5 @@ target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_FORENSICS_CRITICAL_ONLY=${POCKETPAN_FORENSICS_CRITICAL_ONLY}
     POCKETPAN_FORENSICS_DISCONNECTED=${POCKETPAN_FORENSICS_DISCONNECTED})
 
-if(POCKETPAN_DSP_CANDIDATE STREQUAL "8")
-    # Separate -O3 experiment; never enable fast-math or change global flags.
-    set_source_files_properties(
-        dsp/modal_resonator.cpp dsp/modal_voice.cpp dsp/voice_allocator.cpp
-        dsp/synth_engine.cpp dsp/exciter.cpp dsp/body_resonator.cpp dsp/peak_limiter.cpp
-        PROPERTIES COMPILE_OPTIONS "-O3")
-endif()
+
+set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9)

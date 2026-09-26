@@ -9,6 +9,7 @@
 #include <atomic>
 
 namespace pocketpan::forensics {
+static_assert(CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ == 240, "Forensics cycle conversion requires 240 MHz");
 // Diagnostic fixture owns synthesis while BLE, UI and I2S remain running.
 // Each 22 s fixture aggregates 0.5 s ringing segments. No note-offs/restrikes
 // in sustain segments. Counts are checked on every measured block.
@@ -88,7 +89,10 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         }
 #endif
     }
-    if (event && !roll) synth.reset(); // Reset cost deliberately excluded from event timing.
+    if (event && !roll) {
+        results[id].hardClamp += synth.getHardClampCount();
+        synth.reset(); // Reset cost deliberately excluded from event timing.
+    }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
     dsp::profile::enabled = block % 32 == 1;
     std::fill(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), 0);
@@ -117,7 +121,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     dsp::profile::enabled = false;
 #endif
     if (++block == CONFIG_POCKETPAN_FORENSICS_BLOCKS) {
-        r.hardClamp = synth.getHardClampCount(); r.modalSat = synth.getModalInternalSaturationCount();
+        r.hardClamp += synth.getHardClampCount(); r.modalSat = synth.getModalInternalSaturationCount();
         completed.store(++fixture, std::memory_order_release); block = 0;
     }
 }

@@ -98,9 +98,6 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
         }
 
         modes_[i].active = true;
-#if POCKETPAN_DSP_CANDIDATE == 3
-        activeIndices_[activeModeCount_] = i;
-#endif
         activeModeCount_++;
 
         float modeGain = def.gain;
@@ -133,38 +130,11 @@ void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, flo
     }
 }
 
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9 || POCKETPAN_DSP_CANDIDATE == 10)
+#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9)
 template<size_t N>
 DSP_HOT float ModalResonatorBank::processSampleFixed(float excitation) {
     float outSample = 0.0f;
 
-#if POCKETPAN_DSP_CANDIDATE == 10
-    // Compute independent recurrences in groups before their ordered sums.
-    // This exposes FPU instruction scheduling while retaining each expression,
-    // saturation/flush policy, state update and mode summation order.
-    #pragma GCC unroll 3
-    for (size_t base = 0; base < N; base += 4) {
-        float pending[4]{};
-        const size_t count = std::min<size_t>(4, N - base);
-        #pragma GCC unroll 4
-        for (size_t offset = 0; offset < count; ++offset) {
-            const auto& m = modes_[base + offset];
-            pending[offset] = m.excitationGain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
-        }
-        #pragma GCC unroll 4
-        for (size_t offset = 0; offset < count; ++offset) {
-            auto& m = modes_[base + offset];
-            float y = pending[offset];
-            if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {
-                ++internalSaturationCount_;
-                y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
-            }
-            if (std::abs(y) < kMinDenormal) y = 0.0f;
-            m.z2 = m.z1; m.z1 = y;
-            outSample += y;
-        }
-    }
-#else
     #pragma GCC unroll 10
     for (size_t i = 0; i < N; ++i) {
 
@@ -188,14 +158,13 @@ DSP_HOT float ModalResonatorBank::processSampleFixed(float excitation) {
         outSample += y;
     }
 
-#endif
     return outSample;
 }
 
 #endif
 DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     DSP_PROFILE_SCOPE(Modal);
-#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9 || POCKETPAN_DSP_CANDIDATE == 10)
+#if (POCKETPAN_DSP_CANDIDATE == 4 || POCKETPAN_DSP_CANDIDATE == 9)
     // Only a completely active bank can use the branch-free fixed kernel.
     // Arbitrary presets, sparse active sets and Nyquist pruning fall back.
     if (activeModeCount_ == modeCount_) {
@@ -204,28 +173,18 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     }
 #endif
     float outSample = 0.0f;
-#if POCKETPAN_DSP_CANDIDATE == 6
-    const bool safety = config_.internalSafetySaturation;
-#endif
 
-#if POCKETPAN_DSP_CANDIDATE == 3
-    for (size_t active = 0; active < activeModeCount_; ++active) {
-        const size_t i = activeIndices_[active]; // Ascending original order, even with holes.
-#else
     for (size_t i = 0; i < modeCount_; ++i) {
         if (!modes_[i].active) continue;
-#endif
+
 
         auto& m = modes_[i];
         // 2nd-order direct form IIR resonant filter
         float y = m.excitationGain * excitation + m.a1 * m.z1 + m.a2 * m.z2;
 
         // Physical displacement compression on large amplitudes (prevents runaway on rapid strikes)
-#if POCKETPAN_DSP_CANDIDATE == 6
-        if (std::abs(y) > 2.0f && safety) {
-#else
         if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {
-#endif
+
             ++internalSaturationCount_;
             y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f)) : (-2.0f + 0.5f * std::tanh(y + 2.0f));
         }
