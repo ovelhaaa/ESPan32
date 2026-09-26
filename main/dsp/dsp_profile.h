@@ -1,6 +1,6 @@
 #pragma once
 #ifndef POCKETPAN_DSP_CANDIDATE
-#define POCKETPAN_DSP_CANDIDATE 9
+#define POCKETPAN_DSP_CANDIDATE 20
 #endif
 #ifndef POCKETPAN_FORENSICS_CRITICAL_ONLY
 #define POCKETPAN_FORENSICS_CRITICAL_ONLY 0
@@ -15,30 +15,75 @@
 #define POCKETPAN_MODAL_MICROKERNEL \
     (POCKETPAN_DSP_CANDIDATE == 11 || POCKETPAN_DSP_CANDIDATE == 13 || \
      POCKETPAN_DSP_CANDIDATE == 14 || POCKETPAN_DSP_CANDIDATE == 15 || \
-     POCKETPAN_DSP_CANDIDATE == 16)
+     POCKETPAN_DSP_CANDIDATE == 16 || POCKETPAN_TAIL_BASE)
 #define POCKETPAN_PREPARED_NOTE_CACHE \
     (POCKETPAN_DSP_CANDIDATE == 12 || POCKETPAN_DSP_CANDIDATE == 13 || \
      POCKETPAN_DSP_CANDIDATE == 14 || POCKETPAN_DSP_CANDIDATE == 15 || \
-     POCKETPAN_DSP_CANDIDATE == 16)
+     POCKETPAN_DSP_CANDIDATE == 16 || POCKETPAN_TAIL_BASE)
 #define POCKETPAN_BOUNDED_IRAM \
     (POCKETPAN_DSP_CANDIDATE == 5 || POCKETPAN_DSP_CANDIDATE == 9 || \
      POCKETPAN_DSP_CANDIDATE == 11 || POCKETPAN_DSP_CANDIDATE == 12 || \
      POCKETPAN_DSP_CANDIDATE == 13 || POCKETPAN_DSP_CANDIDATE == 14 || \
-     POCKETPAN_DSP_CANDIDATE == 15 || POCKETPAN_DSP_CANDIDATE == 16)
+     POCKETPAN_DSP_CANDIDATE == 15 || POCKETPAN_DSP_CANDIDATE == 16 || \
+     (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 21))
+
+// M6.3.4 candidate matrix.  Candidate 16 = 13 + stable sustain is the
+// production-qualified baseline (Phases A).  Candidates 17-19 move one tail
+// function to IRAM at a time, 20 is the accepted combination and 21 adds the
+// exact attack/exciter fast path:
+//   17 = 16 + SynthEngine::renderBlock in IRAM          (T1)
+//   18 = 16 + PeakLimiter::processSample in IRAM        (T2)
+//   19 = 16 + BodyResonator::processSample in IRAM      (T3)
+//   20 = 16 + accepted combination                      (T4)
+//   21 = 20 + exact attack/exciter fast path            (final)
+#define POCKETPAN_TAIL_BASE \
+    (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 21)
+#define POCKETPAN_IRAM_RENDERBLOCK \
+    (POCKETPAN_DSP_CANDIDATE == 17 || POCKETPAN_DSP_CANDIDATE == 20 || \
+     POCKETPAN_DSP_CANDIDATE == 21)
+#define POCKETPAN_IRAM_LIMITER \
+    (POCKETPAN_DSP_CANDIDATE == 18 || POCKETPAN_DSP_CANDIDATE == 20 || \
+     POCKETPAN_DSP_CANDIDATE == 21)
+#define POCKETPAN_IRAM_BODY \
+    (POCKETPAN_DSP_CANDIDATE == 19 || POCKETPAN_DSP_CANDIDATE == 20 || \
+     POCKETPAN_DSP_CANDIDATE == 21)
 
 // M6.3.3 additive fast paths.  Candidate 13 is the measured M6.3.2 production
 // baseline and must stay bit-identical: 14 adds the stable-sustain voice path,
-// 15 adds the attack/exciter segment path, 16 combines both.
+// 15/16 keep the historical sustain composition.  The production-qualified
+// baseline is candidate 16 = 13 + stable sustain.  Candidates 17-21 are
+// additive to 16, so they also carry the sustain fast path.
 #define POCKETPAN_SUSTAIN_FASTPATH \
-    (POCKETPAN_DSP_CANDIDATE == 14 || POCKETPAN_DSP_CANDIDATE == 16)
+    (POCKETPAN_DSP_CANDIDATE == 14 || POCKETPAN_DSP_CANDIDATE == 16 || \
+     POCKETPAN_TAIL_BASE)
+// The exact attack/exciter segment path is implemented only for the final
+// candidate so candidate 16 stays binary-identical to its validated build.
 #define POCKETPAN_ATTACK_FASTPATH \
-    (POCKETPAN_DSP_CANDIDATE == 15 || POCKETPAN_DSP_CANDIDATE == 16)
+    (POCKETPAN_DSP_CANDIDATE == 21)
 
 #if defined(ESP_PLATFORM) && POCKETPAN_BOUNDED_IRAM
 #include "esp_attr.h"
 #define DSP_HOT IRAM_ATTR
 #else
 #define DSP_HOT
+#endif
+
+// Per-function tail placement.  Defined empty on host so the experiment is a
+// no-op outside firmware and the host binary equals the baseline.
+#if defined(ESP_PLATFORM) && POCKETPAN_IRAM_RENDERBLOCK
+#define DSP_IRAM_RENDERBLOCK IRAM_ATTR
+#else
+#define DSP_IRAM_RENDERBLOCK
+#endif
+#if defined(ESP_PLATFORM) && POCKETPAN_IRAM_LIMITER
+#define DSP_IRAM_LIMITER IRAM_ATTR
+#else
+#define DSP_IRAM_LIMITER
+#endif
+#if defined(ESP_PLATFORM) && POCKETPAN_IRAM_BODY
+#define DSP_IRAM_BODY IRAM_ATTR
+#else
+#define DSP_IRAM_BODY
 #endif
 
 // With profiling disabled, all probes disappear at preprocessing time.

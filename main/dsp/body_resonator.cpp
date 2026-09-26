@@ -1,4 +1,5 @@
 #include "body_resonator.h"
+#include "dsp_profile.h"
 #include <algorithm>
 #include <cmath>
 
@@ -19,7 +20,7 @@ void BodyResonator::updateCoefficients() {
         s.gain=std::sin(2.0f*kPi*hz/sampleRate_)*std::max(0.0f,d.gain);
     }
 }
-float BodyResonator::processSample(float excitation) {
+DSP_IRAM_BODY float BodyResonator::processSample(float excitation) {
     if(!config_.enabled) return 0.0f;
     const float x=excitation*config_.excitationGain;
     lowpassState_=(1.0f-lowpassCoefficient_)*x+lowpassCoefficient_*lowpassState_;

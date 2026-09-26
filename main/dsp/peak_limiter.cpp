@@ -1,4 +1,5 @@
 #include "peak_limiter.h"
+#include "dsp_profile.h"
 
 #include <algorithm>
 #include <cmath>
@@ -42,7 +43,7 @@ void PeakLimiter::setConfig(const LimiterConfig& cfg) {
     releaseCoefficient_ = std::exp(-1.0f / releaseSamples);
 }
 
-float PeakLimiter::processSample(float x) {
+DSP_IRAM_LIMITER float PeakLimiter::processSample(float x) {
     if (!std::isfinite(x)) x = 0.0f;
 
     // The sample is delayed before it is emitted. Its peak is therefore known

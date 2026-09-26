@@ -12,7 +12,7 @@ add_executable(test_dsp test_dsp.cpp
  ${ROOT}/main/dsp/voice_allocator.cpp ${ROOT}/main/dsp/synth_engine.cpp ${ROOT}/main/dsp/instrument_model.cpp ${ROOT}/main/midi/midi_mapping.cpp)
 target_sources(test_dsp PRIVATE ${ROOT}/main/dsp/peak_limiter.cpp)
 target_include_directories(test_dsp PRIVATE ${ROOT}/main)
-set(POCKETPAN_DSP_CANDIDATE 13 CACHE STRING "DSP candidates: 0 scalar, 4 fixed, 5 IRAM, 9 D+E, 11 microkernel, 12 PreparedNote, 13 both, 14 +sustain, 15 +attack, 16 +both")
+set(POCKETPAN_DSP_CANDIDATE 20 CACHE STRING "DSP candidates: 0 scalar, 4 fixed, 5 IRAM, 9 D+E, 11 microkernel, 12 PreparedNote, 13 both, 14 +sustain, 15/16 +sustain, 17-19 tail IRAM, 20 tail IRAM, 21 +attack")
 target_compile_definitions(test_dsp PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
 add_test(NAME dsp COMMAND test_dsp)
 add_executable(test_prepared_note test_prepared_note.cpp
@@ -41,10 +41,17 @@ target_include_directories(test_fastpath PRIVATE ${ROOT}/main)
 target_compile_definitions(test_fastpath PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
 add_test(NAME fastpath COMMAND test_fastpath)
 
+add_executable(test_exciter_fastpath test_exciter_fastpath.cpp ${ROOT}/main/dsp/exciter.cpp)
+target_include_directories(test_exciter_fastpath PRIVATE ${ROOT}/main)
+target_compile_definitions(test_exciter_fastpath PRIVATE
+  POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE}
+  POCKETPAN_EXCITER_DIFFERENTIAL_TEST=1)
+add_test(NAME exciter_fastpath COMMAND test_exciter_fastpath)
+
 # These tests intentionally use assert for compact host fixtures; keep the
 # checks enabled even in the Release configuration used by CI.
-foreach(target test_ble_midi_parser test_dsp test_prepared_note test_telemetry test_modal_kernel test_fastpath)
+foreach(target test_ble_midi_parser test_dsp test_prepared_note test_telemetry test_modal_kernel test_fastpath test_exciter_fastpath)
   target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
 endforeach()
 
-set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16)
+set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16 17 18 19 20 21)

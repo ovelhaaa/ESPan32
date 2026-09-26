@@ -130,7 +130,7 @@ void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
     }
 }
 
-void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
+DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size_t frames) {
     if (!outInterleaved || frames == 0) return;
 
     // 1. Synthesize 8-voice polyphony into mono buffer

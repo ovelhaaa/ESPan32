@@ -8,8 +8,28 @@ namespace {
 constexpr float kPi = 3.14159265358979323846f;
 }
 
+#if POCKETPAN_ATTACK_FASTPATH
+float Exciter::windowTable_[kExciterMaxImpulseSamples + 1][kExciterMaxImpulseSamples];
+bool Exciter::windowTableReady_ = false;
+
+void Exciter::buildWindowTable() {
+    // Same float expression as the historical per-sample std::sin call, so on
+    // any single platform the table lookup returns the identical bit pattern.
+    for (uint32_t n = 3; n <= kExciterMaxImpulseSamples; ++n) {
+        const float denom = static_cast<float>(n);
+        for (uint32_t i = 0; i < n; ++i) {
+            windowTable_[n][i] = std::sin((kExciterPi * (i + 0.5f)) / denom);
+        }
+    }
+    windowTableReady_ = true;
+}
+#endif
+
 void Exciter::init(float sampleRate) {
     sampleRate_ = (sampleRate > 1000.0f) ? sampleRate : 48000.0f;
+#if POCKETPAN_ATTACK_FASTPATH
+    if (!windowTableReady_) buildWindowTable();
+#endif
     // init is a model-boundary reset; make a selected model start from the
     // same deterministic noise sequence as a cold boot.
     rngState_ = 123456789U;
@@ -59,11 +79,16 @@ void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
     // Hardness adds texture, but high velocity is primarily modal coupling.
     noiseGain_ = strikeAmplitude_ * (0.035f + 0.045f * h) * config_.noiseAmount;
 
+    // Hoisted impulse normalisation.  The multiply association used by the
+    // sample loop remains (strikeAmplitude_ * window) * norm.
+    impulseNorm_ = (kExciterPi * 0.5f) / static_cast<float>(impulseSamples_);
+
     sampleIndex_ = 0;
     filterState_ = 0.0f;
     active_ = true;
 }
 
+#if !POCKETPAN_ATTACK_FASTPATH
 float Exciter::nextNoise() {
     // 32-bit xorshift PRNG
     rngState_ ^= (rngState_ << 13);
@@ -103,5 +128,36 @@ float Exciter::processSample() {
 
     return output;
 }
+#endif
+
+#if POCKETPAN_ATTACK_FASTPATH || defined(POCKETPAN_EXCITER_DIFFERENTIAL_TEST)
+float Exciter::processSampleReference() {
+    if (!active_) return 0.0f;
+
+    float output = 0.0f;
+
+    if (sampleIndex_ < impulseSamples_) {
+        const float phase = (kPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_);
+        const float window = std::sin(phase);
+        const float norm = (kPi * 0.5f) / static_cast<float>(impulseSamples_);
+        output += strikeAmplitude_ * window * norm;
+    }
+
+    if (sampleIndex_ < noiseSamples_) {
+        const float rawNoise = nextNoise();
+        filterState_ += filterCoeff_ * (rawNoise - filterState_);
+
+        const float env = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(noiseSamples_));
+        output += filterState_ * noiseGain_ * (env * env);
+    }
+
+    sampleIndex_++;
+    if (sampleIndex_ >= noiseSamples_ && sampleIndex_ >= impulseSamples_) {
+        active_ = false;
+    }
+
+    return output;
+}
+#endif
 
 } // namespace pocketpan::dsp
