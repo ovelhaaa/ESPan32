@@ -29,22 +29,6 @@ inline constexpr PanCalibration kPanCalibration{};
 // Musical controls for the PAN model. Values are interpolated continuously by
 // fundamental frequency and strike velocity rather than scattered in DSP code.
 using PanVoicingConfig = ModalVoicingConfig;
-/*struct PanVoicingConfig {
-    // Keep upper-mode interpolation active into hard strikes instead of
-    // plateauing around v112; this makes v120–127 brighter by excitation,
-    // not by forcing the output limiter.
-    // M5D.1 provisional final: restores moderate upper-mode life while the
-    // M5D velocity knee keeps v127 clear of M5C.2 limiter dependence.
-    float upperModeHardVelocity = 0.94f;
-    float t60LowRegisterScale = 1.10f;
-    float t60HighRegisterScale = 0.90f;
-    float splitBeatTargetHz = 1.00f;
-    float registerLowHz = 146.83f;
-    float registerHighHz = 440.00f;
-    bool fixedHzSplit = true;
-    float softModeCoupling[kMaxModesPerVoice] = {1.00f, 0.82f, 0.72f, 0.22f, 0.08f, 0.05f, 0.03f, 0.02f, 0.0f, 0.0f};
-    float hardModeCoupling[kMaxModesPerVoice] = {1.00f, 0.94f, 0.88f, 0.78f, 0.70f, 0.62f, 0.54f, 0.46f, 0.0f, 0.0f};
-};*/
 
 inline constexpr PanVoicingConfig kPanVoicingConfig{};
 

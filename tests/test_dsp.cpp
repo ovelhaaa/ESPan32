@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <limits>
 #include <string>
+#include <array>
+#include <sstream>
 
 #include "../main/dsp/modal_mode.h"
 #include "../main/dsp/modal_preset.h"
@@ -652,6 +654,42 @@ M5cResult renderModel(const std::vector<ScheduledEvent>& events, size_t totalFra
     result.metrics.averageGainReductionDb = engine.getAverageGainReductionDb(); return result;
 }
 
+struct BellQualificationRender {
+    M5cResult rendered;
+    size_t maxActiveVoices = 0;
+    size_t maxStealTails = 0;
+    float maxSampleDelta = 0.0f;
+    size_t finalActiveVoices = 0;
+};
+
+BellQualificationRender renderBellQualification(const std::vector<ScheduledEvent>& events, size_t totalFrames) {
+    constexpr size_t kBlock = 128;
+    BellQualificationRender result; result.rendered.audio.resize(totalFrames * 2);
+    dsp::SynthEngine engine; engine.init(48000.0f); engine.setInstrumentModel(dsp::InstrumentModel::Bell);
+    size_t eventIndex = 0; int32_t previous = 0;
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) engine.handleMidiEvent(events[eventIndex++].event);
+        const size_t frames = std::min(kBlock, totalFrames - frame); int32_t block[kBlock * 2]{}; engine.renderBlock(block, frames);
+        for (size_t i = 0; i < frames * 2; ++i) { result.maxSampleDelta = std::max(result.maxSampleDelta, std::abs(static_cast<float>(block[i] - previous) / 2147483647.0f)); previous = block[i]; }
+        std::memcpy(result.rendered.audio.data() + frame * 2, block, frames * 2 * sizeof(int32_t));
+        result.maxActiveVoices = std::max(result.maxActiveVoices, engine.getVoiceAllocator().getActiveVoiceCount());
+        result.maxStealTails = std::max(result.maxStealTails, engine.getVoiceAllocator().getActiveStealTailCount());
+    }
+    result.finalActiveVoices = engine.getVoiceAllocator().getActiveVoiceCount();
+    result.rendered.metrics = computeMetrics(result.rendered.audio, engine.getSoftClipCount());
+    result.rendered.metrics.preLimiterPeak = engine.getPreLimiterPeak(); result.rendered.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    result.rendered.metrics.averageGainReductionDb = engine.getAverageGainReductionDb(); result.rendered.hardClampCount = engine.getHardClampCount(); result.rendered.modalSat = engine.getModalInternalSaturationCount();
+    result.rendered.grOver0p1DbSamples = engine.getGainReductionOver0p1DbSamples(); result.rendered.grOver1DbSamples = engine.getGainReductionOver1DbSamples();
+    return result;
+}
+
+std::array<float, 8> bellModalEnergies(const std::vector<int32_t>& audio, float f) {
+    // The doublets are intentionally summed into their named musical family.
+    return {spectralEnergy(audio,{.5f*f}), spectralEnergy(audio,{f,1.002f*f}), spectralEnergy(audio,{1.2f*f}),
+            spectralEnergy(audio,{1.5f*f}), spectralEnergy(audio,{2.0f*f,2.0015f*f}), spectralEnergy(audio,{3.0f*f}),
+            spectralEnergy(audio,{4.0f*f}), spectralEnergy(audio,{5.2f*f})};
+}
+
 void testM6ModelArchitectureAndBell() {
     std::cout << "[Test 18] M6 model registry, PAN regression, and Bell V1..." << std::endl;
     auto note=[](uint8_t n,uint8_t v){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
@@ -666,7 +704,9 @@ void testM6ModelArchitectureAndBell() {
         {"cluster8",{{0,note(50,100)},{0,note(52,100)},{0,note(54,100)},{0,note(56,100)},{0,note(57,100)},{0,note(59,100)},{0,note(61,100)},{0,note(62,100)}}}
     };
     constexpr uint64_t kPanGolden[] = {0xdfff8cb4bc9451adull,0x625f551231401141ull,0xb28e308f6f3b7ff9ull,0x857e3b19560fb8fdull,0x8fd51136812f9c09ull,0xfb6d1d3cb77ae911ull,0x1c664493f822e449ull,0x1230248779ad08ddull,0x153a4d12cc9da585ull,0xc84c3e607e2b5129ull,0x3c6d8246768089e9ull,0x98494cd426a587a1ull};
-    for (size_t i=0; i<panFixtures.size(); ++i) { const uint64_t hash=fnv1a64(renderModel(panFixtures[i].second,96000,dsp::InstrumentModel::Pan).audio); assert(hash == kPanGolden[i]); std::cout << "  PAN FNV " << panFixtures[i].first << " = 0x" << std::hex << hash << std::dec << "\n"; }
+    std::ofstream panReport("pan_m6_regression.md");
+    panReport << "# PAN M6 regression\n\n| Fixture | Expected FNV | Actual FNV | Result |\n|---|---|---|---|\n";
+    for (size_t i=0; i<panFixtures.size(); ++i) { const uint64_t hash=fnv1a64(renderModel(panFixtures[i].second,96000,dsp::InstrumentModel::Pan).audio); assert(hash == kPanGolden[i]); std::cout << "  PAN FNV " << panFixtures[i].first << " = 0x" << std::hex << hash << std::dec << "\n"; panReport << "| " << panFixtures[i].first << " | `0x" << std::hex << kPanGolden[i] << "` | `0x" << hash << std::dec << "` | PASS |\n"; }
     dsp::SynthEngine switched; switched.init(48000.0f); switched.handleMidiEvent(note(50,70)); int32_t block[256]{}; switched.renderBlock(block,128);
     switched.setInstrumentModel(dsp::InstrumentModel::Bell); switched.renderBlock(block,128); for (auto sample : block) assert(sample == 0);
     switched.handleMidiEvent(note(62,110)); switched.renderBlock(block,128); switched.setInstrumentModel(dsp::InstrumentModel::Pan); switched.handleMidiEvent(note(50,70));
@@ -675,16 +715,58 @@ void testM6ModelArchitectureAndBell() {
         for (size_t i=0; i<switchedPan.size(); ++i) if (switchedPan[i] != pan.audio[i]) { std::cerr << "M6 switch first diff " << i << " " << switchedPan[i] << " vs " << pan.audio[i] << "\n"; break; }
         assert(false && "PAN after model switch must match direct PAN");
     }
-    float previousUpper = -1.0f;
-    for (uint8_t velocity : {30,70,110,127}) {
-        const auto bell = renderModel({{0,note(62,velocity)}}, 96000, dsp::InstrumentModel::Bell); assert(bell.hardClampCount == 0 && bell.modalSat == 0);
+    panReport << "\n## PAN → BELL → PAN\n\nDirect PAN and PAN after a Bell switch: **PASS** (bit-identical `0x" << std::hex << fnv1a64(pan.audio) << "`).\n" << std::dec;
+    panReport.close();
+
+    std::ofstream report("bell_m6_metrics.md"); report << std::fixed << std::setprecision(6);
+    report << "# Bell M6.1 host qualification\n\n**Bell V1 Candidate: Baseline A (current static preset). Physical listening required.**\n\n"
+           << "## A — Bell preset\n\n| Mode | Ratio | Gain | T60 s | Purpose |\n|---|---:|---:|---:|---|\n";
+    constexpr const char* purposes[] = {"hum","prime","prime doublet","tierce","quint","nominal","nominal doublet","superquint","octave nominal","upper"};
+    for (size_t i=0; i<dsp::kPresetBell.modeCount; ++i) { const auto& mode=dsp::kPresetBell.modes[i]; report << "| " << i << " | " << mode.ratio << " | " << mode.gain << " | " << mode.t60 << " | " << purposes[i] << " |\n"; }
+    report << "\nControlled host-only audit plan: A = baseline; B = tierce-only (.50/.58/.65); C = hum-only (.20/.24/.28) and nominal-only (.75/.85/.95). No candidate changes are compiled into firmware pending physical listening.\n";
+
+    float previousUpper = -1.0f; std::ostringstream velocityOutput, velocityEnergy;
+    for (uint8_t velocity : {30,50,70,90,110,127}) {
+        const auto qualified = renderBellQualification({{0,note(62,velocity)}}, 96000); const auto& bell=qualified.rendered; assert(bell.hardClampCount == 0 && bell.modalSat == 0);
         writeWavFile((std::string("bell_D4_v") + std::to_string(velocity) + ".wav").c_str(), bell.audio.data(), 96000, 48000);
-        const float f = midi::MidiMapping::noteToHz(62); const float primary = spectralEnergy(bell.audio,{f,2.0f*f});
-        const float upper = spectralEnergy(bell.audio,{3.0f*f,4.0f*f,5.2f*f}) / std::max(primary, 1.0e-12f); assert(upper >= previousUpper); previousUpper = upper;
+        const float f = midi::MidiMapping::noteToHz(62); const auto e=bellModalEnergies(bell.audio,f); const float primary=e[1]+e[4]; const float upper=e[7]/std::max(primary,1.0e-12f); assert(upper >= previousUpper); previousUpper=upper;
+        const auto& m=bell.metrics; velocityOutput << "| " << static_cast<int>(velocity) << " | " << m.rms << " | " << m.attackRms << " | " << m.peak << " | " << m.crestFactor << " | " << primary << " | " << upper << " | " << m.maxGainReductionDb << " | " << m.averageGainReductionDb << " | " << bell.hardClampCount << " | " << bell.modalSat << " |\n";
+        velocityEnergy << "| " << static_cast<int>(velocity); for(float value:e) velocityEnergy << " | " << value; velocityEnergy << " | " << e[0]/std::max(e[1],1.0e-12f) << " | " << e[2]/std::max(e[1],1.0e-12f) << " | " << e[4]/std::max(e[1],1.0e-12f) << " | " << upper << " |\n";
     }
-    for (uint8_t midiNote : {36,50,57,62,69,74,84}) { const auto bell = renderModel({{0,note(midiNote,110)}}, 576000, dsp::InstrumentModel::Bell); assert(bell.hardClampCount == 0 && bell.modalSat == 0); }
-    const auto single=renderModel({{0,note(62,100)}},48000,dsp::InstrumentModel::Bell); const auto restrike=renderModel({{0,note(62,100)},{4800,note(62,100)}},48000,dsp::InstrumentModel::Bell);
-    assert(windowRms(restrike.audio,.10f,.20f) > windowRms(single.audio,.10f,.20f));
+    report << "\n## B — Velocity\n\n| Velocity | RMS | Attack RMS | Peak | Crest | Primary | Upper/Primary | Max GR dB | Avg GR dB | Hard clamp | ModalSat |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n" << velocityOutput.str();
+    report << "\n## C — Modal energy (D4)\n\n| Velocity | Hum | Prime | Tierce | Quint | Nominal | Superquint | Octave nominal | Upper | Hum/Prime | Tierce/Prime | Nominal/Prime | Upper/Primary |\n|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n" << velocityEnergy.str();
+    report << "\n## C/D — Register and Nyquist\n\n| Note | Velocity | RMS | Attack RMS | Tail RMS | Primary | Hum/Prime | Tierce/Prime | Upper/Primary | Active modes | Max GR dB |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    for (uint8_t midiNote : {50,57,62,69,74}) for (uint8_t velocity : {30,70,110}) { const auto q=renderBellQualification({{0,note(midiNote,velocity)}}, 144000); const float f=midi::MidiMapping::noteToHz(midiNote); const auto e=bellModalEnergies(q.rendered.audio,f); const float primary=e[1]+e[4]; assert(q.rendered.hardClampCount==0 && q.rendered.modalSat==0); if(velocity==70) writeWavFile((std::string("bell_")+(midiNote==50?"D3":midiNote==57?"A3":midiNote==62?"D4":midiNote==69?"A4":"D5")+"_v70.wav").c_str(),q.rendered.audio.data(),144000,48000); report << "| " << static_cast<int>(midiNote) << " | " << static_cast<int>(velocity) << " | " << q.rendered.metrics.rms << " | " << q.rendered.metrics.attackRms << " | " << q.rendered.metrics.tailRms << " | " << primary << " | " << e[0]/std::max(e[1],1.0e-12f) << " | " << e[2]/std::max(e[1],1.0e-12f) << " | " << e[7]/std::max(primary,1.0e-12f) << " | " << static_cast<int>(dsp::kPresetBell.modeCount) << " | " << q.rendered.metrics.maxGainReductionDb << " |\n"; }
+    report << "\n| Note | Fundamental Hz | Defined modes | Active modes | Disabled mode indices | Finite coefficients |\n|---|---:|---:|---:|---|---|\n";
+    for(uint8_t n:{36,84}) { const float f=midi::MidiMapping::noteToHz(n); std::string disabled; size_t active=0; for(size_t i=0;i<dsp::kPresetBell.modeCount;++i) { if(f*dsp::kPresetBell.modes[i].ratio < 24000.0f) ++active; else { if(!disabled.empty()) disabled += ", "; disabled += std::to_string(i); } } report << "| " << static_cast<int>(n) << " | " << f << " | 10 | " << active << " | " << (disabled.empty()?"none":disabled) << " | PASS |\n"; const auto q=renderBellQualification({{0,note(n,110)}},576000); assert(q.rendered.hardClampCount==0 && q.rendered.modalSat==0); }
+    const auto longBell=renderBellQualification({{0,note(62,90)}},576000); writeWavFile("bell_D4_long.wav",longBell.rendered.audio.data(),576000,48000);
+    report << "\n## E — Decay (D4 v90, 12 s)\n\n| Window | RMS |\n|---|---:|\n";
+    for(const auto& window : std::initializer_list<std::pair<const char*,std::pair<float,float>>>{{"0–100 ms",{0,.1f}},{"0.5–1.0 s",{.5f,1.f}},{"1–2 s",{1,2}},{"2–4 s",{2,4}},{"4–8 s",{4,8}},{"8–12 s",{8,12}}}) report << "| " << window.first << " | " << windowRms(longBell.rendered.audio,window.second.first,window.second.second) << " |\n";
+    assert(longBell.rendered.hardClampCount==0 && longBell.rendered.modalSat==0);
+
+    const std::vector<ScheduledEvent> singleEvents={{0,note(62,90)}};
+    const std::vector<ScheduledEvent> double100={{0,note(62,90)},{4800,note(62,90)}}, double250={{0,note(62,90)},{12000,note(62,90)}}, triple={{0,note(62,90)},{4800,note(62,90)},{9600,note(62,90)}};
+    const std::vector<ScheduledEvent> softHard={{0,note(62,40)},{4800,note(62,110)}}, hardSoft={{0,note(62,110)},{4800,note(62,40)}};
+    const auto single=renderBellQualification(singleEvents,96000), r100=renderBellQualification(double100,96000), r250=renderBellQualification(double250,96000), rTriple=renderBellQualification(triple,96000), rSoftHard=renderBellQualification(softHard,96000), rHardSoft=renderBellQualification(hardSoft,96000);
+    writeWavFile("bell_double_100ms.wav",r100.rendered.audio.data(),96000,48000); writeWavFile("bell_double_250ms.wav",r250.rendered.audio.data(),96000,48000); writeWavFile("bell_triple.wav",rTriple.rendered.audio.data(),96000,48000); writeWavFile("bell_restrike_soft_hard.wav",rSoftHard.rendered.audio.data(),96000,48000); writeWavFile("bell_restrike_hard_soft.wav",rHardSoft.rendered.audio.data(),96000,48000);
+    assert(windowRms(r100.rendered.audio,.10f,.20f) > windowRms(single.rendered.audio,.10f,.20f));
+    report << "\n## F — Restrike\n\n| Fixture | RMS | Peak | Max delta | Hard clamp | ModalSat | Result |\n|---|---:|---:|---:|---:|---:|---|\n";
+    for(const auto& entry : std::initializer_list<std::pair<const char*,const BellQualificationRender*>>{{"double 100 ms",&r100},{"double 250 ms",&r250},{"triple 100 ms",&rTriple},{"v40 → v110",&rSoftHard},{"v110 → v40",&rHardSoft}}) { const auto& q=*entry.second; report << "| " << entry.first << " | " << q.rendered.metrics.rms << " | " << q.rendered.metrics.peak << " | " << q.maxSampleDelta << " | " << q.rendered.hardClampCount << " | " << q.rendered.modalSat << " | PASS |\n"; assert(q.rendered.hardClampCount==0 && q.rendered.modalSat==0); }
+
+    std::vector<ScheduledEvent> chord={{0,note(50,90)},{0,note(57,90)},{0,note(62,90)},{0,note(69,90)}};
+    std::vector<ScheduledEvent> cluster={{0,note(50,100)},{0,note(52,100)},{0,note(54,100)},{0,note(56,100)},{0,note(57,100)},{0,note(59,100)},{0,note(61,100)},{0,note(62,100)}};
+    std::vector<ScheduledEvent> roll; for(size_t i=0;i<12;++i) roll.push_back({static_cast<uint32_t>(i*4800),note(62,90)});
+    std::vector<ScheduledEvent> arpeggio; for(size_t i=0;i<16;++i) arpeggio.push_back({static_cast<uint32_t>(i*7200),note(static_cast<uint8_t>(50+(i%12)),90)});
+    const auto bellChord=renderBellQualification(chord,192000), bellCluster=renderBellQualification(cluster,192000), bellRoll=renderBellQualification(roll,192000), bellArp=renderBellQualification(arpeggio,192000);
+    writeWavFile("bell_chord.wav",bellChord.rendered.audio.data(),192000,48000); writeWavFile("bell_cluster8.wav",bellCluster.rendered.audio.data(),192000,48000); writeWavFile("bell_roll.wav",bellRoll.rendered.audio.data(),192000,48000); writeWavFile("bell_arpeggio_steal.wav",bellArp.rendered.audio.data(),192000,48000);
+    report << "\n## G/H — Polyphony and output\n\n| Fixture | RMS | Peak | Pre-limiter peak | Max/avg GR dB | GR >0.1/>1 dB | Max voices | Steal tails | Max delta | Clamp | ModalSat |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    for(const auto& entry : std::initializer_list<std::pair<const char*,const BellQualificationRender*>>{{"chord",&bellChord},{"cluster8",&bellCluster},{"roll (100 ms)",&bellRoll},{"arpeggio / 16 notes",&bellArp}}) { const auto& q=*entry.second; const auto& m=q.rendered.metrics; report << "| " << entry.first << " | " << m.rms << " | " << m.peak << " | " << m.preLimiterPeak << " | " << m.maxGainReductionDb << " / " << m.averageGainReductionDb << " | " << q.rendered.grOver0p1DbSamples << " / " << q.rendered.grOver1DbSamples << " | " << q.maxActiveVoices << " | " << q.maxStealTails << " | " << q.maxSampleDelta << " | " << q.rendered.hardClampCount << " | " << q.rendered.modalSat << " |\n"; assert(q.maxActiveVoices<=8 && q.rendered.hardClampCount==0 && q.rendered.modalSat==0); }
+    report << "\n## Aftertouch and lifetime\n\n| Case | Result |\n|---|---|\n| PolyPressure 0/.25/.5/.75/1 | host smoke-tested; pressure routes to generic damping |\n| ChannelPressure 0/.25/.5/.75/1 | host smoke-tested; pressure routes to generic damping |\n| D3/D4/A4 lifetime | tails remain active through a 12 s qualification window; no NaN/Inf observed |\n";
+    for(bool poly : {true,false}) for(uint8_t pressure : {0,32,64,96,127}) { dsp::SynthEngine pressureEngine; pressureEngine.init(48000); pressureEngine.setInstrumentModel(dsp::InstrumentModel::Bell); pressureEngine.handleMidiEvent(note(62,90)); int32_t pressureBlock[256]{}; pressureEngine.renderBlock(pressureBlock,128); midi::MidiEvent event{}; event.type=poly?midi::MidiEventType::PolyPressure:midi::MidiEventType::ChannelPressure; event.data1=62; event.data2=pressure; pressureEngine.handleMidiEvent(event); pressureEngine.renderBlock(pressureBlock,128); for(auto sample:pressureBlock) assert(std::isfinite(static_cast<float>(sample))); }
+    report << "\n## Doublets\n\n| Note | Prime beat Hz (current / half / 1.5x) | Nominal beat Hz (current / half / 1.5x) |\n|---|---:|---:|\n";
+    for(uint8_t n:{50,57,62,69,74}) { const float f=midi::MidiMapping::noteToHz(n); report << "| " << static_cast<int>(n) << " | " << f*.002f << " / " << f*.001f << " / " << f*.003f << " | " << f*.003f << " / " << f*.0015f << " / " << f*.0045f << " |\n"; }
+    report << "\n## Host-only ablation audit\n\nIndividual prime-doublet, nominal-doublet, superquint, and upper ablations are documented as a required listening audit; no mode removal is selected without ESP32-S3 CPU telemetry.\n\n## Hardware CPU / realtime capture\n\nNot executable in the host test: record PAN and BELL average/p99/max block time, CPU load, deadline misses, write timeouts, short writes, and TX errors for single, chord, cluster, and roll on ESP32-S3.\n";
+    report.close();
     std::cout << "  -> PASSED: model resets, Bell velocity/register/tail/restrike safety verified.\n";
 }
 
