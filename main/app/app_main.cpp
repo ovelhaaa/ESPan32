@@ -34,6 +34,10 @@ pocketpan::ui::AudioTelemetryPublisher sTelemetryPub;
 pocketpan::ui::UiState sUiState;
 // UI/Core 1 requests; audio/Core 0 consumes at the next block boundary.
 std::atomic<bool> sSynthResetRequested{false};
+// UI/Core 1 selects the next model; Core 0 performs the complete model reset
+// at an audio block boundary so no DSP state crosses PAN/BELL.
+std::atomic<bool> sBellModelSelected{false};
+std::atomic<bool> sModelChangeRequested{false};
 
 // Static telemetry state maintained on Core 0
 pocketpan::ui::AudioTelemetrySnapshot sAudioSnapshot{};
@@ -42,6 +46,11 @@ uint8_t sTelemetryDivider = 0;
 // Real-Time Audio Callback - Runs strictly on Core 0 at high priority (zero formatting, zero heap, zero mutex)
 void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames) {
     // SynthEngine is owned exclusively by this Core 0 callback.
+    if (sModelChangeRequested.exchange(false, std::memory_order_acq_rel)) {
+        const auto model = sBellModelSelected.load(std::memory_order_acquire)
+            ? pocketpan::dsp::InstrumentModel::Bell : pocketpan::dsp::InstrumentModel::Pan;
+        sSynth.setInstrumentModel(model);
+    }
     if (sSynthResetRequested.exchange(false, std::memory_order_acq_rel)) {
         sSynth.killAllVoices();
     }
@@ -139,16 +148,19 @@ void uiTaskLoop(void* param) {
     size_t scaleIdx = 0;
 
     while (true) {
-        // 1. Check Boot Button to toggle screens
+        // 1. Check BOOT. Short presses navigate diagnostics; a long press
+        // safely switches PAN/BELL on the audio core.
         const bool btnPressed = (gpio_get_level(static_cast<gpio_num_t>(pocketpan::board::ui::kBootButtonGpio)) == 0);
         const uint32_t nowMs = static_cast<uint32_t>(xTaskGetTickCount() * portTICK_PERIOD_MS);
         if (btnPressed && lastBootBtnState) { pressStartMs = nowMs; longPressHandled = false; }
-        if (btnPressed && sUiState.mode == pocketpan::ui::UiScreenMode::AudioDiagnostic &&
-            !longPressHandled && nowMs - pressStartMs >= 800) {
-            // Publish PAN then request a Core 0 reset; never mutate SynthEngine here.
+        if (btnPressed && !longPressHandled && nowMs - pressStartMs >= 800) {
+            const bool bell = !sBellModelSelected.load(std::memory_order_acquire);
+            sBellModelSelected.store(bell, std::memory_order_release);
+            sModelChangeRequested.store(true, std::memory_order_release);
+            // A model switch must be audible, never hidden behind diagnostic playback.
             sDiagnosticTone.setTone(pocketpan::dsp::DiagnosticTone::Pan);
-            sSynthResetRequested.store(true, std::memory_order_release);
             sUiState.mode = pocketpan::ui::UiScreenMode::Status;
+            snprintf(sUiState.presetName, sizeof(sUiState.presetName), "%s", bell ? "BELL" : "PAN");
             longPressHandled = true;
         }
         if (!btnPressed && !lastBootBtnState && !longPressHandled) {

@@ -660,6 +660,7 @@ struct BellQualificationRender {
     size_t maxStealTails = 0;
     float maxSampleDelta = 0.0f;
     size_t finalActiveVoices = 0;
+    uint32_t voiceStealCount = 0;
 };
 
 BellQualificationRender renderBellQualification(const std::vector<ScheduledEvent>& events, size_t totalFrames) {
@@ -679,6 +680,7 @@ BellQualificationRender renderBellQualification(const std::vector<ScheduledEvent
         result.maxStealTails = std::max(result.maxStealTails, engine.getVoiceAllocator().getActiveStealTailCount());
     }
     result.finalActiveVoices = engine.getVoiceAllocator().getActiveVoiceCount();
+    result.voiceStealCount = engine.getVoiceAllocator().getVoiceStealCount();
     result.rendered.metrics = computeMetrics(result.rendered.audio, engine.getSoftClipCount());
     result.rendered.metrics.preLimiterPeak = engine.getPreLimiterPeak(); result.rendered.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
     result.rendered.metrics.averageGainReductionDb = engine.getAverageGainReductionDb(); result.rendered.hardClampCount = engine.getHardClampCount(); result.rendered.modalSat = engine.getModalInternalSaturationCount();
@@ -749,6 +751,62 @@ void testBellM62Qualification() {
     dsp::VoiceAllocator allocator; allocator.init(48000); for(size_t i=0;i<16;++i) { allocator.noteOn(uint8_t(50+i),.8f,midi::MidiMapping::noteToHz(uint8_t(50+i))); std::vector<float> tmp(4800); allocator.renderBlock(tmp.data(),tmp.size()); } assert(allocator.getVoiceStealCount()>0 && allocator.getActiveVoiceCount()<=8);
     report<<"Bell steal count="<<allocator.getVoiceStealCount()<<", max active="<<stealQ.maxActiveVoices<<", max steal tails="<<stealQ.maxStealTails<<", max delta="<<stealQ.maxSampleDelta<<" (PASS).\n";
     report<<"\n## Freeze\n\nBell V1 freeze = undecided pending hardware listening. A remains the production preset; B and C are deterministic host-only candidates.\n\n## Hardware CPU\n\nREQUIRES PHYSICAL VALIDATION: PAN/BELL single, chord, cluster8, roll; avg/p99/max block time, load, deadline misses, I2S write failures.\n";
+    report.close();
+}
+
+struct BellLifetime {
+    float inactiveSeconds = 15.0f;
+    float rms500msBefore = 0.0f;
+    float rms250msBefore = 0.0f;
+    float finalActiveRms = 0.0f;
+};
+
+BellLifetime measureBellTimeToInactive(uint8_t note, uint8_t velocity) {
+    constexpr size_t kBlock=128, kMaxFrames=15*48000;
+    dsp::SynthEngine engine; engine.init(48000); engine.setInstrumentModel(dsp::InstrumentModel::Bell);
+    midi::MidiEvent on{}; on.type=midi::MidiEventType::NoteOn; on.data1=note; on.data2=velocity; engine.handleMidiEvent(on);
+    std::vector<int32_t> audio; audio.reserve(kMaxFrames*2); size_t rendered=0;
+    while(rendered<kMaxFrames) { int32_t block[kBlock*2]{}; engine.renderBlock(block,kBlock); audio.insert(audio.end(),block,block+kBlock*2); rendered+=kBlock; if(engine.getVoiceAllocator().getActiveVoiceCount()==0) break; }
+    BellLifetime result; result.inactiveSeconds=static_cast<float>(rendered)/48000.0f;
+    const auto before=[&](float seconds, float width) { const float end=result.inactiveSeconds-seconds; return end>0 ? windowRms(audio,std::max(0.0f,end-width),end) : 0.0f; };
+    result.rms500msBefore=before(.5f,.1f); result.rms250msBefore=before(.25f,.1f); result.finalActiveRms=before(0.0f,.1f);
+    assert(engine.getVoiceAllocator().getActiveVoiceCount()==0 && result.inactiveSeconds<15.0f);
+    return result;
+}
+
+void testBellM621FreezeQualification() {
+    std::cout << "[Test 20] Bell M6.2.1 freeze listening package...\n";
+    auto note=[](uint8_t n,uint8_t v){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    dsp::ModalPreset a=dsp::kPresetBell, b=dsp::kPresetBell, c=dsp::kPresetBell;
+    b.modes[3].gain=.58f; c.modes[0].gain=.24f; c.modes[3].gain=.58f; c.modes[5].gain=.90f;
+    const std::array<std::pair<char,const dsp::ModalPreset*>,3> candidates={{{'A',&a},{'B',&b},{'C',&c}}};
+    std::ofstream report("bell_m621_freeze.md"); report<<std::fixed<<std::setprecision(6);
+    report << "# Bell M6.2.1 freeze qualification\n\nA remains production; B/C are deterministic host-only candidates. C is the recommended listening candidate, not an automatic promotion.\n\n## A/B/C\n\n| Candidate | D4 v70 RMS | D4 v110 RMS | Hum/Prime v110 | Tierce/Prime v110 | Nominal/Prime v110 | Upper/Primary v110 | Max GR |\n|---|---:|---:|---:|---:|---:|---:|---:|\n";
+    for(const auto& candidate:candidates) { auto v70=renderBellCandidate({{0,note(62,70)}},96000,*candidate.second); auto v110=renderBellCandidate({{0,note(62,110)}},96000,*candidate.second); auto e=bellModalEnergies(v110.rendered.audio,midi::MidiMapping::noteToHz(62)); report<<"| "<<candidate.first<<" | "<<v70.rendered.metrics.rms<<" | "<<v110.rendered.metrics.rms<<" | "<<e[0]/e[1]<<" | "<<e[2]/e[1]<<" | "<<e[4]/e[1]<<" | "<<e[7]/std::max(e[1]+e[4],1e-12f)<<" | "<<v110.rendered.metrics.maxGainReductionDb<<" |\n"; assert(v70.rendered.audio==renderBellCandidate({{0,note(62,70)}},96000,*candidate.second).rendered.audio); }
+    report << "\n## Loudness-matched verification (A is reference)\n\n| Fixture | Candidate | Raw RMS | Matched RMS | Target A RMS | Delta dB | Result |\n|---|---|---:|---:|---:|---:|---|\n";
+    const std::vector<std::pair<const char*,std::vector<ScheduledEvent>>> fixtures={
+        {"D4_v70",{{0,note(62,70)}}}, {"D4_v110",{{0,note(62,110)}}},
+        {"chord",{{0,note(50,90)},{0,note(57,90)},{0,note(62,90)},{0,note(69,90)}}},
+        {"roll",{{0,note(62,90)},{4800,note(62,90)},{9600,note(62,90)},{14400,note(62,90)},
+                 {19200,note(62,90)},{24000,note(62,90)},{28800,note(62,90)},{33600,note(62,90)}}}
+    };
+    for(const auto& fixture:fixtures) {
+        const size_t frames=std::string(fixture.first)=="D4_v70" || std::string(fixture.first)=="D4_v110" ? 96000 : 192000;
+        const auto reference=renderBellCandidate(fixture.second,frames,a); const float target=reference.rendered.metrics.rms;
+        for(const auto& candidate:candidates) { const auto q=renderBellCandidate(fixture.second,frames,*candidate.second); const std::string base=std::string("bell_m621_")+fixture.first+"_"+candidate.first; writeWavFile((base+".wav").c_str(),q.rendered.audio.data(),frames,48000); writeRmsMatchedWav((base+"_matched.wav").c_str(),q.rendered.audio,target);
+            std::vector<int32_t> matched(q.rendered.audio.size()); const float gain=target/std::max(q.rendered.metrics.rms,1e-12f); for(size_t i=0;i<matched.size();++i) matched[i]=static_cast<int32_t>(std::clamp(double(q.rendered.audio[i])*gain,-2147483648.0,2147483647.0)); const float rms=computeMetrics(matched,0).rms; const float delta=dbRelative(rms,target); assert(std::abs(delta)<.05f); if(candidate.first!='A' && std::abs(dbRelative(q.rendered.metrics.rms,target))>.001f) assert(fnv1a64(q.rendered.audio)!=fnv1a64(matched)); report<<"| "<<fixture.first<<" | "<<candidate.first<<" | "<<q.rendered.metrics.rms<<" | "<<rms<<" | "<<target<<" | "<<delta<<" | PASS |\n";
+        }
+    }
+    std::vector<ScheduledEvent> steal; for(size_t i=0;i<16;++i) steal.push_back({uint32_t(i*6000),note(uint8_t(50+i),100)});
+    const auto stolen=renderBellQualification(steal,144000); assert(stolen.voiceStealCount>=8 && stolen.maxActiveVoices<=8 && stolen.rendered.hardClampCount==0 && stolen.rendered.modalSat==0);
+    report<<"\n## Bell-specific stealing\n\n| Events | Steal count | Max active | Max tails | Max sample delta | Clamp | ModalSat |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16 notes / 125 ms | "<<stolen.voiceStealCount<<" | "<<stolen.maxActiveVoices<<" | "<<stolen.maxStealTails<<" | "<<stolen.maxSampleDelta<<" | "<<stolen.rendered.hardClampCount<<" | "<<stolen.rendered.modalSat<<" |\n";
+    report<<"\n## Lifetime\n\n| Note | Time to inactive s | RMS 500 ms before | RMS 250 ms before | Final active RMS |\n|---|---:|---:|---:|---:|\n";
+    for(const auto& item:std::initializer_list<std::pair<const char*,uint8_t>>{{"D3",50},{"D4",62},{"A4",69}}) { const auto life=measureBellTimeToInactive(item.second,90); report<<"| "<<item.first<<" | "<<life.inactiveSeconds<<" | "<<life.rms500msBefore<<" | "<<life.rms250msBefore<<" | "<<life.finalActiveRms<<" |\n"; }
+    report<<"\n## Doublets (D4 v90, 10 s)\n\n| Family | Candidate | Ratio | Expected beat Hz @ D4 |\n|---|---|---:|---:|\n";
+    const float f=midi::MidiMapping::noteToHz(62);
+    for(const auto& split:std::initializer_list<std::pair<const char*,float>>{{"half",.001f},{"current",.002f},{"1p5x",.003f}}) { auto p=a; p.modes[2].ratio=1.0f+split.second; auto q=renderBellCandidate({{0,note(62,90)}},480000,p); writeWavFile((std::string("bell_m621_prime_")+split.first+".wav").c_str(),q.rendered.audio.data(),480000,48000); report<<"| prime | "<<split.first<<" | "<<p.modes[2].ratio<<" | "<<f*split.second<<" |\n"; }
+    for(const auto& split:std::initializer_list<std::pair<const char*,float>>{{"half",.00075f},{"current",.0015f},{"1p5x",.00225f}}) { auto n=a; n.modes[6].ratio=2.0f+split.second; auto q=renderBellCandidate({{0,note(62,90)}},480000,n); writeWavFile((std::string("bell_m621_nominal_")+split.first+".wav").c_str(),q.rendered.audio.data(),480000,48000); report<<"| nominal | "<<split.first<<" | "<<n.modes[6].ratio<<" | "<<f*split.second<<" |\n"; }
+    report<<"\n## Freeze recommendation\n\nA = richest / most inharmonic; B = clearer A; C = strongest tonal center. **Recommended listening candidate = C.** Bell V1 freeze = undecided pending listening.\n\n## Hardware CPU\n\nREQUIRES PHYSICAL VALIDATION: PAN/BELL single, chord, cluster8, roll; avg/p99/max block time, CPU load, deadline misses.\n";
     report.close();
 }
 
@@ -830,7 +888,7 @@ void testM6ModelArchitectureAndBell() {
     writeWavFile("bell_chord.wav",bellChord.rendered.audio.data(),192000,48000); writeWavFile("bell_cluster8.wav",bellCluster.rendered.audio.data(),192000,48000); writeWavFile("bell_roll.wav",bellRoll.rendered.audio.data(),192000,48000); writeWavFile("bell_arpeggio_steal.wav",bellArp.rendered.audio.data(),192000,48000);
     report << "\n## G/H — Polyphony and output\n\n| Fixture | RMS | Peak | Pre-limiter peak | Max/avg GR dB | GR >0.1/>1 dB | Max voices | Steal tails | Max delta | Clamp | ModalSat |\n|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
     for(const auto& entry : std::initializer_list<std::pair<const char*,const BellQualificationRender*>>{{"chord",&bellChord},{"cluster8",&bellCluster},{"roll (100 ms)",&bellRoll},{"arpeggio / 16 notes",&bellArp}}) { const auto& q=*entry.second; const auto& m=q.rendered.metrics; report << "| " << entry.first << " | " << m.rms << " | " << m.peak << " | " << m.preLimiterPeak << " | " << m.maxGainReductionDb << " / " << m.averageGainReductionDb << " | " << q.rendered.grOver0p1DbSamples << " / " << q.rendered.grOver1DbSamples << " | " << q.maxActiveVoices << " | " << q.maxStealTails << " | " << q.maxSampleDelta << " | " << q.rendered.hardClampCount << " | " << q.rendered.modalSat << " |\n"; assert(q.maxActiveVoices<=8 && q.rendered.hardClampCount==0 && q.rendered.modalSat==0); }
-    report << "\n## Aftertouch and lifetime\n\n| Case | Result |\n|---|---|\n| PolyPressure 0/.25/.5/.75/1 | host smoke-tested; pressure routes to generic damping |\n| ChannelPressure 0/.25/.5/.75/1 | host smoke-tested; pressure routes to generic damping |\n| D3/D4/A4 lifetime | tails remain active through a 12 s qualification window; no NaN/Inf observed |\n";
+    report << "\n## Aftertouch and lifetime\n\n| Case | Result |\n|---|---|\n| PolyPressure 0/.25/.5/.75/1 | host smoke-tested; pressure routes to generic damping |\n| ChannelPressure 0/.25/.5/.75/1 | host smoke-tested; pressure routes to generic damping |\n| D3/D4/A4 lifetime | measured time-to-inactive and cutoff-window RMS: see `bell_m621_freeze.md` |\n";
     for(bool poly : {true,false}) for(uint8_t pressure : {0,32,64,96,127}) { dsp::SynthEngine pressureEngine; pressureEngine.init(48000); pressureEngine.setInstrumentModel(dsp::InstrumentModel::Bell); pressureEngine.handleMidiEvent(note(62,90)); int32_t pressureBlock[256]{}; pressureEngine.renderBlock(pressureBlock,128); midi::MidiEvent event{}; event.type=poly?midi::MidiEventType::PolyPressure:midi::MidiEventType::ChannelPressure; event.data1=poly?62:pressure; event.data2=poly?pressure:0; pressureEngine.handleMidiEvent(event); pressureEngine.renderBlock(pressureBlock,128); for(auto sample:pressureBlock) assert(std::isfinite(static_cast<float>(sample))); }
     report << "\n## Doublets\n\n| Note | Prime beat Hz (current / half / 1.5x) | Nominal beat Hz (current / half / 1.5x) |\n|---|---:|---:|\n";
     for(uint8_t n:{50,57,62,69,74}) { const float f=midi::MidiMapping::noteToHz(n); report << "| " << static_cast<int>(n) << " | " << f*.002f << " / " << f*.001f << " / " << f*.003f << " | " << f*.003f << " / " << f*.0015f << " / " << f*.0045f << " |\n"; }
@@ -1481,6 +1539,7 @@ int main() {
     testM5dVoicingFreeze();
     testM6ModelArchitectureAndBell();
     testBellM62Qualification();
+    testBellM621FreezeQualification();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

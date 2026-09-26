@@ -67,7 +67,7 @@ void UiRenderer::renderStatus(const UiState& state) {
 
     // Footer tip
     display_.drawFastHLine(0, 115, hardware::Display::kWidth, hardware::colors::DarkGray);
-    display_.drawText(12, 122, "BOOT BTN: TOGGLE DIAG", hardware::colors::Gray, 1);
+    display_.drawText(12, 122, "BOOT: SHORT DIAG / HOLD MODEL", hardware::colors::Gray, 1);
 }
 
 void UiRenderer::renderDiagnostic(const UiState& state) {
