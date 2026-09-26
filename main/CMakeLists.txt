@@ -40,9 +40,11 @@ target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 # values rebuilds only this component; production defaults remain unchanged.
 set(POCKETPAN_DSP_CANDIDATE 0 CACHE STRING "Isolated M6.3.1 DSP experiment")
 set(POCKETPAN_FORENSICS_CRITICAL_ONLY 0 CACHE STRING "Measure only the three failing fixtures")
+set(POCKETPAN_FORENSICS_DISCONNECTED 0 CACHE STRING "Diagnostic BLE scan without connecting")
 target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE}
-    POCKETPAN_FORENSICS_CRITICAL_ONLY=${POCKETPAN_FORENSICS_CRITICAL_ONLY})
+    POCKETPAN_FORENSICS_CRITICAL_ONLY=${POCKETPAN_FORENSICS_CRITICAL_ONLY}
+    POCKETPAN_FORENSICS_DISCONNECTED=${POCKETPAN_FORENSICS_DISCONNECTED})
 
 if(POCKETPAN_DSP_CANDIDATE STREQUAL "8")
     # Separate -O3 experiment; never enable fast-math or change global flags.

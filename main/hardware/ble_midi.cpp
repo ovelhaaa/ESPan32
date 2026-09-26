@@ -157,6 +157,11 @@ int bleGapEvent(struct ble_gap_event* event, void* arg) {
                 }
             }
 
+#if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS) && POCKETPAN_FORENSICS_DISCONNECTED
+            // Measurement scenario only: keep the radio/host scanning, but
+            // decline discovered peripherals instead of changing production.
+            matchesMidi = false;
+#endif
             if (matchesMidi) {
                 ESP_LOGI(kTag, "BLE MIDI device found (%02X:%02X:%02X:%02X:%02X:%02X); connecting",
                          event->disc.addr.val[5], event->disc.addr.val[4], event->disc.addr.val[3],

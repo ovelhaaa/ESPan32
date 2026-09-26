@@ -251,7 +251,8 @@ void uiTaskLoop(void* param) {
 
         sUiState.bleConnected = sBleMidi.isConnected();
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
-        pocketpan::forensics::ready.store(sBleMidi.isMidiReady(), std::memory_order_release);
+        pocketpan::forensics::ready.store(POCKETPAN_FORENSICS_DISCONNECTED
+            ? !sBleMidi.isConnected() : sBleMidi.isMidiReady(), std::memory_order_release);
         pocketpan::forensics::logCompleted();
 #endif
         sBleMidi.poll(); // low-rate BLE RSSI request; never called by audio task
