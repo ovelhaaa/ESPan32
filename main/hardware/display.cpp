@@ -225,7 +225,13 @@ bool Display::init(uint8_t* framebuffer) {
 
 void Display::update() {
     if (!panelHandle_ || !framebuffer_) return;
+#if defined(POCKETPAN_TAIL_NO_LCD_TRANSFER) && POCKETPAN_TAIL_NO_LCD_TRANSFER
+    // M6.3.5 Phase C, diagnostic variant U1 only: UI logic and framebuffer
+    // rendering stay on, but the SPI/GDMA bitmap transfer is skipped.
+    return;
+#else
     esp_lcd_panel_draw_bitmap(panelHandle_, 0, 0, kWidth, kHeight, framebuffer_);
+#endif
 }
 
 void Display::clear(uint16_t color) {

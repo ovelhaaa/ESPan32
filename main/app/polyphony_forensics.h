@@ -35,6 +35,9 @@ struct Timing {
 struct Result {
     Timing steady, event;
     uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0;
+    // Diagnostic counters for the M6.3.5 fast paths.  Read from the allocator at
+    // fixture completion only; never touched by DSP processing.
+    uint32_t stable8 = 0, attack = 0;
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
     // Keep the sparse steady samples and every NoteOn block separate.  Event
     // blocks include deliberate trigger work, so blending them into the
@@ -132,6 +135,12 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
     if (++block == CONFIG_POCKETPAN_FORENSICS_BLOCKS) {
         r.hardClamp += synth.getHardClampCount(); r.modalSat = synth.getModalInternalSaturationCount();
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+        r.stable8 = synth.getVoiceAllocator().getPanStable8BlocksForTest();
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+        r.attack = synth.getVoiceAllocator().getAttackFastPathBlocksForTest();
+#endif
         completed.store(++fixture, std::memory_order_release); block = 0;
     }
 }
@@ -150,6 +159,20 @@ inline void logCompleted() {
             for (unsigned i = 0; i < t.bins.size(); ++i) if (t.bins[i])
                 ESP_LOGI("forensics", "[HIST] fixture=%u class=%s lower_us=%u n=%u", id,
                     e ? "event" : "steady", i * 25, (unsigned)t.bins[i]);
+        }
+        {
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+            const unsigned stable8 = (unsigned)r.stable8;
+#else
+            const unsigned stable8 = 0;
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+            const unsigned attack = (unsigned)r.attack;
+#else
+            const unsigned attack = 0;
+#endif
+            ESP_LOGI("forensics", "[FASTPATH] fixture=%u stable8=%u attack=%u",
+                     id, stable8, attack);
         }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
         for (unsigned e = 0; e < 2; ++e) {

@@ -1,0 +1,5 @@
+# M6.3.5 production smoke: no forensics, no profiling; periodic qualification
+# logs only (UI task).  This mirrors a shipping build apart from logging.
+# CONFIG_POCKETPAN_POLYPHONY_FORENSICS is not set
+# CONFIG_POCKETPAN_DSP_PROFILE is not set
+CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG=y

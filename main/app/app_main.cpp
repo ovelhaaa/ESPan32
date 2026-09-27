@@ -44,6 +44,24 @@ std::atomic<bool> sModelChangeRequested{false};
 pocketpan::ui::AudioTelemetrySnapshot sAudioSnapshot{};
 uint8_t sTelemetryDivider = 0;
 
+#if defined(POCKETPAN_TAIL_NO_UI) && POCKETPAN_TAIL_NO_UI
+#if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS)
+// M6.3.5 Phase C U2 support: the UI task is suspended, so a minimal task keeps
+// publishing the forensics curves.  It performs no rendering and no LCD I/O.
+void forensicsLogTask(void* param) {
+    (void)param;
+    while (true) {
+        // The UI task normally publishes `ready`; with UI suspended this task
+        // must, or the fixture would never leave its silence gate.
+        pocketpan::forensics::ready.store(POCKETPAN_FORENSICS_DISCONNECTED
+            ? !sBleMidi.isConnected() : sBleMidi.isMidiReady(), std::memory_order_release);
+        pocketpan::forensics::logCompleted();
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+#endif
+#endif
+
 // Real-Time Audio Callback - Runs strictly on Core 0 at high priority (zero formatting, zero heap, zero mutex)
 void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames) {
     // SynthEngine is owned exclusively by this Core 0 callback.
@@ -133,6 +151,13 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
 
 // UI Task - Runs strictly on Core 1 at ~30 Hz
 void uiTaskLoop(void* param) {
+#if defined(POCKETPAN_TAIL_NO_UI) && POCKETPAN_TAIL_NO_UI
+    // M6.3.5 Phase C, diagnostic variant U2 only: the UI task goes inactive
+    // after startup.  Audio and BLE remain fully operational; the dedicated
+    // low-rate logger task below still emits the forensics results.
+    (void)param;
+    vTaskSuspend(nullptr);
+#endif
     pocketpan::ui::UiRenderer renderer(sDisplay);
 
     // Configure onboard BOOT button (GPIO0) for toggling between Status and MidiDiagnostic screens
@@ -369,6 +394,12 @@ extern "C" void app_main(void) {
         nullptr,
         pocketpan::board::ui::kTaskCore // Core 1
     );
+
+#if defined(POCKETPAN_TAIL_NO_UI) && POCKETPAN_TAIL_NO_UI
+#if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS)
+    xTaskCreatePinnedToCore(forensicsLogTask, "fx_log", 8192, nullptr, 4, nullptr, 1);
+#endif
+#endif
 
     ESP_LOGI(kTag, "Pocket Pan initialization complete. Realtime audio active.");
 }
