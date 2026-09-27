@@ -2,19 +2,76 @@
 
 Branch: `codex/m632-modal-note-cache`. Entry baseline: `58a2117`
 (production candidate **20**). This pass adds the M6.3.5 candidate matrix
-**22–25** on top of the validated candidate 20; the default production candidate
-is deliberately **left at 20** because no connected hardware gate was executed
-(see "Hardware status" below).
+**22–25** on top of the validated candidate 20.
+
+> **Update:** the connected qualification and Phase C tail isolation that were
+> originally "pending hardware" have since been executed on the physical board.
+> See **"Hardware qualification — completed"** below. The original
+> hardware-pending section is retained verbatim for traceability and marked as
+> superseded.
 
 ---
 
-## Hardware status (must read first)
+## Hardware qualification — completed
+
+Board: ESP32-S3 (QFN56) rev v0.2, MAC `b4:3a:45:ae:6f:28`, USB-Serial/JTAG on
+**COM10**, 4 MB flash / 2 MB PSRAM, 240 MHz. ESP-IDF **5.3.0**. BLE-MIDI central
+connected to a real peripheral (**SMK25V2**), `state=8 (Ready)`,
+connection interval **11.25 ms**, latency 0. Forensics builds, **profiling
+OFF**, `POCKETPAN_FORENSICS_BLOCKS=8192`, `CRITICAL_ONLY=1`, `DISCONNECTED=0`,
+`bad_voices=0`, `ble_lost=0`, `hard=0`, `sat=0` in every row. Raw captures under
+`docs/hardware/m635_*`. Comparison tables in
+`docs/hardware/m635_candidate_comparison.md`.
+
+### Result summary
+
+```text
+Host regression (c20/c25) ............ PASS 8/8
+ESP-IDF build ........................ PASS
+candidate 25 vs 20 (steady)
+  PAN cluster8   avg 1754.7 -> 1632.4 (-6.96%)
+                 p99 1900   -> 1775   (-6.58%)
+                 max 2389   -> 2038   (-14.7%)
+  BELL cluster8  avg 1617.1 -> 1616.9 ( ~0%)
+                 p99 1775   -> 1750   (-1.4%)
+                 max 2293   -> 2074   (-9.5%)
+  BELL chord4    avg  963.6 ->  963.5 ( ~0%)
+candidate 25 vs 20 (events)
+  PAN cluster8   avg 2821.1 -> 2500.3 (-11.4%)  max 3202 -> 2728
+  BELL chord4    avg 1691.7 -> 1505.9 (-11.0%)  max 1890 -> 1695
+  BELL cluster8  avg 2820.9 -> 2498.9 (-11.4%)  max 3398 -> 2724
+fast-path counters (c25, final cycle) stable8=106 attack=16 (PAN cluster8);
+  stable8=0 attack=8 (BELL chord4); stable8=0 attack=16 (BELL cluster8)
+I/O ................................... timeout 0 short 0 tx 0
+CPU (forensics whole-callback) ........ c20 66.7% peak -> c25 62.2% peak
+```
+
+**M6.3.5 outcome: PARTIAL.** The steady **average** and **max** gates now pass
+(`avg <= 1733`, `max <= 2133`) for both 8-voice clusters; the steady **p99** gate
+does not (PAN 1750–1775 µs, BELL 1750 µs vs the 1733 µs target). Phase C shows
+the residual tail is a **UI-task/rendering/scheduler** artifact, not DSP and not
+the LCD/GDMA transfer (U0≈U1, U2 removes it and brings PAN p99 to 1650–1675 and
+BELL p99 to 1625–1650).
+
+### Promotion
+
+Candidate **25** is promoted to the default (`POCKETPAN_DSP_CANDIDATE 25`) on the
+§22 criteria: host exactness PASS, hardware health PASS (I/O 0/0/0, deadline 0 in
+the production smoke, no `bad_voices`/`ble_lost`), no meaningful regression, and
+connected gains that justify the change. The stop rule (§24) is **not** met
+because of the p99 item above, so generic optimization is paused rather than
+declared closed.
+
+---
+
+## Hardware status (as originally recorded — superseded)
 
 Every connected measurement in the M6.3.x series runs the forensics harness,
 which gates all fixtures on a live BLE-MIDI link
 (`polyphony_forensics.h`: `ready = sBleMidi.isMidiReady()`; while `ready==false`
-`render()` emits silence and records no timing). This session had **no
-BLE-MIDI central/peripheral partner and no authorization to flash**, so:
+`render()` emits silence and records no timing). The first M6.3.5 session had
+**no BLE-MIDI central/peripheral partner and no authorization to flash**, so at
+that time:
 
 ```text
 connected hardware qualification ....... NOT RUN
@@ -22,9 +79,11 @@ Phase C tail isolation (U0/U1/U2) ...... NOT RUN
 final performance gates ................ PENDING HARDWARE
 ```
 
-No hardware number in this document is inferred, interpolated or copied where it
-would be presented as a new measurement. Candidate 20 baseline figures appear
-only as the previously recorded M6.3.4 reference and are labelled as such.
+No hardware number in the original body is inferred, interpolated or copied
+where it would be presented as a new measurement. Candidate 20 baseline figures
+appear only as the previously recorded M6.3.4 reference and are labelled as such.
+The remainder of this document (below the original "Commit(s)" section) preserves
+the design of the M6.3.5 fast paths exactly as reviewed before the hardware pass.
 
 ---
 
@@ -262,29 +321,36 @@ Bell reference WAVs      no drift         PASS (git status clean of WAVs)
 ## Production candidate
 
 ```text
-20 — unchanged.  Candidate 25 is the intended M6.3.5 best-combination
-candidate, but promotion is blocked on the connected hardware gates.  Candidate
-25 must not become the default before those gates run.
+25 — PROMOTED (POCKETPAN_DSP_CANDIDATE default = 25; firmware and host tests).
+Connected-qualified: host exact, BLE Ready, I/O 0/0/0, production deadline 0,
+no bad_voices/ble_lost.  PAN cluster8 steady avg 1754.7 -> 1632.4 (-7.0%) and
+max 2389 -> 2038; events -11.4%; CPU 66.7% -> 62.2%.  Candidate 20 remains
+selectable as the previous baseline.
+Open: the two 8-voice cluster steady p99 (PAN 1775 us, BELL 1750-1775 us) remain
+just above the 1733 us target; Phase C attributes this to the UI task/rendering,
+not DSP.
 ```
 
 ---
 
 ## Bell ablation authorized: NO
 
-PAN cluster is not hardware-qualified as PASS (no hardware run), so the
-authorization rule is not met. No Bell mode ablation was performed or prepared.
+PAN cluster steady p99 still fails (1775 µs > 1733) under the normal UI, so the
+`PAN PASS / Bell FAIL` authorization rule is not met. No Bell mode ablation was
+performed or prepared.
 
 ---
 
 ## Next
 
 ```text
-1. Run connected forensics on candidate 20 vs 25 (ble MIDI ready):
-   PAN/BELL single, chord4, cluster8, roll; 8192 blocks each.
-2. Phase C: U0 / U1 / U2 (and BLE-off if U2 still shows the tail), same
-   fixtures, to attribute the 2150-2350 us residual.
-3. If gates pass: promote 25, STOP optimization, return to Bell V1 freeze.
-4. Bell ablation remains NOT authorized until PAN cluster passes on hardware.
+1. Attack the UI-induced residual p99 tail (U2 proves the audio path itself is
+   already under the gate): reduce UI render cost / move framebuffer work out of
+   the audio-adjacent scheduling window.  Measure; do not change on hypothesis.
+2. Re-run the connected p99 gates.  If PAN + BELL cluster p99 <= 1733 with I/O
+   0/0/0 and deadline 0, M6.3.5 PASS and STOP generic optimization; return to
+   Bell V1 freeze.
+3. Bell ablation remains NOT authorized until PAN cluster p99 passes.
 ```
 
 ## Reproduction

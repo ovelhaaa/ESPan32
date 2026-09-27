@@ -1,0 +1,66 @@
+[0;32mI (122) esp_image: segment 1: paddr=0002ef1c vaddr=3fc9d1[0;32mI (1537) BleMidi: Found BLE MIDI Service! start_handle=112 end_handle=115[0m
+[0;32mI (1537) NimBLE: GATT procedure initiated: discover all characteristics; [0m
+[0;32mI (1547) NimBLE: start_handle=112 end_handle=115
+[0m
+[0;32mI (1637) BleMidi: Found BLE MIDI Characteristic! def_handle=113 val_handle=114 props=0x16[0m
+[0;32mI (1637) NimBLE: GATT procedure initiated: discover all descriptors; [0m
+[0;32mI (1647) NimBLE: chr_val_handle=114 end_handle=115
+[0m
+[0;32mI (1737) BleMidi: Discovered CCCD (0x2902) handle=115[0m
+[0;32mI (1737) NimBLE: GATT procedure initiated: write; [0m
+[0;32mI (1737) NimBLE: att_handle=115 len=2
+[0m
+[0;32mI (1797) BleMidi: Negotiated params interval=7.50ms latency=0 timeout=2000ms[0m
+[0;32mI (1817) BleMidi: CCCD subscription successful; BLE MIDI ready[0m
+[0;32mI (1817) NimBLE: GAP procedure initiated: [0m
+[0;32mI (1817) NimBLE: connection parameter update; conn_handle=1 itvl_min=6 itvl_max=9 latency=0 supervision_timeout=100 min_ce_len=0 max_ce_len=0[0m
+[0;32mI (1827) NimBLE: 
+[0m
+[0;32mI (1907) BleMidi: Negotiated params interval=11.25ms latency=0 timeout=1000ms[0m
+[0;32mI (23767) forensics: [CURVE] model=PAN fixture=5 voices=8 class=steady n=8148 avg_us=1621.65 p99_us=1675 max_us=1927 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (23767) forensics: [HIST] fixture=5 class=steady lower_us=1600 n=5725[0m
+[0;32mI (23777) forensics: [HIST] fixture=5 class=steady lower_us=1625 n=2178[0m
+[0;32mI (23787) forensics: [HIST] fixture=5 class=steady lower_us=1650 n=200[0m
+[0;32mI (23797) forensics: [HIST] fixture=5 class=steady lower_us=1800 n=1[0m
+[0;32mI (23797) forensics: [HIST] fixture=5 class=steady lower_us=1875 n=1[0m
+[0;32mI (23807) forensics: [HIST] fixture=5 class=steady lower_us=1900 n=41[0m
+[0;32mI (23817) forensics: [HIST] fixture=5 class=steady lower_us=1925 n=2[0m
+[0;32mI (23817) forensics: [CURVE] model=PAN fixture=5 voices=8 class=event n=44 avg_us=2309.02 p99_us=2525 max_us=2500 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (23837) forensics: [HIST] fixture=5 class=event lower_us=2250 n=1[0m
+[0;32mI (23847) forensics: [HIST] fixture=5 class=event lower_us=2275 n=20[0m
+[0;32mI (23847) forensics: [HIST] fixture=5 class=event lower_us=2300 n=19[0m
+[0;32mI (23857) forensics: [HIST] fixture=5 class=event lower_us=2325 n=2[0m
+[0;32mI (23867) forensics: [HIST] fixture=5 class=event lower_us=2475 n=1[0m
+[0;32mI (23867) forensics: [HIST] fixture=5 class=event lower_us=2500 n=1[0m
+[0;32mI (23877) forensics: [FASTPATH] fixture=5 stable8=106 attack=16[0m
+[0;32mI (45587) forensics: [CURVE] model=BELL fixture=14 voices=4 class=steady n=8148 avg_us=952.56 p99_us=1000 max_us=1153 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (45597) forensics: [HIST] fixture=14 class=steady lower_us=925 n=3713[0m
+[0;32mI (45597) forensics: [HIST] fixture=14 class=steady lower_us=950 n=4108[0m
+[0;32mI (45607) forensics: [HIST] fixture=14 class=steady lower_us=975 n=262[0m
+[0;32mI (45617) forensics: [HIST] fixture=14 class=steady lower_us=1000 n=19[0m
+[0;32mI (45617) forensics: [HIST] fixture=14 class=steady lower_us=1050 n=1[0m
+[0;32mI (45627) forensics: [HIST] fixture=14 class=steady lower_us=1100 n=22[0m
+[0;32mI (45637) forensics: [HIST] fixture=14 class=steady lower_us=1125 n=21[0m
+[0;32mI (45647) forensics: [HIST] fixture=14 class=steady lower_us=1150 n=2[0m
+[0;32mI (45647) forensics: [CURVE] model=BELL fixture=14 voices=4 class=event n=44 avg_us=1331.41 p99_us=1525 max_us=1510 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (45667) forensics: [HIST] fixture=14 class=event lower_us=1300 n=21[0m
+[0;32mI (45677) forensics: [HIST] fixture=14 class=event lower_us=1325 n=18[0m
+[0;32mI (45677) forensics: [HIST] fixture=14 class=event lower_us=1350 n=4[0m
+[0;32mI (45687) forensics: [HIST] fixture=14 class=event lower_us=1500 n=1[0m
+[0;32mI (45697) forensics: [FASTPATH] fixture=14 stable8=0 attack=8[0m
+[0;32mI (67497) forensics: [CURVE] model=BELL fixture=13 voices=8 class=steady n=8148 avg_us=1605.79 p99_us=1650 max_us=1917 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (67497) forensics: [HIST] fixture=13 class=steady lower_us=1575 n=3396[0m
+[0;32mI (67507) forensics: [HIST] fixture=13 class=steady lower_us=1600 n=4303[0m
+[0;32mI (67517) forensics: [HIST] fixture=13 class=steady lower_us=1625 n=376[0m
+[0;32mI (67527) forensics: [HIST] fixture=13 class=steady lower_us=1650 n=23[0m
+[0;32mI (67527) forensics: [HIST] fixture=13 class=steady lower_us=1675 n=3[0m
+[0;32mI (67537) forensics: [HIST] fixture=13 class=steady lower_us=1700 n=2[0m
+[0;32mI (67547) forensics: [HIST] fixture=13 class=steady lower_us=1750 n=1[0m
+[0;32mI (67547) forensics: [HIST] fixture=13 class=steady lower_us=1875 n=3[0m
+[0;32mI (67557) forensics: [HIST] fixture=13 class=steady lower_us=1900 n=41[0m
+[0;32mI (67567) forensics: [CURVE] model=BELL fixture=13 voices=8 class=event n=44 avg_us=2328.26 p99_us=2525 max_us=2505 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0[0m
+[0;32mI (67577) forensics: [HIST] fixture=13 class=event lower_us=2300 n=19[0m
+[0;32mI (67587) forensics: [HIST] fixture=13 class=event lower_us=2325 n=21[0m
+[0;32mI (67597) forensics: [HIST] fixture=13 class=event lower_us=2350 n=3[0m
+[0;32mI (67607) forensics: [HIST] fixture=13 class=event lower_us=2500 n=1[0m
+[0;32mI (67607) forensics: [FASTPATH] fixture=13 stable8=0 attack=16[0m
