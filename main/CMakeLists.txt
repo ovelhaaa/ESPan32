@@ -43,18 +43,36 @@ target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 # Every earlier candidate (0, 4, 5, 9, 11, 12, 13, 14, 16, 17-24) remains
 # selectable for controlled A/B and rollback.  See
 # docs/m635_pan_attack_tail_isolation.md and docs/hardware/m635_candidate_comparison.md.
-set(POCKETPAN_DSP_CANDIDATE 25 CACHE STRING "DSP candidates: 0 scalar, 4 fixed, 5 IRAM, 9 D+E, 11 microkernel, 12 PreparedNote, 13 both, 14 +sustain, 15/16 +sustain, 17-19 tail IRAM, 20 tail IRAM, 21 +attack, 22 +coeff-cache, 23 +stable8, 24 +attack-voice, 25 combo")
+set(POCKETPAN_DSP_CANDIDATE 25 CACHE STRING "DSP candidates: 0 scalar, 4 fixed, 5 IRAM, 9 D+E, 11 microkernel, 12 PreparedNote, 13 both, 14 +sustain, 15/16 +sustain, 17-19 tail IRAM, 20 tail IRAM, 21 +attack, 22 +coeff-cache, 23 +stable8, 24 +attack-voice, 25 combo, 26 +headroom-table/attack-segment")
 set(POCKETPAN_FORENSICS_CRITICAL_ONLY 0 CACHE STRING "Measure only the three failing fixtures")
 set(POCKETPAN_FORENSICS_DISCONNECTED 0 CACHE STRING "Diagnostic BLE scan without connecting")
 # M6.3.5 Phase C tail-source isolation (diagnostic builds only; 0 in production).
 set(POCKETPAN_TAIL_NO_LCD_TRANSFER 0 CACHE STRING "U1: keep UI/framebuffer, skip LCD bitmap transfer")
 set(POCKETPAN_TAIL_NO_UI 0 CACHE STRING "U2: suspend UI task; audio+BLE only")
+# M6.3.6 Phase A UI scheduling isolation (diagnostic builds only; 0 in
+# production).  Each variant keeps the UI task cadence and BLE behavior
+# identical; only the work performed inside the loop changes.
+set(POCKETPAN_UI_LOGIC_ONLY 0 CACHE STRING "U1b: keep UI/control/BLE logic cadence, skip renderer.render() and LCD update")
+set(POCKETPAN_UI_NO_FULL_CLEAR 0 CACHE STRING "U3: keep rendering+LCD, skip unconditional full framebuffer clear (dirty-ish diagnostic)")
+set(POCKETPAN_UI_DIRTY 0 CACHE STRING "M6.3.6 production candidate: event-driven dirty redraw (guarded, default off)")
+set(POCKETPAN_UI_POLL_SEPARATE 0 CACHE STRING "BLE-poll-on-dedicated-low-rate-task diagnostic")
+set(POCKETPAN_UI_RENDER_DIVIDER 1 CACHE STRING "Render every Nth 30Hz UI loop (1 = full rate)")
+set(POCKETPAN_UI_PARTIAL 0 CACHE STRING "M6.3.6 production candidate: partial Status redraw + row-band transfer")
+# Fine forensics histogram for M6.3.6: 5 us bins around the gate (default off).
+set(POCKETPAN_FORENSICS_FINE_BINS 0 CACHE STRING "0=25us bins (legacy), 5=5us bins, 10=10us bins")
 target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE}
     POCKETPAN_FORENSICS_CRITICAL_ONLY=${POCKETPAN_FORENSICS_CRITICAL_ONLY}
     POCKETPAN_FORENSICS_DISCONNECTED=${POCKETPAN_FORENSICS_DISCONNECTED}
     POCKETPAN_TAIL_NO_LCD_TRANSFER=${POCKETPAN_TAIL_NO_LCD_TRANSFER}
-    POCKETPAN_TAIL_NO_UI=${POCKETPAN_TAIL_NO_UI})
+    POCKETPAN_TAIL_NO_UI=${POCKETPAN_TAIL_NO_UI}
+    POCKETPAN_UI_LOGIC_ONLY=${POCKETPAN_UI_LOGIC_ONLY}
+    POCKETPAN_UI_NO_FULL_CLEAR=${POCKETPAN_UI_NO_FULL_CLEAR}
+    POCKETPAN_UI_DIRTY=${POCKETPAN_UI_DIRTY}
+    POCKETPAN_UI_POLL_SEPARATE=${POCKETPAN_UI_POLL_SEPARATE}
+    POCKETPAN_UI_RENDER_DIVIDER=${POCKETPAN_UI_RENDER_DIVIDER}
+    POCKETPAN_UI_PARTIAL=${POCKETPAN_UI_PARTIAL}
+    POCKETPAN_FORENSICS_FINE_BINS=${POCKETPAN_FORENSICS_FINE_BINS})
 
 
-set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
+set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26)

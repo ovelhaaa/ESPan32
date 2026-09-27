@@ -39,6 +39,17 @@ public:
 
     bool isActive() const { return active_; }
 
+    // M6.3.6 (§22).  Number of further processSample() calls that will still run
+    // the active body before the exact inactive transition.  While active_ is
+    // true, sampleIndex_ is guaranteed below this end index, so the result is at
+    // least 1.  Used only to segment an attack block at the exciter boundary;
+    // the transition condition itself is unchanged.
+    uint32_t samplesUntilInactive() const {
+        if (!active_) return 0;
+        const uint32_t end = noiseSamples_ > impulseSamples_ ? noiseSamples_ : impulseSamples_;
+        return sampleIndex_ < end ? end - sampleIndex_ : 0;
+    }
+
 #ifdef POCKETPAN_EXCITER_DIFFERENTIAL_TEST
     // Host-only exactness probes.  Never present in firmware.
     uint32_t rngStateForTest() const { return rngState_; }

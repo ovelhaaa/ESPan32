@@ -144,6 +144,19 @@ private:
     PreparedNoteTable bellPreparedNotes_{};
 #endif
 
+#if POCKETPAN_HEADROOM_TABLE
+    // M6.3.6 (§28): the voice count is an integer 0..8, so the count-based
+    // polyphonic headroom target is a small exact table built at init with the
+    // historical expression.  Indexed by getActiveVoiceCount(); no runtime
+    // log2/pow remains on the audio path.
+    float headroomTarget_[kMaxVoices + 1]{};
+public:
+    float headroomTargetForTest(size_t voices) const {
+        return voices <= kMaxVoices ? headroomTarget_[voices] : 0.0f;
+    }
+private:
+#endif
+
     // Internal mono voice mix buffer
     float monoBuffer_[kMaxBlockFrames];
     float strikeBuffer_[kMaxBlockFrames];

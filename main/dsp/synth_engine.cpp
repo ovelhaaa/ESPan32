@@ -34,6 +34,14 @@ void SynthEngine::init(float sampleRate) {
     // avoids loudness steps while modal voices naturally become inactive.
     polyHeadroomAttackCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.003f));
     polyHeadroomReleaseCoefficient_ = std::exp(-1.0f / (sampleRate_ * 0.050f));
+#if POCKETPAN_HEADROOM_TABLE
+    // Same expression as the historical per-block computation, evaluated once.
+    for (size_t v = 0; v <= kMaxVoices; ++v) {
+        const float voices = static_cast<float>(v);
+        const float targetDb = voices <= 1.0f ? 0.0f : -1.5f * std::log2(voices);
+        headroomTarget_[v] = std::pow(10.0f, std::max(targetDb, -5.0f) / 20.0f);
+    }
+#endif
     reset();
 }
 
@@ -152,9 +160,13 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
     }
     // Smooth count-based polyphonic headroom: 1=0 dB, 2=-1.5 dB,
     // 4=-3 dB, 8=-5 dB. This preserves per-voice modal gains.
+#if POCKETPAN_HEADROOM_TABLE
+    const float targetHeadroom = headroomTarget_[allocator_.getActiveVoiceCount()];
+#else
     const float voices = static_cast<float>(allocator_.getActiveVoiceCount());
     const float targetDb = voices <= 1.0f ? 0.0f : -1.5f * std::log2(voices);
     const float targetHeadroom = std::pow(10.0f, std::max(targetDb, -5.0f) / 20.0f);
+#endif
 
     // 2. Mixdown, headroom, lookahead gain limiting, and safe conversion.
     for (size_t i = 0; i < frames; ++i) {

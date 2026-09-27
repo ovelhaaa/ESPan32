@@ -234,6 +234,21 @@ void Display::update() {
 #endif
 }
 
+void Display::updateRows(int y0, int y1) {
+    if (!panelHandle_ || !framebuffer_) return;
+#if defined(POCKETPAN_TAIL_NO_LCD_TRANSFER) && POCKETPAN_TAIL_NO_LCD_TRANSFER
+    // M6.3.5 Phase C, diagnostic variant U1 only.
+    (void)y0; (void)y1;
+    return;
+#else
+    if (y0 < 0) y0 = 0;
+    if (y1 > kHeight) y1 = kHeight;
+    if (y1 <= y0) return;
+    esp_lcd_panel_draw_bitmap(panelHandle_, 0, y0, kWidth, y1,
+                              framebuffer_ + static_cast<size_t>(y0) * kWidth * 2);
+#endif
+}
+
 void Display::clear(uint16_t color) {
     fillRect(0, 0, kWidth, kHeight, color);
 }
@@ -323,6 +338,7 @@ namespace pocketpan::hardware {
 Display::~Display() = default;
 bool Display::init(uint8_t*) { initialized_ = true; return true; }
 void Display::update() {}
+void Display::updateRows(int, int) {}
 void Display::clear(uint16_t) {}
 void Display::drawPixel(int, int, uint16_t) {}
 void Display::fillRect(int, int, int, int, uint16_t) {}

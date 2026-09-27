@@ -267,9 +267,44 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
     // shared exciter/lifetime logic inside processSampleAttackStable.
     if (attackStable8()) {
         attackFastPathBlocks_ += kMaxVoices;
+#if POCKETPAN_ATTACK_SEGMENT
+        // M6.3.6 (§22): when every voice shares the same exact exciter end
+        // sample, segment the block there and finish with the sustain kernel.
+        // The two kernels agree bit-for-bit once localStrike is zero and the
+        // exciter-active guard is false, so the per-sample stream is unchanged.
+        const uint32_t remaining = voices_[0].samplesUntilExciterInactive();
+        bool equal = remaining > 0;
+        for (size_t v = 1; v < kMaxVoices; ++v) {
+            if (voices_[v].samplesUntilExciterInactive() != remaining) { equal = false; break; }
+        }
+        const size_t split = (equal && remaining < frames) ? remaining : frames;
+#else
+        const size_t split = frames;
+#endif
         for (size_t i=0;i<frames;++i) {
             const float external=sympatheticPreviousBus_*config.inputGain;
             float sum=0.0f;
+#if POCKETPAN_ATTACK_SEGMENT
+            if (i < split) {
+                sum+=voices_[0].processSampleAttackStable(external);
+                sum+=voices_[1].processSampleAttackStable(external);
+                sum+=voices_[2].processSampleAttackStable(external);
+                sum+=voices_[3].processSampleAttackStable(external);
+                sum+=voices_[4].processSampleAttackStable(external);
+                sum+=voices_[5].processSampleAttackStable(external);
+                sum+=voices_[6].processSampleAttackStable(external);
+                sum+=voices_[7].processSampleAttackStable(external);
+            } else {
+                sum+=voices_[0].processSampleSustain(external);
+                sum+=voices_[1].processSampleSustain(external);
+                sum+=voices_[2].processSampleSustain(external);
+                sum+=voices_[3].processSampleSustain(external);
+                sum+=voices_[4].processSampleSustain(external);
+                sum+=voices_[5].processSampleSustain(external);
+                sum+=voices_[6].processSampleSustain(external);
+                sum+=voices_[7].processSampleSustain(external);
+            }
+#else
             sum+=voices_[0].processSampleAttackStable(external);
             sum+=voices_[1].processSampleAttackStable(external);
             sum+=voices_[2].processSampleAttackStable(external);
@@ -278,6 +313,7 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
             sum+=voices_[5].processSampleAttackStable(external);
             sum+=voices_[6].processSampleAttackStable(external);
             sum+=voices_[7].processSampleAttackStable(external);
+#endif
             sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
             float next=sympatheticFilterState_*config.feedbackGain;
             const float limit=std::max(0.0f,config.maxBusLevel);
@@ -362,9 +398,40 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
     // general path does.  Sample-outer sympathetic dependency is preserved.
     if (attackStable8()) {
         attackFastPathBlocks_ += kMaxVoices;
+#if POCKETPAN_ATTACK_SEGMENT
+        const uint32_t remaining = voices_[0].samplesUntilExciterInactive();
+        bool equal = remaining > 0;
+        for (size_t v = 1; v < kMaxVoices; ++v) {
+            if (voices_[v].samplesUntilExciterInactive() != remaining) { equal = false; break; }
+        }
+        const size_t split = (equal && remaining < frames) ? remaining : frames;
+#else
+        const size_t split = frames;
+#endif
         for (size_t i=0; i<frames; ++i) {
             const float external = sympathetic ? sympatheticPreviousBus_*config.inputGain : 0.0f;
             float sum=0.0f, strikes=0.0f, strike=0.0f;
+#if POCKETPAN_ATTACK_SEGMENT
+            if (i < split) {
+                sum += voices_[0].processSampleAttackStable(external, &strike); strikes += strike;
+                sum += voices_[1].processSampleAttackStable(external, &strike); strikes += strike;
+                sum += voices_[2].processSampleAttackStable(external, &strike); strikes += strike;
+                sum += voices_[3].processSampleAttackStable(external, &strike); strikes += strike;
+                sum += voices_[4].processSampleAttackStable(external, &strike); strikes += strike;
+                sum += voices_[5].processSampleAttackStable(external, &strike); strikes += strike;
+                sum += voices_[6].processSampleAttackStable(external, &strike); strikes += strike;
+                sum += voices_[7].processSampleAttackStable(external, &strike); strikes += strike;
+            } else {
+                sum += voices_[0].processSampleSustain(external, &strike); strikes += strike;
+                sum += voices_[1].processSampleSustain(external, &strike); strikes += strike;
+                sum += voices_[2].processSampleSustain(external, &strike); strikes += strike;
+                sum += voices_[3].processSampleSustain(external, &strike); strikes += strike;
+                sum += voices_[4].processSampleSustain(external, &strike); strikes += strike;
+                sum += voices_[5].processSampleSustain(external, &strike); strikes += strike;
+                sum += voices_[6].processSampleSustain(external, &strike); strikes += strike;
+                sum += voices_[7].processSampleSustain(external, &strike); strikes += strike;
+            }
+#else
             sum += voices_[0].processSampleAttackStable(external, &strike); strikes += strike;
             sum += voices_[1].processSampleAttackStable(external, &strike); strikes += strike;
             sum += voices_[2].processSampleAttackStable(external, &strike); strikes += strike;
@@ -373,6 +440,7 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
             sum += voices_[5].processSampleAttackStable(external, &strike); strikes += strike;
             sum += voices_[6].processSampleAttackStable(external, &strike); strikes += strike;
             sum += voices_[7].processSampleAttackStable(external, &strike); strikes += strike;
+#endif
             if (sympathetic) {
                 sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
                 float next=sympatheticFilterState_*config.feedbackGain;

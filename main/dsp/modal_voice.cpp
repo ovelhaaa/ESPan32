@@ -314,9 +314,33 @@ DSP_HOT float ModalVoice::processSampleAttackStable(float externalExcitation, fl
 
 DSP_HOT void ModalVoice::renderAttackBlock(float* outBuffer, size_t frames,
                                            float externalExcitation) {
+#if POCKETPAN_ATTACK_SEGMENT
+    // M6.3.6 (§22): run the exact attack kernel only until the exciter reaches
+    // its inactive transition, then the sustain kernel.  After the transition
+    // localStrike is exactly 0 and the attack kernel's energy guard
+    // (!exciter_.isActive()) is already true, so the two kernels agree
+    // bit-for-bit at and after that sample.  Voice state, age, modal state and
+    // the energy-check cadence are unchanged.
+    size_t done = 0;
+    while (done < frames) {
+        if (!exciter_.isActive()) {
+            for (; done < frames; ++done) outBuffer[done] += processSampleSustain(externalExcitation);
+            break;
+        }
+        const uint32_t remaining = exciter_.samplesUntilInactive();
+        if (remaining == 0) { // defensive: treated as the inactive segment
+            for (; done < frames; ++done) outBuffer[done] += processSampleSustain(externalExcitation);
+            break;
+        }
+        const size_t segment = remaining < (frames - done) ? remaining : (frames - done);
+        for (size_t k = 0; k < segment; ++k) outBuffer[done + k] += processSampleAttackStable(externalExcitation);
+        done += segment;
+    }
+#else
     for (size_t i = 0; i < frames; ++i) {
         outBuffer[i] += processSampleAttackStable(externalExcitation);
     }
+#endif
 }
 #endif
 

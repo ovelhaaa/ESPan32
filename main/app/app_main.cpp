@@ -62,6 +62,19 @@ void forensicsLogTask(void* param) {
 #endif
 #endif
 
+#if defined(POCKETPAN_UI_POLL_SEPARATE) && POCKETPAN_UI_POLL_SEPARATE
+// M6.3.6 Phase A (§8) diagnostic: BLE polling moves to its own low-rate Core 1
+// task so the UI task can run with rendering disabled while the BLE stack keeps
+// exactly the same poll cadence.  Connection/advertising behavior is untouched.
+void blePollTask(void* param) {
+    (void)param;
+    while (true) {
+        sBleMidi.poll();
+        vTaskDelay(pdMS_TO_TICKS(pocketpan::board::ui::kRefreshPeriodMs));
+    }
+}
+#endif
+
 // Real-Time Audio Callback - Runs strictly on Core 0 at high priority (zero formatting, zero heap, zero mutex)
 void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames) {
     // SynthEngine is owned exclusively by this Core 0 callback.
@@ -175,6 +188,7 @@ void uiTaskLoop(void* param) {
     uint32_t lastHeapUpdateMs = 0;
     uint32_t lastLogMs = 0;
     uint32_t demoTick = 0;
+    uint32_t renderTick = 0;
 
     // D Kurd / D Celtic Handpan scale notes: D3, A3, Bb3, C4, D4, E4, F4, A4
     const uint8_t kHandpanScale[] = { 50, 57, 58, 60, 62, 64, 65, 69 };
@@ -280,7 +294,9 @@ void uiTaskLoop(void* param) {
             ? !sBleMidi.isConnected() : sBleMidi.isMidiReady(), std::memory_order_release);
         pocketpan::forensics::logCompleted();
 #endif
+#if !(defined(POCKETPAN_UI_POLL_SEPARATE) && POCKETPAN_UI_POLL_SEPARATE)
         sBleMidi.poll(); // low-rate BLE RSSI request; never called by audio task
+#endif
         sUiState.bleIntervalUnits = sBleMidi.connectionIntervalUnits();
         sUiState.bleLatency = sBleMidi.connectionLatency();
         sUiState.bleRssi = sBleMidi.rssi();
@@ -318,12 +334,30 @@ void uiTaskLoop(void* param) {
             scaleIdx = (scaleIdx + 1) % kScaleLen;
         }
 
-        // 4. Render TFT display
+        // 4. Render TFT display.  M6.3.6 Phase A U1b (diagnostic only): the
+        // control/telemetry/BLE logic above still runs at the same cadence, but
+        // framebuffer drawing and Display::update() are skipped so the tail can
+        // be attributed to rendering rather than to task scheduling.
+#if !(defined(POCKETPAN_UI_LOGIC_ONLY) && POCKETPAN_UI_LOGIC_ONLY)
+        // M6.3.6 Phase C (§35): control/telemetry/BLE stay at the 30 Hz loop
+        // cadence; the visual redraw can run at a lower fixed cadence without
+        // coupling input latency to the framebuffer cost.
+#if defined(POCKETPAN_UI_RENDER_DIVIDER) && POCKETPAN_UI_RENDER_DIVIDER > 1
+        if ((++renderTick % POCKETPAN_UI_RENDER_DIVIDER) == 0)
+#endif
         renderer.render(sUiState);
+#else
+        (void)renderer;
+#endif
 
 #ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
         if (nowMs - lastLogMs >= 5000) {
             lastLogMs = nowMs;
+#if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
+            ESP_LOGI(kTag, "[UI] dirty_render=%u dirty_skip=%u",
+                     (unsigned)renderer.dirtyRenderCountForTest(),
+                     (unsigned)renderer.dirtySkipCountForTest());
+#endif
             ESP_LOGI(kTag, "[AUDIO] model=%s blocks=%u avg_us=%u p99_us=%u max_us=%u cpu_load=%.1f deadline=%u timeout=%u tx_error=%u short=%u",
                      sBellModelSelected.load(std::memory_order_acquire) ? "BELL" : "PAN", (unsigned)sAudio.getStats().blocksProcessed, (unsigned)sUiState.avgBlockTimeUs, (unsigned)sUiState.p99BlockTimeUs, (unsigned)sUiState.maxBlockTimeUs, sUiState.cpuLoadPercent,
                      (unsigned)sUiState.deadlineMisses, (unsigned)sUiState.writeTimeouts, (unsigned)sUiState.txErrors, (unsigned)sUiState.shortWrites);
@@ -399,6 +433,11 @@ extern "C" void app_main(void) {
 #if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS)
     xTaskCreatePinnedToCore(forensicsLogTask, "fx_log", 8192, nullptr, 4, nullptr, 1);
 #endif
+#endif
+
+#if defined(POCKETPAN_UI_POLL_SEPARATE) && POCKETPAN_UI_POLL_SEPARATE
+    xTaskCreatePinnedToCore(blePollTask, "ble_poll", 4096, nullptr,
+                            pocketpan::board::ui::kTaskPriority, nullptr, 1);
 #endif
 
     ESP_LOGI(kTag, "Pocket Pan initialization complete. Realtime audio active.");

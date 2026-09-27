@@ -10,27 +10,48 @@
 
 namespace pocketpan::forensics {
 static_assert(CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ == 240, "Forensics cycle conversion requires 240 MHz");
+// M6.3.6 (§10): configurable histogram resolution.  Legacy captures used 25 us
+// bins; the fine mode uses 5 us (or 10 us) so the 1650-1800 us region around the
+// gate can be resolved.  The bin count stays fixed, so only diagnostic builds
+// pay for the finer resolution.
+#ifndef POCKETPAN_FORENSICS_FINE_BINS
+#define POCKETPAN_FORENSICS_FINE_BINS 0
+#endif
+constexpr uint32_t kForensicsBinUs = POCKETPAN_FORENSICS_FINE_BINS > 0
+    ? static_cast<uint32_t>(POCKETPAN_FORENSICS_FINE_BINS) : 25u;
+// Cover the 2666.7 us physical deadline plus margin.  Legacy 25 us keeps its
+// historical 512-bin layout so old captures remain byte-comparable.
+constexpr size_t kForensicsBins = POCKETPAN_FORENSICS_FINE_BINS > 0
+    ? (3200u / kForensicsBinUs + 1u) : 512u;
 // Diagnostic fixture owns synthesis while BLE, UI and I2S remain running.
 // Each 22 s fixture aggregates 0.5 s ringing segments. No note-offs/restrikes
 // in sustain segments. Counts are checked on every measured block.
 struct Timing {
     uint64_t sum = 0;
     uint32_t count = 0, maximum = 0, deadline = 0;
-    std::array<uint32_t, 512> bins{};
+    std::array<uint32_t, kForensicsBins> bins{};
     void add(uint32_t cycles) {
         const uint32_t us = (cycles + 239) / 240;
         sum += cycles; ++count; maximum = std::max(maximum, us);
         if (cycles >= 640000) ++deadline;
-        ++bins[std::min<size_t>(us / 25, bins.size() - 1)];
+        ++bins[std::min<size_t>(us / kForensicsBinUs, bins.size() - 1)];
     }
-    uint32_t p99() const {
+    // Nearest-rank quantile, num/den (e.g. 99/100, 995/1000).  Returns the upper
+    // edge of the containing bin in microseconds.
+    uint32_t quantile(uint32_t num, uint32_t den) const {
+        if (!count) return 0;
+        const uint32_t rank = (count * num + den - 1) / den;
         uint32_t n = 0;
         for (size_t i = 0; i < bins.size(); ++i) {
             n += bins[i];
-            if (n >= (count * 99 + 99) / 100) return (i + 1) * 25;
+            if (n >= rank) return static_cast<uint32_t>(i + 1) * kForensicsBinUs;
         }
         return 0;
     }
+    uint32_t p95() const { return quantile(95, 100); }
+    uint32_t p99() const { return quantile(99, 100); }
+    uint32_t p995() const { return quantile(995, 1000); }
+    uint32_t p999() const { return quantile(999, 1000); }
 };
 struct Result {
     Timing steady, event;
@@ -152,13 +173,15 @@ inline void logCompleted() {
         const auto& r = results[id];
         for (unsigned e = 0; e < 2; ++e) {
             const auto& t = e ? r.event : r.steady;
-            ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p99_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u",
+            ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u bin_us=%u",
                 isPan(id) ? "PAN" : "BELL", id, counts[kindOf(id)], e ? "event" : "steady", (unsigned)t.count,
-                t.count ? double(t.sum) / t.count / 240 : 0, (unsigned)t.p99(), (unsigned)t.maximum, (unsigned)t.deadline,
-                (unsigned)r.badVoices, (unsigned)r.bleLost, (unsigned)r.hardClamp, (unsigned)r.modalSat);
+                t.count ? double(t.sum) / t.count / 240 : 0, (unsigned)t.p95(), (unsigned)t.p99(),
+                (unsigned)t.p995(), (unsigned)t.p999(), (unsigned)t.maximum, (unsigned)t.deadline,
+                (unsigned)r.badVoices, (unsigned)r.bleLost, (unsigned)r.hardClamp, (unsigned)r.modalSat,
+                (unsigned)kForensicsBinUs);
             for (unsigned i = 0; i < t.bins.size(); ++i) if (t.bins[i])
                 ESP_LOGI("forensics", "[HIST] fixture=%u class=%s lower_us=%u n=%u", id,
-                    e ? "event" : "steady", i * 25, (unsigned)t.bins[i]);
+                    e ? "event" : "steady", (unsigned)(i * kForensicsBinUs), (unsigned)t.bins[i]);
         }
         {
 #if POCKETPAN_PAN_STABLE8_FASTPATH

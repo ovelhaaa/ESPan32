@@ -63,6 +63,12 @@ public:
     bool isAttackSafe() const;
     float processSampleAttackStable(float externalExcitation = 0.0f, float* strikeTap = nullptr);
     void renderAttackBlock(float* outBuffer, size_t frames, float externalExcitation = 0.0f);
+#if POCKETPAN_ATTACK_SEGMENT
+    // M6.3.6 (§22): exact sample at which the exciter body ends, so the attack
+    // block can switch to the sustain kernel immediately.  It is the same
+    // transition the per-sample path performs.
+    uint32_t samplesUntilExciterInactive() const { return exciter_.samplesUntilInactive(); }
+#endif
 #endif
 
     // Query state for voice allocator

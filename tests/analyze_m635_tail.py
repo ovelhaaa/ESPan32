@@ -1,14 +1,16 @@
-"""M6.3.5 forensics tail analysis.
+"""M6.3.5/M6.3.6 forensics tail analysis.
 
 Parses [CURVE] and [HIST] rows from a connected capture and reports the
-percentiles implied by the raw 25 us histogram bins plus the population of the
-residual-tail regions.  Hardware timing only; never substitutes host numbers.
+percentiles implied by the raw histogram bins plus the population of the
+residual-tail regions.  The bin width is read from the [CURVE] `bin_us` field
+(M6.3.6) and defaults to 25 us for legacy captures.  Hardware timing only; never
+substitutes host numbers.
 """
 import re
 import sys
 from pathlib import Path
 
-BIN_US = 25
+DEFAULT_BIN_US = 25
 
 
 def read(path):
@@ -25,13 +27,13 @@ def read(path):
     return curves, bins
 
 
-def quantile(bins, count, pct):
+def quantile(bins, count, pct, bin_us=DEFAULT_BIN_US):
     rank = (count * pct + 99) // 100
     cumulative = 0
     for lower in sorted(bins):
         cumulative += bins[lower]
         if cumulative >= rank:
-            return lower, lower + BIN_US
+            return lower, lower + bin_us
     return None, None
 
 
@@ -53,10 +55,11 @@ def report(path, fixtures):
         c = curves[key]
         b = bins.get(key, {})
         n = int(c["n"])
-        p90 = quantile(b, n, 90)
-        p95 = quantile(b, n, 95)
-        p99 = quantile(b, n, 99)
-        p995 = quantile(b, n, 995)
+        bin_us = int(c.get("bin_us", DEFAULT_BIN_US))
+        p90 = quantile(b, n, 90, bin_us)
+        p95 = quantile(b, n, 95, bin_us)
+        p99 = quantile(b, n, 99, bin_us)
+        p995 = quantile(b, n, 995, bin_us)
         label = f'{c["model"]}/{fixture} ({c["voices"]}v)'
         def fmt(q):
             return f"{q[0]}-{q[1]}" if q[0] is not None else "-"

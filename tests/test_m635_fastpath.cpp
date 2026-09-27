@@ -128,6 +128,25 @@ std::vector<Event> chord(uint32_t at, const uint8_t* notes, size_t count, uint8_
     return events;
 }
 
+#if POCKETPAN_HEADROOM_TABLE
+// M6.3.6 (§28): the nine-entry headroom table must be the bit-identical value of
+// the historical per-block expression for every integer voice count 0..8.
+void headroomTableExactness() {
+    SynthEngine engine;
+    engine.init(48000.0f);
+    for (size_t v = 0; v <= kMaxVoices; ++v) {
+        const float voices = static_cast<float>(v);
+        const float targetDb = voices <= 1.0f ? 0.0f : -1.5f * std::log2(voices);
+        const float reference = std::pow(10.0f, std::max(targetDb, -5.0f) / 20.0f);
+        if (bits(engine.headroomTargetForTest(v)) != bits(reference)) {
+            std::fprintf(stderr, "m636 headroom table mismatch voices=%zu\n", v);
+            assert(false);
+        }
+    }
+    std::fprintf(stderr, "m636 headroom table: bit-exact (9 entries)\n");
+}
+#endif
+
 #if POCKETPAN_SYMPATHETIC_COEFF_CACHE
 void coefficientExactness() {
     const float rates[] = {44100.0f, 48000.0f, 96000.0f};
@@ -155,6 +174,9 @@ void coefficientExactness() {
 } // namespace
 
 int main() {
+#if POCKETPAN_HEADROOM_TABLE
+    headroomTableExactness();
+#endif
 #if POCKETPAN_SYMPATHETIC_COEFF_CACHE
     coefficientExactness();
 #endif

@@ -1,0 +1,6 @@
+# M6.3.6 diagnostic: connected forensics with DSP phase profiling enabled.
+# Profiling perturbs timing, so this build is diagnosis only, never acceptance.
+CONFIG_POCKETPAN_POLYPHONY_FORENSICS=y
+CONFIG_POCKETPAN_DSP_PROFILE=y
+CONFIG_POCKETPAN_FORENSICS_BLOCKS=8192
+CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG=y

@@ -1,13 +1,34 @@
 #include "ui_renderer.h"
 #include <cstdio>
+#include <cstring>
 
 namespace pocketpan::ui {
 
+// M6.3.6 Phase A U3 (diagnostic only): the unconditional full framebuffer
+// clear can be skipped so the test can separate "clear + full rewrite" from
+// "logical formatting/control work".  Production never defines this.
+#if defined(POCKETPAN_UI_NO_FULL_CLEAR) && POCKETPAN_UI_NO_FULL_CLEAR
+#define POCKETPAN_UI_SKIP_FULL_CLEAR 1
+#else
+#define POCKETPAN_UI_SKIP_FULL_CLEAR 0
+#endif
+
 void UiRenderer::render(const UiState& state) {
+#if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
+    char signature[sizeof(lastSignature_)];
+    buildSignature(state, signature, sizeof(signature));
+    if (hasRendered_ && std::strcmp(signature, lastSignature_) == 0) {
+        ++skipCount_;
+        return; // Displayed text identical: no draw and no LCD transfer.
+    }
+    ++renderCount_;
+#endif
     if (state.mode == UiScreenMode::MidiDiagnostic) {
         renderDiagnostic(state);
     } else if (state.mode == UiScreenMode::AudioDiagnostic) {
+#if !POCKETPAN_UI_SKIP_FULL_CLEAR
         display_.clear(hardware::colors::Background);
+#endif
         display_.fillRect(0, 0, hardware::Display::kWidth, 18, hardware::colors::DarkGray);
         display_.drawText(8, 5, "AUDIO DIAG", hardware::colors::White, 1);
         char b[40];
@@ -21,11 +42,98 @@ void UiRenderer::render(const UiState& state) {
     } else {
         renderStatus(state);
     }
+#if defined(POCKETPAN_UI_PARTIAL) && POCKETPAN_UI_PARTIAL
+    if (state.mode == UiScreenMode::Status) {
+        if (noTransfer_) {
+            // Displayed content is identical: no draw above and no transfer.
+        } else if (dirtyY1_ > dirtyY0_) {
+            display_.updateRows(dirtyY0_, dirtyY1_);
+        } else {
+            display_.update();
+        }
+    } else {
+        display_.update();
+    }
+#else
     display_.update();
+#endif
+#if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
+    buildSignature(state, lastSignature_, sizeof(lastSignature_));
+    hasRendered_ = true;
+#endif
+}
+
+#if defined(POCKETPAN_UI_PARTIAL) && POCKETPAN_UI_PARTIAL
+void UiRenderer::drawStatusField(int x, int y, const char* text, uint16_t color, uint16_t bg,
+                                 int scale, char* cache, size_t cap, bool force) {
+    if (!force && std::strcmp(text, cache) == 0) return;
+    const int h = 8 * scale;
+    if (!force) {
+        // Erase the wider of the old/new strings so no glyph is left behind.
+        const size_t oldLen = std::strlen(cache);
+        const size_t newLen = std::strlen(text);
+        const size_t cols = oldLen > newLen ? oldLen : newLen;
+        display_.fillRect(x, y, static_cast<int>(cols * static_cast<size_t>(6 * scale)) + 2, h, bg);
+    }
+    display_.drawText(x, y, text, color, scale);
+    std::snprintf(cache, cap, "%s", text);
+    if (y < dirtyY0_) dirtyY0_ = y;
+    if (y + h > dirtyY1_) dirtyY1_ = y + h;
 }
 
 void UiRenderer::renderStatus(const UiState& state) {
+    const bool full = !partialValid_ || partialMode_ != UiScreenMode::Status;
+    dirtyY0_ = hardware::Display::kHeight;
+    dirtyY1_ = 0;
+    noTransfer_ = false;
+
+    if (full) {
+#if !POCKETPAN_UI_SKIP_FULL_CLEAR
+        display_.clear(hardware::colors::Background);
+#endif
+        // Static background: drawn once per mode entry, never per frame.
+        display_.fillRect(0, 0, hardware::Display::kWidth, 20, hardware::colors::DarkGray);
+        display_.drawText(8, 6, "POCKET PAN", hardware::colors::Cyan, 1);
+        display_.drawFastHLine(0, 20, hardware::Display::kWidth, hardware::colors::Gray);
+        display_.drawText(12, 28, "PRESET", hardware::colors::Gray, 1);
+        display_.drawText(140, 28, "ROOT", hardware::colors::Gray, 1);
+        display_.drawFastHLine(8, 62, hardware::Display::kWidth - 16, hardware::colors::DarkGray);
+        display_.drawText(140, 70, "AUDIO   48K", hardware::colors::LightGray, 1);
+        display_.drawFastHLine(0, 115, hardware::Display::kWidth, hardware::colors::DarkGray);
+        display_.drawText(12, 122, "BOOT: SHORT DIAG / HOLD MODEL", hardware::colors::Gray, 1);
+    }
+
+    const bool force = full;
+    drawStatusField(175, 6, state.bleStatus,
+                    state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Orange,
+                    hardware::colors::DarkGray, 1, lastBle_, sizeof(lastBle_), force);
+    drawStatusField(12, 40, state.presetName, hardware::colors::White,
+                    hardware::colors::Background, 2, lastPreset_, sizeof(lastPreset_), force);
+    drawStatusField(140, 40, state.rootNoteName, hardware::colors::Yellow,
+                    hardware::colors::Background, 2, lastRoot_, sizeof(lastRoot_), force);
+    char lineBuf[32];
+    snprintf(lineBuf, sizeof(lineBuf), "VOICES  %u/%u", state.activeVoices, state.maxVoices);
+    drawStatusField(12, 70, lineBuf, hardware::colors::LightGray,
+                    hardware::colors::Background, 1, lastVoices_, sizeof(lastVoices_), force);
+    snprintf(lineBuf, sizeof(lineBuf), "CPU     %2.0f%%", state.cpuLoadPercent);
+    drawStatusField(12, 88, lineBuf,
+                    state.cpuLoadPercent > 75.0f ? hardware::colors::Red : hardware::colors::LightGray,
+                    hardware::colors::Background, 1, lastCpu_, sizeof(lastCpu_), force);
+    snprintf(lineBuf, sizeof(lineBuf), "DLINE   %u", static_cast<unsigned>(state.deadlineMisses));
+    drawStatusField(140, 88, lineBuf,
+                    state.deadlineMisses > 0 ? hardware::colors::Red : hardware::colors::LightGray,
+                    hardware::colors::Background, 1, lastDline_, sizeof(lastDline_), force);
+
+    partialValid_ = true;
+    partialMode_ = UiScreenMode::Status;
+    if (full) { dirtyY0_ = 0; dirtyY1_ = 0; }            // force full transfer
+    else if (dirtyY1_ <= dirtyY0_) noTransfer_ = true;   // nothing changed
+}
+#else
+void UiRenderer::renderStatus(const UiState& state) {
+#if !POCKETPAN_UI_SKIP_FULL_CLEAR
     display_.clear(hardware::colors::Background);
+#endif
 
     // Header banner
     display_.fillRect(0, 0, hardware::Display::kWidth, 20, hardware::colors::DarkGray);
@@ -68,9 +176,12 @@ void UiRenderer::renderStatus(const UiState& state) {
     display_.drawFastHLine(0, 115, hardware::Display::kWidth, hardware::colors::DarkGray);
     display_.drawText(12, 122, "BOOT: SHORT DIAG / HOLD MODEL", hardware::colors::Gray, 1);
 }
+#endif
 
 void UiRenderer::renderDiagnostic(const UiState& state) {
+#if !POCKETPAN_UI_SKIP_FULL_CLEAR
     display_.clear(0x0000); // Black
+#endif
 
     // Header banner
     display_.fillRect(0, 0, hardware::Display::kWidth, 18, hardware::colors::Red);
@@ -115,5 +226,50 @@ void UiRenderer::renderDiagnostic(const UiState& state) {
     display_.drawText(10, 120, buf,
                       state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Gray, 1);
 }
+
+#if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
+// The signature is the exact sequence of formatted strings handed to drawText()
+// for the active screen.  Comparing signatures is therefore equivalent to
+// comparing the drawn glyphs (the static text and every geometric primitive are
+// constants within a screen mode).
+size_t UiRenderer::buildSignature(const UiState& state, char* out, size_t cap) {
+    if (cap == 0) return 0;
+    size_t used = 0;
+    auto add = [&](const char* fmt, auto... args) {
+        if (used >= cap) return;
+        const int n = std::snprintf(out + used, cap - used, fmt, args...);
+        if (n > 0) used += static_cast<size_t>(n);
+    };
+    if (state.mode == UiScreenMode::MidiDiagnostic) {
+        add("%d|%u (%s) %u|%u %s|%u %02X%02X%02X|%u %u|%.2f %u %d|%u %u|%u %2.0f %u|%s",
+            static_cast<int>(state.mode), state.lastNoteNumber, state.rootNoteName, state.lastVelocity,
+            state.lastPressure, state.lastEventType, state.lastTimestamp13,
+            state.lastRawBytes[0], state.lastRawBytes[1], state.lastRawBytes[2],
+            static_cast<unsigned>(state.midiHighWater), static_cast<unsigned>(state.midiDrops),
+            state.bleIntervalUnits * 1.25f, state.bleLatency, state.bleRssi,
+            static_cast<unsigned>(state.bleReconnects), state.bleLastDisconnectReason,
+            static_cast<unsigned>(state.avgBlockTimeUs), state.cpuLoadPercent,
+            static_cast<unsigned>(state.deadlineMisses), state.bleStatus);
+    } else if (state.mode == UiScreenMode::AudioDiagnostic) {
+        add("%d|%u %u|%u %2.1f|%u %u|%u %u|%.2f %.2f|%.1f %.1f %u %u %u",
+            static_cast<int>(state.mode), static_cast<unsigned>(state.avgBlockTimeUs),
+            static_cast<unsigned>(state.p99BlockTimeUs), static_cast<unsigned>(state.maxBlockTimeUs),
+            state.cpuLoadPercent, static_cast<unsigned>(state.deadlineMisses),
+            static_cast<unsigned>(state.writeTimeouts), static_cast<unsigned>(state.txErrors),
+            static_cast<unsigned>(state.shortWrites), state.preLimiterPeak, state.postLimiterPeak,
+            state.currentGainReductionDb, state.maxGainReductionDb,
+            static_cast<unsigned>(state.gainReductionOver0p1DbSamples),
+            static_cast<unsigned>(state.gainReductionOver1DbSamples),
+            static_cast<unsigned>(state.hardClampCount));
+    } else {
+        add("%d|%s|%s|%s|%u/%u|%2.0f|%u",
+            static_cast<int>(state.mode), state.presetName, state.rootNoteName, state.bleStatus,
+            state.activeVoices, state.maxVoices, state.cpuLoadPercent,
+            static_cast<unsigned>(state.deadlineMisses));
+    }
+    if (used >= cap) out[cap - 1] = 0;
+    return used;
+}
+#endif
 
 } // namespace pocketpan::ui

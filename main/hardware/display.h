@@ -42,6 +42,12 @@ public:
 
     bool init(uint8_t* framebuffer = nullptr);
     void update();
+    // M6.3.6 (§16): transfer only full-width rows [y0, y1).  Because the
+    // framebuffer is row-major and the region starts at x=0, the rows are
+    // contiguous and no scratch copy is needed.  This lets the UI push a few
+    // dirty bands instead of the whole 240x135 frame, shortening the GDMA
+    // window that competes with the audio DMA.
+    void updateRows(int y0, int y1);
 
     // Graphics primitives
     void clear(uint16_t color = colors::Black);

@@ -1,0 +1,54 @@
+M6.3.6 host exactness evidence
+generated: 2026-09-27 (Windows host, MinGW g++ 14.2.0, CMAKE_BUILD_TYPE=Release)
+note: host-only. No connected hardware was available in this environment; see
+      docs/m636_ui_attack_closure.md "Hardware status" for the NOT RUN statement.
+
+==== candidate 25 : ctest (8 tests) ====
+1/8 ble_midi_parser .... Passed
+2/8 dsp ................ Passed
+3/8 prepared_note ...... Passed
+4/8 telemetry .......... Passed
+5/8 modal_kernel ....... Passed
+6/8 fastpath ........... Passed
+7/8 exciter_fastpath ... Passed
+8/8 m635_fastpath ...... Passed
+100% tests passed, 0 tests failed out of 8
+
+==== candidate 25 : test_m635_fastpath stderr ====
+m635 sympathetic coefficient cache: bit-exact (21 configs)
+m635 attack PAN single                 exact (0 attack-blocks, 0 stable8-blocks)
+m635 attack PAN chord4                 exact (0 attack-blocks, 0 stable8-blocks)
+m635 attack PAN cluster8               exact (24 attack-blocks, 361 stable8-blocks)
+m635 attack BELL single                exact (3 attack-blocks, 0 stable8-blocks)
+m635 attack BELL chord4                exact (12 attack-blocks, 0 stable8-blocks)
+m635 attack BELL cluster8              exact (24 attack-blocks, 0 stable8-blocks)
+
+==== candidate 26 : ctest (8 tests) ====
+1/8 ble_midi_parser .... Passed
+2/8 dsp ................ Passed
+3/8 prepared_note ...... Passed
+4/8 telemetry .......... Passed
+5/8 modal_kernel ....... Passed
+6/8 fastpath ........... Passed
+7/8 exciter_fastpath ... Passed
+8/8 m635_fastpath ...... Passed
+100% tests passed, 0 tests failed out of 8
+
+==== candidate 26 : test_m635_fastpath stderr ====
+m636 headroom table: bit-exact (9 entries)
+m635 sympathetic coefficient cache: bit-exact (21 configs)
+m635 attack PAN single                 exact (0 attack-blocks, 0 stable8-blocks)
+m635 attack PAN chord4                 exact (0 attack-blocks, 0 stable8-blocks)
+m635 attack PAN cluster8               exact (24 attack-blocks, 361 stable8-blocks)
+m635 attack BELL single                exact (3 attack-blocks, 0 stable8-blocks)
+m635 attack BELL chord4                exact (12 attack-blocks, 0 stable8-blocks)
+m635 attack BELL cluster8              exact (24 attack-blocks, 0 stable8-blocks)
+... (all velocity/fixture combinations exact; full output in test logs)
+
+==== candidate 23 and 24 : ctest ====
+100% tests passed, 0 tests failed out of 8 (each)
+
+==== ESP-IDF 5.3 firmware builds ====
+build-m636-c25      candidate 25, default production .......... PASS (pocket_pan.bin 0x9d860)
+build-m636-c26      candidate 26 + 5us forensics bins ........ PASS
+build-m636-uidiag   candidate 26 + U1b/U3/dirty/poll-separate  PASS (pocket_pan.bin 0x9d0b0)
