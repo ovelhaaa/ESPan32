@@ -3,12 +3,19 @@
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
 #include "dsp/synth_engine.h"
 #include "dsp/dsp_profile.h"
+#include "hardware/audio_i2s.h"
 #include "esp_cpu.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include <array>
 #include <atomic>
+#include <algorithm>
 
 namespace pocketpan::forensics {
+inline hardware::AudioI2S* sAudioInstance = nullptr;
+inline void setAudioInstance(hardware::AudioI2S* audio) {
+    sAudioInstance = audio;
+}
 static_assert(CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ == 240, "Forensics cycle conversion requires 240 MHz");
 // M6.3.6 (§10): configurable histogram resolution.  Legacy captures used 25 us
 // bins; the fine mode uses 5 us (or 10 us) so the 1650-1800 us region around the
@@ -23,6 +30,54 @@ constexpr uint32_t kForensicsBinUs = POCKETPAN_FORENSICS_FINE_BINS > 0
 // historical 512-bin layout so old captures remain byte-comparable.
 constexpr size_t kForensicsBins = POCKETPAN_FORENSICS_FINE_BINS > 0
     ? (3200u / kForensicsBinUs + 1u) : 512u;
+
+// M6.3.9.1 Phase A: lock-free publication of current block class
+enum class ForensicsBlockClass : uint8_t {
+    Idle = 0,
+    FixtureTransition = 1,
+    Event = 2,
+    AttackTail = 3,
+    TrueSteady = 4
+};
+
+inline std::atomic<ForensicsBlockClass> sCurrentBlockClass{ForensicsBlockClass::Idle};
+inline ForensicsBlockClass getCurrentBlockClass() {
+    return sCurrentBlockClass.load(std::memory_order_relaxed);
+}
+
+inline constexpr unsigned kClassCount = 4;
+// Class 0: true_steady
+// Class 1: attack_tail
+// Class 2: event
+// Class 3: fixture_transition
+inline constexpr const char* kForensicsClassNames[kClassCount] = {
+    "true_steady",
+    "attack_tail",
+    "event",
+    "fixture_transition"
+};
+
+inline unsigned classToIndex(ForensicsBlockClass cls) {
+    switch (cls) {
+        case ForensicsBlockClass::TrueSteady: return 0;
+        case ForensicsBlockClass::AttackTail: return 1;
+        case ForensicsBlockClass::Event: return 2;
+        case ForensicsBlockClass::FixtureTransition: return 3;
+        default: return 0;
+    }
+}
+
+inline const char* classToName(ForensicsBlockClass cls) {
+    switch (cls) {
+        case ForensicsBlockClass::TrueSteady: return "true_steady";
+        case ForensicsBlockClass::AttackTail: return "attack_tail";
+        case ForensicsBlockClass::Event: return "event";
+        case ForensicsBlockClass::FixtureTransition: return "fixture_transition";
+        case ForensicsBlockClass::Idle: return "idle";
+        default: return "unknown";
+    }
+}
+
 // Diagnostic fixture owns synthesis while BLE, UI and I2S remain running.
 // Each 22 s fixture aggregates 0.5 s ringing segments. No note-offs/restrikes
 // in sustain segments. Counts are checked on every measured block.
@@ -34,6 +89,12 @@ struct Timing {
         const uint32_t us = (cycles + 239) / 240;
         sum += cycles; ++count; maximum = std::max(maximum, us);
         if (cycles >= 640000) ++deadline;
+        ++bins[std::min<size_t>(us / kForensicsBinUs, bins.size() - 1)];
+    }
+    void addUs(uint32_t us) {
+        const uint64_t cycles = static_cast<uint64_t>(us) * 240;
+        sum += cycles; ++count; maximum = std::max(maximum, us);
+        if (us >= 2667) ++deadline;
         ++bins[std::min<size_t>(us / kForensicsBinUs, bins.size() - 1)];
     }
     // Nearest-rank quantile, num/den (e.g. 99/100, 995/1000).  Returns the upper
@@ -53,35 +114,121 @@ struct Timing {
     uint32_t p995() const { return quantile(995, 1000); }
     uint32_t p999() const { return quantile(999, 1000); }
 };
-inline constexpr const char* kForensicsClassNames[3] = {"true_steady", "attack_tail", "event"};
 
 struct Result {
-    Timing trueSteady, attackTail, event;
+    std::array<Timing, kClassCount> innerTiming{};
+    std::array<Timing, kClassCount> callbackTiming{};
     uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0;
     // Diagnostic counters for the M6.3.5 fast paths.  Read from the allocator at
     // fixture completion only; never touched by DSP processing.
     uint32_t stable8 = 0, attack = 0;
-    Timing& timing(unsigned c) {
-        return c == 2 ? event : (c == 1 ? attackTail : trueSteady);
-    }
-    const Timing& timing(unsigned c) const {
-        return c == 2 ? event : (c == 1 ? attackTail : trueSteady);
-    }
+
+    Timing& timing(unsigned c) { return innerTiming[c]; }
+    const Timing& timing(unsigned c) const { return innerTiming[c]; }
+    Timing& callback(unsigned c) { return callbackTiming[c]; }
+    const Timing& callback(unsigned c) const { return callbackTiming[c]; }
+
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
     struct Profile {
         uint64_t phases[dsp::profile::Count]{};
         uint64_t total = 0;
         uint32_t count = 0;
-    } trueSteadyProfile, attackTailProfile, eventProfile;
-    Profile& profile(unsigned c) {
-        return c == 2 ? eventProfile : (c == 1 ? attackTailProfile : trueSteadyProfile);
-    }
-    const Profile& profile(unsigned c) const {
-        return c == 2 ? eventProfile : (c == 1 ? attackTailProfile : trueSteadyProfile);
-    }
+    } profileData[kClassCount];
+    Profile& profile(unsigned c) { return profileData[c]; }
+    const Profile& profile(unsigned c) const { return profileData[c]; }
 #endif
 };
-inline Result results[19]{};
+
+// M6.3.9.1 Phase B: capture any callback >= 2667 us in a preallocated ring buffer
+struct OverrunRecord {
+    uint32_t blockSequence;
+    uint32_t fullCallbackUs;
+    uint32_t internalRenderUs;
+    uint8_t blockClass;
+    uint8_t fixtureId;
+    uint8_t model;
+    uint8_t activeVoices;
+    bool exciterActive;
+    uint8_t midiQueueDepth;
+    uint8_t midiEventsConsumed;
+    bool telemetryPublished;
+    bool modelChangeRequested;
+    bool synthResetRequested;
+};
+
+class OverrunRingBuffer {
+public:
+    static constexpr size_t kCapacity = 32;
+
+    void record(const OverrunRecord& rec) {
+        const size_t idx = count_.fetch_add(1, std::memory_order_relaxed) % kCapacity;
+        records_[idx] = rec;
+    }
+
+    size_t count() const {
+        return count_.load(std::memory_order_relaxed);
+    }
+
+    bool get(size_t index, OverrunRecord& out) const {
+        const size_t total = count_.load(std::memory_order_relaxed);
+        if (index >= total || (total > kCapacity && index < total - kCapacity)) {
+            return false;
+        }
+        out = records_[index % kCapacity];
+        return true;
+    }
+
+    void reset() {
+        count_.store(0, std::memory_order_relaxed);
+    }
+
+private:
+    std::atomic<size_t> count_{0};
+    std::array<OverrunRecord, kCapacity> records_{};
+};
+
+inline OverrunRingBuffer gOverrunBuffer;
+
+// M6.3.9.1 Phase C: callback overhead breakdown
+struct CallbackOverheadStats {
+    uint64_t modelResetSumUs = 0;
+    uint64_t queueConsumeSumUs = 0;
+    uint64_t renderSumUs = 0;
+    uint64_t telemetrySumUs = 0;
+    uint32_t count = 0;
+    uint32_t telemPublishCount = 0;
+    uint32_t telemMaxUs = 0;
+    uint32_t queueMaxUs = 0;
+    uint32_t modelResetMaxUs = 0;
+
+    void add(uint32_t mrUs, uint32_t qcUs, uint32_t rUs, uint32_t telUs, bool published) {
+        modelResetSumUs += mrUs;
+        queueConsumeSumUs += qcUs;
+        renderSumUs += rUs;
+        telemetrySumUs += telUs;
+        modelResetMaxUs = std::max(modelResetMaxUs, mrUs);
+        queueMaxUs = std::max(queueMaxUs, qcUs);
+        telemMaxUs = std::max(telemMaxUs, telUs);
+        count++;
+        if (published) telemPublishCount++;
+    }
+};
+
+struct CallbackBlockContext {
+    bool modelChangeRequested = false;
+    bool synthResetRequested = false;
+    uint8_t midiQueueDepth = 0;
+    uint8_t midiEventsConsumed = 0;
+    bool telemetryPublished = false;
+    uint32_t internalRenderUs = 0;
+    ForensicsBlockClass blockClass = ForensicsBlockClass::Idle;
+    uint8_t fixtureId = 0;
+    uint8_t model = 0;
+    uint8_t activeVoices = 0;
+    bool exciterActive = false;
+};
+inline CallbackBlockContext sCurrentBlockContext;
+
 inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
@@ -90,6 +237,10 @@ inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_CRITICAL_ONLY ? 3 :
 #else
 inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_CRITICAL_ONLY ? 3 : 16;
 #endif
+
+inline Result results[fixtureCount]{};
+inline CallbackOverheadStats gCallbackOverhead[fixtureCount]{};
+
 inline unsigned kindOf(unsigned id) { return id >= 16 ? 5 : id % 8; }
 inline bool isPan(unsigned id) { return id < 8 || id == 16; }
 inline unsigned fixtureId(unsigned index) {
@@ -99,15 +250,77 @@ inline unsigned fixtureId(unsigned index) {
 inline constexpr unsigned counts[8] = {0, 1, 2, 4, 6, 8, 4, 1};
 inline constexpr uint8_t cluster[8] = {50, 52, 54, 56, 57, 59, 61, 62};
 inline constexpr uint8_t chord[4] = {50, 57, 62, 69};
+
+inline void setCallbackPreContext(bool modelChange, bool synthReset, uint8_t depth, uint8_t consumed) {
+    sCurrentBlockContext.modelChangeRequested = modelChange;
+    sCurrentBlockContext.synthResetRequested = synthReset;
+    sCurrentBlockContext.midiQueueDepth = depth;
+    sCurrentBlockContext.midiEventsConsumed = consumed;
+}
+
+inline void recordPostContext(bool telemetryPub, uint32_t modelResetUs, uint32_t queueUs, uint32_t renderUs, uint32_t telemUs) {
+    sCurrentBlockContext.telemetryPublished = telemetryPub;
+    if (fixture < fixtureCount) {
+        gCallbackOverhead[fixture].add(modelResetUs, queueUs, renderUs, telemUs, telemetryPub);
+    }
+}
+
+inline void onCallbackComplete(uint32_t processTimeUs, uint32_t blockSequence) {
+    if (fixture >= fixtureCount) return;
+    const auto cls = sCurrentBlockContext.blockClass;
+    if (cls == ForensicsBlockClass::Idle) return;
+
+    const unsigned classIdx = classToIndex(cls);
+    results[fixture].callback(classIdx).addUs(processTimeUs);
+
+    if (processTimeUs >= 2667) {
+        OverrunRecord rec;
+        rec.blockSequence = blockSequence;
+        rec.fullCallbackUs = processTimeUs;
+        rec.internalRenderUs = sCurrentBlockContext.internalRenderUs;
+        rec.blockClass = static_cast<uint8_t>(cls);
+        rec.fixtureId = sCurrentBlockContext.fixtureId;
+        rec.model = sCurrentBlockContext.model;
+        rec.activeVoices = sCurrentBlockContext.activeVoices;
+        rec.exciterActive = sCurrentBlockContext.exciterActive;
+        rec.midiQueueDepth = sCurrentBlockContext.midiQueueDepth;
+        rec.midiEventsConsumed = sCurrentBlockContext.midiEventsConsumed;
+        rec.telemetryPublished = sCurrentBlockContext.telemetryPublished;
+        rec.modelChangeRequested = sCurrentBlockContext.modelChangeRequested;
+        rec.synthResetRequested = sCurrentBlockContext.synthResetRequested;
+        gOverrunBuffer.record(rec);
+    }
+}
+
 inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     if (fixture == fixtureCount || (!block && !ready.load(std::memory_order_acquire))) {
+        sCurrentBlockClass.store(ForensicsBlockClass::Idle, std::memory_order_relaxed);
+        sCurrentBlockContext.blockClass = ForensicsBlockClass::Idle;
         std::fill(output, output + frames * 2, 0); return;
     }
     const unsigned id = fixtureId(fixture);
     const unsigned kind = kindOf(id);
     const bool roll = kind == 7;
-    const bool event = roll ? (block % 38 == 0) : (block % 188 == 0);
-    if (block == 0) {
+    const bool isTransition = (block == 0);
+    const bool event = !isTransition && (roll ? ((block - 1) % 38 == 0) : ((block - 1) % 188 == 0));
+
+    ForensicsBlockClass currentClass;
+    if (isTransition) {
+        currentClass = ForensicsBlockClass::FixtureTransition;
+    } else if (event) {
+        currentClass = ForensicsBlockClass::Event;
+    } else if (synth.hasActiveExciter()) {
+        currentClass = ForensicsBlockClass::AttackTail;
+    } else {
+        currentClass = ForensicsBlockClass::TrueSteady;
+    }
+    sCurrentBlockClass.store(currentClass, std::memory_order_relaxed);
+    const unsigned timingClass = classToIndex(currentClass);
+
+    uint32_t elapsed = 0;
+
+    if (isTransition) {
+        const uint32_t start = esp_cpu_get_cycle_count();
         synth.setInstrumentModel(isPan(id) ? dsp::InstrumentModel::Pan : dsp::InstrumentModel::Bell);
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
         if (id == 16) synth.setBodyEnabled(false); // Diagnostic PAN isolation only.
@@ -128,43 +341,50 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
             synth.setModelConfigForTest(config);
         }
 #endif
-    }
-    if (event && !roll) {
-        results[id].hardClamp += synth.getHardClampCount();
-        synth.reset(); // Reset cost deliberately excluded from event timing.
-    }
-#ifdef CONFIG_POCKETPAN_DSP_PROFILE
-    // Sample steady render blocks sparsely to limit probe perturbation, but
-    // profile every event block: normally none of the 188-block event
-    // cadence coincides with the old modulo-32 sampling point.
-    const bool profiled = event || block % 32 == 1;
-    dsp::profile::enabled = profiled;
-    std::fill(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), 0);
-#endif
-    const uint32_t start = esp_cpu_get_cycle_count();
-    if (event) {
-        for (unsigned v = 0; v < counts[kind]; ++v) {
-            midi::MidiEvent note{}; note.type = midi::MidiEventType::NoteOn;
-            note.data1 = kind == 6 ? chord[v] : counts[kind] == 1 ? 62 : cluster[v];
-            note.data2 = kind == 6 || counts[kind] == 1 ? 90 : 100;
-            synth.handleMidiEvent(note);
+        synth.reset();
+        if (sAudioInstance) sAudioInstance->resetTimingStats();
+        synth.renderBlock(output, frames);
+        elapsed = esp_cpu_get_cycle_count() - start;
+    } else {
+        if (event && !roll) {
+            results[fixture].hardClamp += synth.getHardClampCount();
+            synth.reset(); // Reset cost deliberately excluded from event timing.
         }
-    }
-    // M6.3.9 exact three-class classification:
-    // Class 2: event (NoteOn injection)
-    // Class 1: attack_tail (post-NoteOn exciter running in active voice)
-    // Class 0: true_steady (no active exciter, pure ringing segment)
-    const bool attackTail = !event && synth.hasActiveExciter();
-    const unsigned timingClass = event ? 2 : (attackTail ? 1 : 0);
-
-    synth.renderBlock(output, frames);
-    const uint32_t elapsed = esp_cpu_get_cycle_count() - start;
-    auto& r = results[id];
-    r.timing(timingClass).add(elapsed);
-    if (synth.getVoiceAllocator().getActiveVoiceCount() != counts[kind]) ++r.badVoices;
-    if (!ready.load(std::memory_order_acquire)) ++r.bleLost;
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-    if (profiled) {
+        // Sample steady render blocks sparsely to limit probe perturbation, but
+        // profile every event block: normally none of the 188-block event
+        // cadence coincides with the old modulo-32 sampling point.
+        const bool profiled = event || block % 32 == 1;
+        dsp::profile::enabled = profiled;
+        std::fill(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), 0);
+#endif
+        const uint32_t start = esp_cpu_get_cycle_count();
+        if (event) {
+            for (unsigned v = 0; v < counts[kind]; ++v) {
+                midi::MidiEvent note{}; note.type = midi::MidiEventType::NoteOn;
+                note.data1 = kind == 6 ? chord[v] : counts[kind] == 1 ? 62 : cluster[v];
+                note.data2 = kind == 6 || counts[kind] == 1 ? 90 : 100;
+                synth.handleMidiEvent(note);
+            }
+        }
+        synth.renderBlock(output, frames);
+        elapsed = esp_cpu_get_cycle_count() - start;
+    }
+
+    auto& r = results[fixture];
+    r.timing(timingClass).add(elapsed);
+    if (!isTransition && synth.getVoiceAllocator().getActiveVoiceCount() != counts[kind]) ++r.badVoices;
+    if (!ready.load(std::memory_order_acquire)) ++r.bleLost;
+
+    sCurrentBlockContext.internalRenderUs = (elapsed + 239) / 240;
+    sCurrentBlockContext.blockClass = currentClass;
+    sCurrentBlockContext.fixtureId = static_cast<uint8_t>(id);
+    sCurrentBlockContext.model = isPan(id) ? 0 : 1;
+    sCurrentBlockContext.activeVoices = static_cast<uint8_t>(synth.getVoiceAllocator().getActiveVoiceCount());
+    sCurrentBlockContext.exciterActive = synth.hasActiveExciter();
+
+#ifdef CONFIG_POCKETPAN_DSP_PROFILE
+    if (!isTransition && profiled) {
         auto& prof = r.profile(timingClass);
         prof.total += elapsed;
         for (unsigned i = 0; i < dsp::profile::Count; ++i) prof.phases[i] += dsp::profile::cycles[i];
@@ -172,6 +392,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     }
     dsp::profile::enabled = false;
 #endif
+
     if (++block == CONFIG_POCKETPAN_FORENSICS_BLOCKS) {
         r.hardClamp += synth.getHardClampCount(); r.modalSat = synth.getModalInternalSaturationCount();
 #if POCKETPAN_PAN_STABLE8_FASTPATH
@@ -183,23 +404,56 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         completed.store(++fixture, std::memory_order_release); block = 0;
     }
 }
+
+inline void logOverruns() {
+    static size_t loggedOverruns = 0;
+    const size_t totalOverruns = gOverrunBuffer.count();
+    while (loggedOverruns < totalOverruns) {
+        OverrunRecord rec;
+        if (gOverrunBuffer.get(loggedOverruns, rec)) {
+            ESP_LOGW("forensics", "[OVERRUN] seq=%u callback_us=%u inner_us=%u class=%s fixture=%u model=%s voices=%u exciter=%d midi_depth=%u midi_consumed=%u telem=%d model_req=%d reset_req=%d",
+                (unsigned)rec.blockSequence, (unsigned)rec.fullCallbackUs, (unsigned)rec.internalRenderUs,
+                classToName(static_cast<ForensicsBlockClass>(rec.blockClass)),
+                (unsigned)rec.fixtureId, rec.model == 0 ? "PAN" : "BELL",
+                (unsigned)rec.activeVoices, rec.exciterActive ? 1 : 0,
+                (unsigned)rec.midiQueueDepth, (unsigned)rec.midiEventsConsumed,
+                rec.telemetryPublished ? 1 : 0, rec.modelChangeRequested ? 1 : 0, rec.synthResetRequested ? 1 : 0);
+        }
+        ++loggedOverruns;
+    }
+}
+
 inline void logCompleted() {
+    logOverruns();
     static unsigned logged = 0;
     const unsigned done = completed.load(std::memory_order_acquire);
     while (logged < done) {
         const unsigned id = fixtureId(logged);
-        const auto& r = results[id];
-        for (unsigned c = 0; c < 3; ++c) {
+        const auto& r = results[logged];
+        for (unsigned c = 0; c < kClassCount; ++c) {
             const auto& t = r.timing(c);
             ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u bin_us=%u",
                 isPan(id) ? "PAN" : "BELL", id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)t.count,
-                t.count ? double(t.sum) / t.count / 240 : 0, (unsigned)t.p95(), (unsigned)t.p99(),
+                t.count ? double(t.sum) / t.count / 240.0 : 0.0, (unsigned)t.p95(), (unsigned)t.p99(),
                 (unsigned)t.p995(), (unsigned)t.p999(), (unsigned)t.maximum, (unsigned)t.deadline,
                 (unsigned)r.badVoices, (unsigned)r.bleLost, (unsigned)r.hardClamp, (unsigned)r.modalSat,
                 (unsigned)kForensicsBinUs);
             for (size_t i = 0; i < t.bins.size(); ++i) if (t.bins[i])
                 ESP_LOGI("forensics", "[HIST] fixture=%u class=%s lower_us=%u n=%u", id,
                     kForensicsClassNames[c], (unsigned)(i * kForensicsBinUs), (unsigned)t.bins[i]);
+
+            const auto& cb = r.callback(c);
+            const double innerAvg = t.count ? double(t.sum) / t.count / 240.0 : 0.0;
+            const double cbAvg = cb.count ? double(cb.sum) / cb.count / 240.0 : 0.0;
+            const double overhead = cbAvg - innerAvg;
+            ESP_LOGI("forensics", "[CALLBACK_CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u overhead_avg_us=%.2f",
+                isPan(id) ? "PAN" : "BELL", id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)cb.count,
+                cbAvg, (unsigned)cb.p95(), (unsigned)cb.p99(),
+                (unsigned)cb.p995(), (unsigned)cb.p999(), (unsigned)cb.maximum, (unsigned)cb.deadline,
+                overhead);
+            for (size_t i = 0; i < cb.bins.size(); ++i) if (cb.bins[i])
+                ESP_LOGI("forensics", "[CALLBACK_HIST] fixture=%u class=%s lower_us=%u n=%u", id,
+                    kForensicsClassNames[c], (unsigned)(i * kForensicsBinUs), (unsigned)cb.bins[i]);
         }
         {
 #if POCKETPAN_PAN_STABLE8_FASTPATH
@@ -215,8 +469,19 @@ inline void logCompleted() {
             ESP_LOGI("forensics", "[FASTPATH] fixture=%u stable8=%u attack=%u",
                      id, stable8, attack);
         }
+        // Callback overhead breakdown
+        const auto& oh = gCallbackOverhead[logged];
+        if (oh.count > 0) {
+            ESP_LOGI("forensics", "[OVERHEAD] fixture=%u blocks=%u model_reset_avg_us=%.2f model_reset_max_us=%u queue_avg_us=%.2f queue_max_us=%u render_avg_us=%.2f telem_avg_us=%.2f telem_max_us=%u telem_publishes=%u",
+                id, (unsigned)oh.count,
+                double(oh.modelResetSumUs) / oh.count, (unsigned)oh.modelResetMaxUs,
+                double(oh.queueConsumeSumUs) / oh.count, (unsigned)oh.queueMaxUs,
+                double(oh.renderSumUs) / oh.count,
+                double(oh.telemetrySumUs) / oh.count, (unsigned)oh.telemMaxUs,
+                (unsigned)oh.telemPublishCount);
+        }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-        for (unsigned c = 0; c < 3; ++c) {
+        for (unsigned c = 0; c < kClassCount; ++c) {
             const auto& prof = r.profile(c);
             const char* profileClass = kForensicsClassNames[c];
             if (!prof.count) continue;

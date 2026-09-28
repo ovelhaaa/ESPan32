@@ -29,9 +29,9 @@ with args.output.open("xb") as report, serial.Serial(args.port, 115200, timeout=
             print(line.decode(errors="replace").strip(), flush=True)
         if b"[CURVE]" in line:
             curves += 1
-        if curves == args.rows and b"class=event" in line:
-            # Allow final phase and I/O messages to be captured too.
-            end = min(end, time.monotonic() + 6)
+            if curves == args.rows:
+                # Allow final phase and I/O messages to be captured too.
+                end = min(end, time.monotonic() + 6)
     print(f"Captured {curves}/{args.rows} curve rows to {args.output}", flush=True)
     if curves != args.rows:
         sys.exit(2)

@@ -1,6 +1,10 @@
 #include "audio_i2s.h"
 #include "block_timing_histogram.h"
 #include "../diag/ui_audio_sync.h"
+#include "sdkconfig.h"
+#if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS)
+#include "../app/polyphony_forensics.h"
+#endif
 
 #ifdef ESP_PLATFORM
 #include "esp_check.h"
@@ -295,6 +299,11 @@ void AudioI2S::audioTaskLoop() {
                 processTimeUs,
                 stats_.blocksProcessed.load(std::memory_order_relaxed));
         }
+#endif
+#if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS)
+        pocketpan::forensics::onCallbackComplete(
+            processTimeUs,
+            stats_.blocksProcessed.load(std::memory_order_relaxed));
 #endif
 #endif
 

@@ -21,10 +21,8 @@
 #include "ui/ui_renderer.h"
 #include "ui/audio_telemetry.h"
 #include "diag/ui_audio_sync.h"
-
-#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+#include "diag/active_soak.h"
 #include "esp_timer.h"
-#endif
 
 namespace {
 constexpr const char* kTag = "pocket_pan_main";
@@ -93,8 +91,12 @@ void blePollTask(void* param) {
 
 // Real-Time Audio Callback - Runs strictly on Core 0 at high priority (zero formatting, zero heap, zero mutex)
 void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames) {
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    const int64_t tCb0 = esp_timer_get_time();
+#endif
     // SynthEngine is owned exclusively by this Core 0 callback.
-    if (sModelChangeRequested.exchange(false, std::memory_order_acq_rel)) {
+    const bool modelChangeReq = sModelChangeRequested.exchange(false, std::memory_order_acq_rel);
+    if (modelChangeReq) {
         const auto model = sBellModelSelected.load(std::memory_order_acquire)
             ? pocketpan::dsp::InstrumentModel::Bell : pocketpan::dsp::InstrumentModel::Pan;
         sSynth.setInstrumentModel(model);
@@ -103,13 +105,24 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
         pocketpan::diag::gRareStallForensics.setModel(sBellModelSelected.load(std::memory_order_relaxed) ? 1 : 0);
 #endif
     }
-    if (sSynthResetRequested.exchange(false, std::memory_order_acq_rel)) {
+    const bool synthResetReq = sSynthResetRequested.exchange(false, std::memory_order_acq_rel);
+    if (synthResetReq) {
         sSynth.killAllVoices();
     }
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    const int64_t tCb1 = esp_timer_get_time();
+#endif
 
     // 1. Consume all queued MIDI events from Core 1
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    const uint8_t midiDepth = static_cast<uint8_t>(std::min<size_t>(255, sBleMidiQueue.size() + sDemoMidiQueue.size()));
+    uint8_t midiConsumed = 0;
+#endif
     pocketpan::midi::MidiEvent ev;
     auto consume = [&](auto& queue) { while (queue.pop(ev)) {
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+        ++midiConsumed;
+#endif
         // Diagnostic tones own audio TX. MIDI remains visible in telemetry but
         // intentionally cannot create hidden musical state while diagnostics run.
         #ifndef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
@@ -137,6 +150,11 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     consume(sBleMidiQueue);
     consume(sDemoMidiQueue);
 
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    const int64_t tCb2 = esp_timer_get_time();
+    pocketpan::forensics::setCallbackPreContext(modelChangeReq, synthResetReq, midiDepth, midiConsumed);
+#endif
+
     // 2. One producer owns TX: diagnostics intentionally silence/reset PAN,
     // while MIDI is still consumed for its diagnostic display.
     #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
@@ -146,42 +164,64 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     else sDiagnosticTone.render(outInterleaved, frames, static_cast<float>(pocketpan::board::audio::kSampleRate));
 #endif
 
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    const int64_t tCb3 = esp_timer_get_time();
+#endif
+
     // 3. Publish at ~47 Hz (one in eight 128-frame blocks), above the 30 Hz UI
     // rate while avoiding needless cross-core atomic traffic on every block.
-    if (++sTelemetryDivider < 8) return;
-    sTelemetryDivider = 0;
-    const auto stats = sAudio.getStats();
-    sAudioSnapshot.activeVoices = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
-    sAudioSnapshot.avgBlockTimeUs = stats.avgBlockTimeUs;
-    sAudioSnapshot.p99BlockTimeUs = stats.p99BlockTimeUs;
-    sAudioSnapshot.maxBlockTimeUs = stats.maxBlockTimeUs;
-    sAudioSnapshot.deadlineMisses = stats.deadlineMisses;
-    sAudioSnapshot.writeTimeouts = stats.writeTimeouts;
-    sAudioSnapshot.txErrors = stats.txErrors;
-    sAudioSnapshot.shortWrites = stats.shortWrites;
-    sAudioSnapshot.cpuLoadPercent = stats.cpuLoadPercent;
-    sAudioSnapshot.preLimiterPeak = sSynth.getPreLimiterPeak();
-    sAudioSnapshot.postLimiterPeak = sSynth.getPostLimiterPeak();
-    sAudioSnapshot.currentGainReductionDb = sSynth.getCurrentGainReductionDb();
-    sAudioSnapshot.maxGainReductionDb = sSynth.getMaxGainReductionDb();
-    sAudioSnapshot.averageGainReductionDb = sSynth.getAverageGainReductionDb();
-    sAudioSnapshot.limiterActiveSamples = sSynth.getLimiterActiveSamples();
-    sAudioSnapshot.gainReductionOver0p1DbSamples = sSynth.getGainReductionOver0p1DbSamples();
-    sAudioSnapshot.gainReductionOver1DbSamples = sSynth.getGainReductionOver1DbSamples();
-    sAudioSnapshot.hardClampCount = sSynth.getHardClampCount();
-    sAudioSnapshot.bodyPeak = sSynth.getBodyPeak();
-    sAudioSnapshot.bodyRms = sSynth.getBodyRms();
-    sAudioSnapshot.bodyEnergy = sSynth.getBodyEnergy();
-    sAudioSnapshot.sympatheticBusPeak = sSynth.getSympatheticBusPeak();
-    sAudioSnapshot.sympatheticBusRms = sSynth.getSympatheticBusRms();
-    sAudioSnapshot.sympatheticSafetyCount = sSynth.getSympatheticSafetyCount();
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    bool telemPublished = false;
+#endif
+    if (++sTelemetryDivider >= 8) {
+        sTelemetryDivider = 0;
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+        telemPublished = true;
+#endif
+        const auto stats = sAudio.getStats();
+        sAudioSnapshot.activeVoices = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
+        sAudioSnapshot.avgBlockTimeUs = stats.avgBlockTimeUs;
+        sAudioSnapshot.p99BlockTimeUs = stats.p99BlockTimeUs;
+        sAudioSnapshot.maxBlockTimeUs = stats.maxBlockTimeUs;
+        sAudioSnapshot.deadlineMisses = stats.deadlineMisses;
+        sAudioSnapshot.writeTimeouts = stats.writeTimeouts;
+        sAudioSnapshot.txErrors = stats.txErrors;
+        sAudioSnapshot.shortWrites = stats.shortWrites;
+        sAudioSnapshot.cpuLoadPercent = stats.cpuLoadPercent;
+        sAudioSnapshot.preLimiterPeak = sSynth.getPreLimiterPeak();
+        sAudioSnapshot.postLimiterPeak = sSynth.getPostLimiterPeak();
+        sAudioSnapshot.currentGainReductionDb = sSynth.getCurrentGainReductionDb();
+        sAudioSnapshot.maxGainReductionDb = sSynth.getMaxGainReductionDb();
+        sAudioSnapshot.averageGainReductionDb = sSynth.getAverageGainReductionDb();
+        sAudioSnapshot.limiterActiveSamples = sSynth.getLimiterActiveSamples();
+        sAudioSnapshot.gainReductionOver0p1DbSamples = sSynth.getGainReductionOver0p1DbSamples();
+        sAudioSnapshot.gainReductionOver1DbSamples = sSynth.getGainReductionOver1DbSamples();
+        sAudioSnapshot.hardClampCount = sSynth.getHardClampCount();
+        sAudioSnapshot.bodyPeak = sSynth.getBodyPeak();
+        sAudioSnapshot.bodyRms = sSynth.getBodyRms();
+        sAudioSnapshot.bodyEnergy = sSynth.getBodyEnergy();
+        sAudioSnapshot.sympatheticBusPeak = sSynth.getSympatheticBusPeak();
+        sAudioSnapshot.sympatheticBusRms = sSynth.getSympatheticBusRms();
+        sAudioSnapshot.sympatheticSafetyCount = sSynth.getSympatheticSafetyCount();
 
-    sAudioSnapshot.midiPushCount = sBleMidiQueue.getPushCount() + sDemoMidiQueue.getPushCount();
-    sAudioSnapshot.midiPopCount = sBleMidiQueue.getPopCount() + sDemoMidiQueue.getPopCount();
-    sAudioSnapshot.midiDrops = sBleMidiQueue.getDrops() + sDemoMidiQueue.getDrops();
-    sAudioSnapshot.midiHighWater = std::max(sBleMidiQueue.getHighWaterMark(), sDemoMidiQueue.getHighWaterMark());
+        sAudioSnapshot.midiPushCount = sBleMidiQueue.getPushCount() + sDemoMidiQueue.getPushCount();
+        sAudioSnapshot.midiPopCount = sBleMidiQueue.getPopCount() + sDemoMidiQueue.getPopCount();
+        sAudioSnapshot.midiDrops = sBleMidiQueue.getDrops() + sDemoMidiQueue.getDrops();
+        sAudioSnapshot.midiHighWater = std::max(sBleMidiQueue.getHighWaterMark(), sDemoMidiQueue.getHighWaterMark());
 
-    sTelemetryPub.publish(sAudioSnapshot);
+        sTelemetryPub.publish(sAudioSnapshot);
+    }
+
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    const int64_t tCb4 = esp_timer_get_time();
+    pocketpan::forensics::recordPostContext(
+        telemPublished,
+        static_cast<uint32_t>(tCb1 - tCb0),
+        static_cast<uint32_t>(tCb2 - tCb1),
+        static_cast<uint32_t>(tCb3 - tCb2),
+        static_cast<uint32_t>(tCb4 - tCb3)
+    );
+#endif
 }
 
 // UI Task - Runs strictly on Core 1 at ~30 Hz
@@ -344,6 +384,16 @@ void uiTaskLoop(void* param) {
         else if (bleState == pocketpan::hardware::BleMidiState::Error) bleText = "BLE ERR";
         snprintf(sUiState.bleStatus, sizeof(sUiState.bleStatus), "%s", bleText);
 
+#if defined(POCKETPAN_ACTIVE_SOAK) && POCKETPAN_ACTIVE_SOAK
+        // M6.3.9.1 Phase E: automated realistic musical soak workload
+        pocketpan::diag::gActiveSoakGenerator.tick(
+            sDemoMidiQueue,
+            sBellModelSelected,
+            sModelChangeRequested,
+            sUiState.presetName,
+            sizeof(sUiState.presetName)
+        );
+#else
         // 3. Standalone bring-up demo: if BLE is not connected yet, trigger a gentle note every 800ms
         demoTick++;
         if (!sBleMidi.isMidiReady() && (demoTick % 25 == 0)) { // ~825 ms
@@ -359,6 +409,7 @@ void uiTaskLoop(void* param) {
 
             scaleIdx = (scaleIdx + 1) % kScaleLen;
         }
+#endif
 
 #if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
         const int64_t tState1 = esp_timer_get_time();
@@ -518,6 +569,9 @@ extern "C" void app_main(void) {
         ESP_LOGE(kTag, "Fatal: Audio I2S initialization failed!");
         return;
     }
+#ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+    pocketpan::forensics::setAudioInstance(&sAudio);
+#endif
 
     // 4. Initialize Display (after audio claims GDMA, before BLE allocates internal RAM)
     if (!sDisplay.init()) {

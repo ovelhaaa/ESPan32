@@ -1586,6 +1586,49 @@ void testForensicsClassification() {
         assert(eventCount + attackTailCount + trueSteadyCount == 8192);
     }
     std::cout << "  -> PASSED: Forensics 3-class classification validated (44/44/8104).\n";
+
+    // 3. Simulate 8192-block fixture for M6.3.9.1 with FixtureTransition at block 0
+    // Confirm exact block counts: transition = 1, event = 44, attack_tail = 44, true_steady = 8103, sum = 8192
+    {
+        dsp::SynthEngine synth;
+        synth.init(48000.0f);
+        synth.setInstrumentModel(dsp::InstrumentModel::Pan);
+        uint32_t transitionCount = 0;
+        uint32_t eventCount = 0;
+        uint32_t attackTailCount = 0;
+        uint32_t trueSteadyCount = 0;
+        int32_t out[128 * 2];
+        constexpr uint8_t cluster[8] = {50, 52, 54, 56, 57, 59, 61, 62};
+
+        for (unsigned block = 0; block < 8192; ++block) {
+            const bool isTransition = (block == 0);
+            const bool event = !isTransition && ((block - 1) % 188 == 0);
+            if (isTransition) {
+                synth.setInstrumentModel(dsp::InstrumentModel::Pan);
+                synth.reset();
+                ++transitionCount;
+            } else if (event) {
+                synth.reset();
+                for (unsigned v = 0; v < 8; ++v) {
+                    midi::MidiEvent note{}; note.type = midi::MidiEventType::NoteOn;
+                    note.data1 = cluster[v]; note.data2 = 100;
+                    synth.handleMidiEvent(note);
+                }
+                ++eventCount;
+            } else if (synth.hasActiveExciter()) {
+                ++attackTailCount;
+            } else {
+                ++trueSteadyCount;
+            }
+            synth.renderBlock(out, 128);
+        }
+        assert(transitionCount == 1);
+        assert(eventCount == 44);
+        assert(attackTailCount == 44);
+        assert(trueSteadyCount == 8192 - 1 - 44 - 44);
+        assert(transitionCount + eventCount + attackTailCount + trueSteadyCount == 8192);
+    }
+    std::cout << "  -> PASSED: M6.3.9.1 4-class classification validated (1/44/44/8103).\n";
 }
 
 int main() {

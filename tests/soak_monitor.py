@@ -57,8 +57,11 @@ def main():
         crashes = 0
 
         latest_audio = {}
+        latest_midi = {}
         latest_ble = {}
         latest_mem = {}
+        start_mem = {}
+        max_midi_hwm = 0
 
         while time.monotonic() < end_time:
             line_bytes = port.readline()
@@ -96,8 +99,14 @@ def main():
 
             m_midi = MIDI_RE.search(line)
             if m_midi:
-                drops = int(m_midi.group(3))
-                midi_drops = max(midi_drops, drops)
+                latest_midi = {
+                    "push": int(m_midi.group(1)),
+                    "pop": int(m_midi.group(2)),
+                    "drop": int(m_midi.group(3)),
+                    "hwm": int(m_midi.group(4)),
+                }
+                midi_drops = max(midi_drops, latest_midi["drop"])
+                max_midi_hwm = max(max_midi_hwm, latest_midi["hwm"])
 
             m_ble = BLE_RE.search(line)
             if m_ble:
@@ -115,6 +124,8 @@ def main():
                     "free": int(m_mem.group(1)),
                     "largest": int(m_mem.group(2)),
                 }
+                if not start_mem:
+                    start_mem = dict(latest_mem)
 
             now = time.monotonic()
             if now - last_progress_time >= 60.0:
@@ -128,7 +139,8 @@ def main():
                     f"max={latest_audio.get('max_us', 0)}us "
                     f"cpu={latest_audio.get('cpu', 0):.1f}% "
                     f"dline={deadlines} t/o={timeouts} tx_err={tx_errors} short={short_writes} "
-                    f"midi_drop={midi_drops} ble_state={latest_ble.get('state', -1)} reconn={ble_reconnects} "
+                    f"midi_events={latest_midi.get('pop', 0)} hwm={max_midi_hwm} drop={midi_drops} "
+                    f"ble_state={latest_ble.get('state', -1)} reconn={ble_reconnects} "
                     f"mem_free={latest_mem.get('free', 0)}",
                     flush=True
                 )
@@ -139,9 +151,15 @@ def main():
     print(f"SOAK TEST COMPLETED in {elapsed_total:.1f}s ({elapsed_total/60:.2f} min)", flush=True)
     print(f"Total lines captured: {total_lines}", flush=True)
     print(f"Final audio: {latest_audio}", flush=True)
+    print(f"Final MIDI:  {latest_midi}", flush=True)
     print(f"Final BLE:   {latest_ble}", flush=True)
+    print(f"Start MEM:   {start_mem}", flush=True)
     print(f"Final MEM:   {latest_mem}", flush=True)
     print(f"Summary gates:", flush=True)
+    print(f"  Duration (s):   {elapsed_total:.1f} (target: >= {args.seconds:.0f})", flush=True)
+    print(f"  Audio blocks:   {latest_audio.get('blocks', 0)}", flush=True)
+    print(f"  MIDI events:    {latest_midi.get('pop', 0)}", flush=True)
+    print(f"  MIDI queue hwm: {max_midi_hwm}", flush=True)
     print(f"  Deadlines:      {deadlines} (target: 0)", flush=True)
     print(f"  Write timeouts: {timeouts} (target: 0)", flush=True)
     print(f"  TX errors:      {tx_errors} (target: 0)", flush=True)
@@ -149,6 +167,7 @@ def main():
     print(f"  MIDI drops:     {midi_drops} (target: 0)", flush=True)
     print(f"  BLE reconnects: {ble_reconnects} (target: 0)", flush=True)
     print(f"  Crashes:        {crashes} (target: 0)", flush=True)
+    print(f"  Heap free delta:{latest_mem.get('free', 0) - start_mem.get('free', 0)} bytes", flush=True)
     print(f"=======================================================", flush=True)
 
     passed = (
