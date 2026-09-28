@@ -1,4 +1,5 @@
 #include "ui_renderer.h"
+#include "../diag/ui_audio_sync.h"
 #include <cstdio>
 #include <cstring>
 
@@ -11,9 +12,16 @@
 
 namespace pocketpan::ui {
 
-// M6.3.6 Phase A U3 (diagnostic only): the unconditional full framebuffer
-// clear can be skipped so the test can separate "clear + full rewrite" from
-// "logical formatting/control work".  Production never defines this.
+namespace {
+// Phase C: preallocated static tile memory in .bss (total ~10 KB)
+alignas(4) uint8_t sTileBle[60 * 12 * 2] = {0};
+alignas(4) uint8_t sTilePreset[72 * 18 * 2] = {0};
+alignas(4) uint8_t sTileRoot[50 * 18 * 2] = {0};
+alignas(4) uint8_t sTileVoices[80 * 12 * 2] = {0};
+alignas(4) uint8_t sTileCpu[80 * 12 * 2] = {0};
+alignas(4) uint8_t sTileDline[80 * 12 * 2] = {0};
+} // namespace
+
 #if defined(POCKETPAN_UI_NO_FULL_CLEAR) && POCKETPAN_UI_NO_FULL_CLEAR
 #define POCKETPAN_UI_SKIP_FULL_CLEAR 1
 #else
@@ -26,15 +34,28 @@ void UiRenderer::render(const UiState& state) {
     buildSignature(state, signature, sizeof(signature));
     if (hasRendered_ && std::strcmp(signature, lastSignature_) == 0) {
         ++skipCount_;
-        return; // Displayed text identical: no draw and no LCD transfer.
+        return;
     }
     ++renderCount_;
 #endif
+
+    pocketpan::diag::gUiAudioCorrelation.uiDrawing.store(true, std::memory_order_release);
+    pocketpan::diag::gUiAudioCorrelation.uiRenderSequence.fetch_add(1, std::memory_order_relaxed);
+
 #if POCKETPAN_UI_TIMING_ACTIVE
     const int64_t tFb0 = esp_timer_get_time();
 #endif
+
     if (state.mode == UiScreenMode::MidiDiagnostic) {
         renderDiagnostic(state);
+#if POCKETPAN_UI_TIMING_ACTIVE
+        const int64_t tFb1 = esp_timer_get_time();
+#endif
+        display_.update();
+#if POCKETPAN_UI_TIMING_ACTIVE
+        lastFramebufferUs_ = static_cast<uint32_t>(tFb1 - tFb0);
+        lastLcdUs_ = static_cast<uint32_t>(esp_timer_get_time() - tFb1);
+#endif
     } else if (state.mode == UiScreenMode::AudioDiagnostic) {
 #if !POCKETPAN_UI_SKIP_FULL_CLEAR
         display_.clear(hardware::colors::Background);
@@ -49,44 +70,48 @@ void UiRenderer::render(const UiState& state) {
         snprintf(b, sizeof(b), "TXERR %u SHORT %u", (unsigned)state.txErrors, (unsigned)state.shortWrites); display_.drawText(10, 90, b, hardware::colors::LightGray, 1);
         snprintf(b, sizeof(b), "PEAK %.2f OUT %.2f", state.preLimiterPeak, state.postLimiterPeak); display_.drawText(10, 106, b, hardware::colors::Cyan, 1);
         snprintf(b, sizeof(b), "GR %.1f M%.1f >.1:%u >1:%u C%u", state.currentGainReductionDb, state.maxGainReductionDb, (unsigned)state.gainReductionOver0p1DbSamples, (unsigned)state.gainReductionOver1DbSamples, (unsigned)state.hardClampCount); display_.drawText(10, 122, b, hardware::colors::Gray, 1);
+#if POCKETPAN_UI_TIMING_ACTIVE
+        const int64_t tFb1 = esp_timer_get_time();
+#endif
+        display_.update();
+#if POCKETPAN_UI_TIMING_ACTIVE
+        lastFramebufferUs_ = static_cast<uint32_t>(tFb1 - tFb0);
+        lastLcdUs_ = static_cast<uint32_t>(esp_timer_get_time() - tFb1);
+#endif
     } else {
         renderStatus(state);
-    }
 #if POCKETPAN_UI_TIMING_ACTIVE
-    const int64_t tFb1 = esp_timer_get_time();
-#endif
-#if defined(POCKETPAN_UI_PARTIAL) && POCKETPAN_UI_PARTIAL
-    if (state.mode == UiScreenMode::Status) {
-        if (noTransfer_) {
-            // Displayed content is identical: no draw above and no transfer.
-        } else if (dirtyY1_ > dirtyY0_) {
+        const int64_t tFb1 = esp_timer_get_time();
+#if POCKETPAN_UI_ARCH == 0
+        if (dirtyY1_ > dirtyY0_) {
             display_.updateRows(dirtyY0_, dirtyY1_);
-        } else {
-            display_.update();
         }
-    } else {
-        display_.update();
-    }
+#endif
+        lastFramebufferUs_ = static_cast<uint32_t>(tFb1 - tFb0);
+        lastLcdUs_ = static_cast<uint32_t>(esp_timer_get_time() - tFb1);
 #else
-    display_.update();
+#if POCKETPAN_UI_ARCH == 0
+        if (dirtyY1_ > dirtyY0_) {
+            display_.updateRows(dirtyY0_, dirtyY1_);
+        }
 #endif
-#if POCKETPAN_UI_TIMING_ACTIVE
-    lastFramebufferUs_ = static_cast<uint32_t>(tFb1 - tFb0);
-    lastLcdUs_ = static_cast<uint32_t>(esp_timer_get_time() - tFb1);
 #endif
+    }
+
+    pocketpan::diag::gUiAudioCorrelation.uiDrawing.store(false, std::memory_order_release);
+
 #if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
     buildSignature(state, lastSignature_, sizeof(lastSignature_));
     hasRendered_ = true;
 #endif
 }
 
-#if defined(POCKETPAN_UI_PARTIAL) && POCKETPAN_UI_PARTIAL
-void UiRenderer::drawStatusField(int x, int y, const char* text, uint16_t color, uint16_t bg,
-                                 int scale, char* cache, size_t cap, bool force) {
+// F0 / U0 helper: row band marking
+void UiRenderer::drawStatusFieldRowBand(int x, int y, const char* text, uint16_t color, uint16_t bg,
+                                        int scale, char* cache, size_t cap, bool force) {
     if (!force && std::strcmp(text, cache) == 0) return;
     const int h = 8 * scale;
     if (!force) {
-        // Erase the wider of the old/new strings so no glyph is left behind.
         const size_t oldLen = std::strlen(cache);
         const size_t newLen = std::strlen(text);
         const size_t cols = oldLen > newLen ? oldLen : newLen;
@@ -96,6 +121,36 @@ void UiRenderer::drawStatusField(int x, int y, const char* text, uint16_t color,
     std::snprintf(cache, cap, "%s", text);
     if (y < dirtyY0_) dirtyY0_ = y;
     if (y + h > dirtyY1_) dirtyY1_ = y + h;
+    ++fieldUpdateCount_;
+}
+
+// F1 / U1 helper: write to full framebuffer and transfer only sub-rectangle
+void UiRenderer::drawStatusFieldRectFb(int x, int y, int w, int h, const char* text, uint16_t color,
+                                       uint16_t bg, int scale, char* cache, size_t cap,
+                                       uint16_t* lastColor, bool force) {
+    if (!force && std::strcmp(text, cache) == 0 && *lastColor == color) return;
+    std::snprintf(cache, cap, "%s", text);
+    *lastColor = color;
+    ++fieldUpdateCount_;
+
+    display_.fillRect(x, y, w, h, bg);
+    display_.drawText(x, y + (scale == 1 ? 1 : 0), text, color, scale);
+    display_.updateRectFromFramebuffer(x, y, w, h);
+}
+
+// F2 / U2 helper: render into small preallocated TileSurface and transfer rect (zero full-fb touches)
+void UiRenderer::drawStatusFieldTile(int x, int y, int w, int h, const char* text, uint16_t color,
+                                     uint16_t bg, int scale, char* cache, size_t cap,
+                                     uint16_t* lastColor, uint8_t* tileMem, bool force) {
+    if (!force && std::strcmp(text, cache) == 0 && *lastColor == color) return;
+    std::snprintf(cache, cap, "%s", text);
+    *lastColor = color;
+    ++fieldUpdateCount_;
+
+    hardware::TileSurface tile(tileMem, w, h);
+    tile.clear(bg);
+    tile.drawText(0, (scale == 1 ? 1 : 0), text, color, scale);
+    display_.updateRect(x, y, w, h, tile.buffer());
 }
 
 void UiRenderer::renderStatus(const UiState& state) {
@@ -108,7 +163,7 @@ void UiRenderer::renderStatus(const UiState& state) {
 #if !POCKETPAN_UI_SKIP_FULL_CLEAR
         display_.clear(hardware::colors::Background);
 #endif
-        // Static background: drawn once per mode entry, never per frame.
+        // Static background: drawn once per mode entry
         display_.fillRect(0, 0, hardware::Display::kWidth, 20, hardware::colors::DarkGray);
         display_.drawText(8, 6, "POCKET PAN", hardware::colors::Cyan, 1);
         display_.drawFastHLine(0, 20, hardware::Display::kWidth, hardware::colors::Gray);
@@ -118,109 +173,94 @@ void UiRenderer::renderStatus(const UiState& state) {
         display_.drawText(140, 70, "AUDIO   48K", hardware::colors::LightGray, 1);
         display_.drawFastHLine(0, 115, hardware::Display::kWidth, hardware::colors::DarkGray);
         display_.drawText(12, 122, "BOOT: SHORT DIAG / HOLD MODEL", hardware::colors::Gray, 1);
+
+        display_.update(); // Flush full static background to LCD
     }
 
     const bool force = full;
-    drawStatusField(175, 6, state.bleStatus,
-                    state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Orange,
-                    hardware::colors::DarkGray, 1, lastBle_, sizeof(lastBle_), force);
-    drawStatusField(12, 40, state.presetName, hardware::colors::White,
-                    hardware::colors::Background, 2, lastPreset_, sizeof(lastPreset_), force);
-    drawStatusField(140, 40, state.rootNoteName, hardware::colors::Yellow,
-                    hardware::colors::Background, 2, lastRoot_, sizeof(lastRoot_), force);
-    char lineBuf[32];
-    snprintf(lineBuf, sizeof(lineBuf), "VOICES  %u/%u", state.activeVoices, state.maxVoices);
-    drawStatusField(12, 70, lineBuf, hardware::colors::LightGray,
-                    hardware::colors::Background, 1, lastVoices_, sizeof(lastVoices_), force);
-    snprintf(lineBuf, sizeof(lineBuf), "CPU     %2.0f%%", state.cpuLoadPercent);
-    drawStatusField(12, 88, lineBuf,
-                    state.cpuLoadPercent > 75.0f ? hardware::colors::Red : hardware::colors::LightGray,
-                    hardware::colors::Background, 1, lastCpu_, sizeof(lastCpu_), force);
-    snprintf(lineBuf, sizeof(lineBuf), "DLINE   %u", static_cast<unsigned>(state.deadlineMisses));
-    drawStatusField(140, 88, lineBuf,
-                    state.deadlineMisses > 0 ? hardware::colors::Red : hardware::colors::LightGray,
-                    hardware::colors::Background, 1, lastDline_, sizeof(lastDline_), force);
+    const uint16_t bleColor = state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Orange;
+    const uint16_t cpuColor = state.cpuLoadPercent > 75.0f ? hardware::colors::Red : hardware::colors::LightGray;
+    const uint16_t dlineColor = state.deadlineMisses > 0 ? hardware::colors::Red : hardware::colors::LightGray;
+
+    char voicesBuf[24];
+    snprintf(voicesBuf, sizeof(voicesBuf), "VOICES  %u/%u", state.activeVoices, state.maxVoices);
+
+    char cpuBuf[24];
+    snprintf(cpuBuf, sizeof(cpuBuf), "CPU     %2.0f%%", state.cpuLoadPercent);
+
+    char dlineBuf[24];
+    snprintf(dlineBuf, sizeof(dlineBuf), "DLINE   %u", static_cast<unsigned>(state.deadlineMisses));
+
+#if POCKETPAN_UI_ARCH == 0
+    // F0: Row band tracking
+    drawStatusFieldRowBand(175, 6, state.bleStatus, bleColor, hardware::colors::DarkGray,
+                           1, lastBle_, sizeof(lastBle_), force);
+    drawStatusFieldRowBand(12, 40, state.presetName, hardware::colors::White, hardware::colors::Background,
+                           2, lastPreset_, sizeof(lastPreset_), force);
+    drawStatusFieldRowBand(140, 40, state.rootNoteName, hardware::colors::Yellow, hardware::colors::Background,
+                           2, lastRoot_, sizeof(lastRoot_), force);
+    drawStatusFieldRowBand(12, 70, voicesBuf, hardware::colors::LightGray, hardware::colors::Background,
+                           1, lastVoices_, sizeof(lastVoices_), force);
+    drawStatusFieldRowBand(12, 88, cpuBuf, cpuColor, hardware::colors::Background,
+                           1, lastCpu_, sizeof(lastCpu_), force);
+    drawStatusFieldRowBand(140, 88, dlineBuf, dlineColor, hardware::colors::Background,
+                           1, lastDline_, sizeof(lastDline_), force);
+
+#elif POCKETPAN_UI_ARCH == 1
+    // F1: True rectangle update via full framebuffer
+    drawStatusFieldRectFb(175, 5, 55, 12, state.bleStatus, bleColor, hardware::colors::DarkGray,
+                          1, lastBle_, sizeof(lastBle_), &lastBleColor_, force);
+    drawStatusFieldRectFb(12, 40, 70, 18, state.presetName, hardware::colors::White, hardware::colors::Background,
+                          2, lastPreset_, sizeof(lastPreset_), &lastBleColor_, force);
+    drawStatusFieldRectFb(140, 40, 50, 18, state.rootNoteName, hardware::colors::Yellow, hardware::colors::Background,
+                          2, lastRoot_, sizeof(lastRoot_), &lastBleColor_, force);
+    drawStatusFieldRectFb(12, 70, 80, 12, voicesBuf, hardware::colors::LightGray, hardware::colors::Background,
+                          1, lastVoices_, sizeof(lastVoices_), &lastBleColor_, force);
+    drawStatusFieldRectFb(12, 88, 80, 12, cpuBuf, cpuColor, hardware::colors::Background,
+                          1, lastCpu_, sizeof(lastCpu_), &lastCpuColor_, force);
+    drawStatusFieldRectFb(140, 88, 80, 12, dlineBuf, dlineColor, hardware::colors::Background,
+                          1, lastDline_, sizeof(lastDline_), &lastDlineColor_, force);
+
+#else
+    // F2 (and F3): True rectangle update via isolated tile scratch memory (zero framebuffer touches)
+    drawStatusFieldTile(175, 5, 55, 12, state.bleStatus, bleColor, hardware::colors::DarkGray,
+                        1, lastBle_, sizeof(lastBle_), &lastBleColor_, sTileBle, force);
+    drawStatusFieldTile(12, 40, 70, 18, state.presetName, hardware::colors::White, hardware::colors::Background,
+                        2, lastPreset_, sizeof(lastPreset_), &lastBleColor_, sTilePreset, force);
+    drawStatusFieldTile(140, 40, 50, 18, state.rootNoteName, hardware::colors::Yellow, hardware::colors::Background,
+                        2, lastRoot_, sizeof(lastRoot_), &lastBleColor_, sTileRoot, force);
+    drawStatusFieldTile(12, 70, 80, 12, voicesBuf, hardware::colors::LightGray, hardware::colors::Background,
+                        1, lastVoices_, sizeof(lastVoices_), &lastBleColor_, sTileVoices, force);
+    drawStatusFieldTile(12, 88, 80, 12, cpuBuf, cpuColor, hardware::colors::Background,
+                        1, lastCpu_, sizeof(lastCpu_), &lastCpuColor_, sTileCpu, force);
+    drawStatusFieldTile(140, 88, 80, 12, dlineBuf, dlineColor, hardware::colors::Background,
+                        1, lastDline_, sizeof(lastDline_), &lastDlineColor_, sTileDline, force);
+#endif
 
     partialValid_ = true;
     partialMode_ = UiScreenMode::Status;
-    if (full) { dirtyY0_ = 0; dirtyY1_ = 0; }            // force full transfer
-    else if (dirtyY1_ <= dirtyY0_) noTransfer_ = true;   // nothing changed
 }
-#else
-void UiRenderer::renderStatus(const UiState& state) {
-#if !POCKETPAN_UI_SKIP_FULL_CLEAR
-    display_.clear(hardware::colors::Background);
-#endif
-
-    // Header banner
-    display_.fillRect(0, 0, hardware::Display::kWidth, 20, hardware::colors::DarkGray);
-    display_.drawText(8, 6, "POCKET PAN", hardware::colors::Cyan, 1);
-    display_.drawText(175, 6, state.bleStatus,
-                      state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Orange, 1);
-
-    display_.drawFastHLine(0, 20, hardware::Display::kWidth, hardware::colors::Gray);
-
-    // Active Preset and Note info
-    display_.drawText(12, 28, "PRESET", hardware::colors::Gray, 1);
-    display_.drawText(12, 40, state.presetName, hardware::colors::White, 2);
-
-    display_.drawText(140, 28, "ROOT", hardware::colors::Gray, 1);
-    display_.drawText(140, 40, state.rootNoteName, hardware::colors::Yellow, 2);
-
-    display_.drawFastHLine(8, 62, hardware::Display::kWidth - 16, hardware::colors::DarkGray);
-
-    // Stats Grid
-    char lineBuf[32];
-
-    // Voices
-    snprintf(lineBuf, sizeof(lineBuf), "VOICES  %u/%u", state.activeVoices, state.maxVoices);
-    display_.drawText(12, 70, lineBuf, hardware::colors::LightGray, 1);
-
-    // Audio Rate
-    display_.drawText(140, 70, "AUDIO   48K", hardware::colors::LightGray, 1);
-
-    // CPU Load
-    snprintf(lineBuf, sizeof(lineBuf), "CPU     %2.0f%%", state.cpuLoadPercent);
-    display_.drawText(12, 88, lineBuf,
-                      state.cpuLoadPercent > 75.0f ? hardware::colors::Red : hardware::colors::LightGray, 1);
-
-    // Deadline Misses
-    snprintf(lineBuf, sizeof(lineBuf), "DLINE   %u", static_cast<unsigned>(state.deadlineMisses));
-    display_.drawText(140, 88, lineBuf,
-                      state.deadlineMisses > 0 ? hardware::colors::Red : hardware::colors::LightGray, 1);
-
-    // Footer tip
-    display_.drawFastHLine(0, 115, hardware::Display::kWidth, hardware::colors::DarkGray);
-    display_.drawText(12, 122, "BOOT: SHORT DIAG / HOLD MODEL", hardware::colors::Gray, 1);
-}
-#endif
 
 void UiRenderer::renderDiagnostic(const UiState& state) {
 #if !POCKETPAN_UI_SKIP_FULL_CLEAR
     display_.clear(0x0000); // Black
 #endif
 
-    // Header banner
     display_.fillRect(0, 0, hardware::Display::kWidth, 18, hardware::colors::Red);
     display_.drawText(8, 5, "MIDI DIAGNOSTIC MONITOR", hardware::colors::White, 1);
     display_.drawFastHLine(0, 18, hardware::Display::kWidth, hardware::colors::Gray);
 
     char buf[40];
-
-    // Note Number & Name & Velocity
     snprintf(buf, sizeof(buf), "NOTE %u (%s)  VEL %u", state.lastNoteNumber, state.rootNoteName, state.lastVelocity);
     display_.drawText(10, 24, buf, hardware::colors::Yellow, 1);
 
-    // Pressure & Event Type
     snprintf(buf, sizeof(buf), "PRESS %u  TYPE %s", state.lastPressure, state.lastEventType);
     display_.drawText(10, 40, buf, hardware::colors::Cyan, 1);
 
-    // 13-bit Timestamp & Raw Bytes Hex
     snprintf(buf, sizeof(buf), "TS13 %u  HEX %02X %02X %02X",
              state.lastTimestamp13, state.lastRawBytes[0], state.lastRawBytes[1], state.lastRawBytes[2]);
     display_.drawText(10, 56, buf, hardware::colors::LightGray, 1);
 
-    // MIDI Queue HighWater & Drops
     snprintf(buf, sizeof(buf), "QUEUE HWM %u  DROP %u",
              static_cast<unsigned>(state.midiHighWater), static_cast<unsigned>(state.midiDrops));
     display_.drawText(10, 72, buf, state.midiDrops > 0 ? hardware::colors::Red : hardware::colors::Green, 1);
@@ -231,24 +271,16 @@ void UiRenderer::renderDiagnostic(const UiState& state) {
     snprintf(buf, sizeof(buf), "RECN %u DISC %u", (unsigned)state.bleReconnects, state.bleLastDisconnectReason);
     display_.drawText(10, 88, buf, hardware::colors::LightGray, 1);
 
-    // Audio Engine stats
     snprintf(buf, sizeof(buf), "DSP %uus (CPU %2.0f%%) DL %u",
              static_cast<unsigned>(state.avgBlockTimeUs), state.cpuLoadPercent, static_cast<unsigned>(state.deadlineMisses));
     display_.drawText(10, 102, buf, state.deadlineMisses > 0 ? hardware::colors::Red : hardware::colors::LightGray, 1);
 
-    // Bottom status
     display_.drawFastHLine(0, 114, hardware::Display::kWidth, hardware::colors::DarkGray);
-    snprintf(buf, sizeof(buf), "%s  (BOOT: TOGGLE)",
-             state.bleStatus);
-    display_.drawText(10, 120, buf,
-                      state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Gray, 1);
+    snprintf(buf, sizeof(buf), "%s  (BOOT: TOGGLE)", state.bleStatus);
+    display_.drawText(10, 120, buf, state.bleStatus[4] == 'O' ? hardware::colors::Green : hardware::colors::Gray, 1);
 }
 
 #if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
-// The signature is the exact sequence of formatted strings handed to drawText()
-// for the active screen.  Comparing signatures is therefore equivalent to
-// comparing the drawn glyphs (the static text and every geometric primitive are
-// constants within a screen mode).
 size_t UiRenderer::buildSignature(const UiState& state, char* out, size_t cap) {
     if (cap == 0) return 0;
     size_t used = 0;
@@ -330,7 +362,6 @@ uint64_t UiRenderer::urgentHash(const UiState& state) {
     h = hashText(h, state.lastEventType);
     h = hashValue(h, state.activeVoices);
     h = hashValue(h, state.maxVoices);
-    // Connection details shown on the MIDI monitor are input-feel fields.
     h = hashValue(h, state.bleIntervalUnits);
     h = hashValue(h, state.bleLatency);
     h = hashValue(h, state.bleReconnects);

@@ -140,8 +140,20 @@ private:
 #if POCKETPAN_PREPARED_NOTE_CACHE
     // Exactly two shared tables (not one per voice), prepared before I2S is
     // started.  Model selection in the audio callback only swaps a pointer.
+    // Phase P diagnostic canaries:
+    static constexpr uint32_t kCanaryMagic = 0x50414E32; // "PAN2"
+    uint32_t canaryPrePan_ = kCanaryMagic;
     PreparedNoteTable panPreparedNotes_{};
+    uint32_t canaryMid_ = kCanaryMagic;
     PreparedNoteTable bellPreparedNotes_{};
+    uint32_t canaryPostBell_ = kCanaryMagic;
+public:
+    bool verifyPreparedNoteCanaries() const {
+        return canaryPrePan_ == kCanaryMagic &&
+               canaryMid_ == kCanaryMagic &&
+               canaryPostBell_ == kCanaryMagic;
+    }
+private:
 #endif
 
 #if POCKETPAN_HEADROOM_TABLE

@@ -10,9 +10,15 @@ parser.add_argument("output", type=Path)
 parser.add_argument("--port", default="COM10")
 parser.add_argument("--seconds", type=float, default=420)
 parser.add_argument("--rows", type=int, default=32)
+parser.add_argument("--reset", action="store_true", help="Reset board via RTS on start")
 args = parser.parse_args()
 args.output.parent.mkdir(parents=True, exist_ok=True)
 with args.output.open("xb") as report, serial.Serial(args.port, 115200, timeout=1) as port:
+    if args.reset:
+        port.setDTR(False)
+        port.setRTS(True)
+        time.sleep(0.1)
+        port.setRTS(False)
     end = time.monotonic() + args.seconds
     curves = 0
     while time.monotonic() < end:

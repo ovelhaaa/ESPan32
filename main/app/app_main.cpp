@@ -20,6 +20,7 @@
 #include "ui/ui_state.h"
 #include "ui/ui_renderer.h"
 #include "ui/audio_telemetry.h"
+#include "diag/ui_audio_sync.h"
 
 #if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
 #include "esp_timer.h"
@@ -418,6 +419,36 @@ void uiTaskLoop(void* param) {
                      sUiState.lastRawBytes[0], sUiState.lastRawBytes[1], sUiState.lastRawBytes[2]);
             ESP_LOGI(kTag, "[BLE] state=%u interval_ms=%.2f latency=%u rssi=%d reconnects=%u last_disconnect=%u", (unsigned)bleState, sUiState.bleIntervalUnits * 1.25f, (unsigned)sUiState.bleLatency, sUiState.bleRssi, (unsigned)sUiState.bleReconnects, sUiState.bleLastDisconnectReason);
             ESP_LOGI(kTag, "[MEM] internal_free=%u largest_internal=%u", (unsigned)sUiState.internalHeapFree, (unsigned)sUiState.largestInternalBlock);
+            {
+                auto& corr = pocketpan::diag::gUiAudioCorrelation;
+                ESP_LOGI(kTag, "[UICORR] >1733(tot=%u draw=%u lcd=%u both=%u none=%u) >2000(tot=%u draw=%u lcd=%u both=%u none=%u)",
+                         (unsigned)corr.over1733.total.load(std::memory_order_relaxed),
+                         (unsigned)corr.over1733.drawingOnly.load(std::memory_order_relaxed),
+                         (unsigned)corr.over1733.lcdOnly.load(std::memory_order_relaxed),
+                         (unsigned)corr.over1733.both.load(std::memory_order_relaxed),
+                         (unsigned)corr.over1733.neither.load(std::memory_order_relaxed),
+                         (unsigned)corr.over2000.total.load(std::memory_order_relaxed),
+                         (unsigned)corr.over2000.drawingOnly.load(std::memory_order_relaxed),
+                         (unsigned)corr.over2000.lcdOnly.load(std::memory_order_relaxed),
+                         (unsigned)corr.over2000.both.load(std::memory_order_relaxed),
+                         (unsigned)corr.over2000.neither.load(std::memory_order_relaxed));
+                ESP_LOGI(kTag, "[UIMETRIC] arch=%d field_updates=%u total_transfers=%u total_pixels=%llu last_sub_us=%u last_dma_us=%u",
+                         POCKETPAN_UI_ARCH, (unsigned)renderer.fieldUpdateCount(),
+                         (unsigned)sDisplay.totalTransferCount(),
+                         (unsigned long long)sDisplay.totalPixelsTransferred(),
+                         (unsigned)sDisplay.lastSubmitDurationUs(),
+                         (unsigned)sDisplay.lastTransferDurationUs());
+                pocketpan::diag::RareStallRecord stalls[4];
+                size_t nStalls = pocketpan::diag::gRareStallForensics.copyRecords(stalls, 4);
+                for (size_t i = 0; i < nStalls; ++i) {
+                    ESP_LOGI(kTag, "[RARESTALL] block=%u dur=%uus voices=%u model=%s uiDraw=%d lcdDma=%d ble=%u telem=%d midiAge=%ums",
+                             (unsigned)stalls[i].audioBlockSequence, (unsigned)stalls[i].renderDurationUs,
+                             stalls[i].activeVoices, stalls[i].model ? "BELL" : "PAN",
+                             stalls[i].uiDrawing, stalls[i].lcdTransferActive,
+                             stalls[i].bleState, stalls[i].telemetryPublish,
+                             (unsigned)stalls[i].lastMidiAgeMs);
+                }
+            }
 #if defined(POCKETPAN_UI_URGENT) && POCKETPAN_UI_URGENT
             ESP_LOGI(kTag, "[UIREDRAW] urgent=%u telemetry=%u skip=%u",
                      (unsigned)renderer.urgentRenderCountForTest(),
@@ -476,14 +507,19 @@ extern "C" void app_main(void) {
         return;
     }
 
-    // 4. Initialize BLE MIDI Central on Core 1
-    if (!sBleMidi.begin()) {
-        ESP_LOGW(kTag, "BLE MIDI Central failed to start advertising/scanning");
-    }
-
-    // 5. Initialize Display LAST, after the audio transport owns its GDMA path
+    // 4. Initialize Display (after audio claims GDMA, before BLE allocates internal RAM)
     if (!sDisplay.init()) {
         ESP_LOGE(kTag, "Failed to initialize ST7789 display");
+    } else {
+        sDisplay.benchmarkTransfers();
+    }
+#if POCKETPAN_PREPARED_NOTE_CACHE
+    ESP_LOGI(kTag, "[CANARY] PreparedNote canaries OK=%d", sSynth.verifyPreparedNoteCanaries());
+#endif
+
+    // 5. Initialize BLE MIDI Central on Core 1
+    if (!sBleMidi.begin()) {
+        ESP_LOGW(kTag, "BLE MIDI Central failed to start advertising/scanning");
     }
 
     // 6. Start UI Task on Core 1

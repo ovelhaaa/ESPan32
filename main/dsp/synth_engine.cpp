@@ -4,6 +4,7 @@
 #include "../midi/midi_mapping.h"
 #include <algorithm>
 #include <cmath>
+#include <cassert>
 
 namespace pocketpan::dsp {
 
@@ -14,8 +15,11 @@ void SynthEngine::init(float sampleRate) {
     // Model changes are applied by the audio callback.  Build both fixed
     // tables now, before the callback/I2S transport exists, so no coefficient
     // table generation or heap work can occur at a realtime boundary.
+    assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Pan), panPreparedNotes_);
+    assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Bell), bellPreparedNotes_);
+    assert(verifyPreparedNoteCanaries());
 #endif
     model_ = InstrumentModel::Pan;
     modelConfig_ = getInstrumentModelConfig(model_);
@@ -68,6 +72,7 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
     allocator_.setSympatheticConfig(modelConfig_.sympathetic);
 #endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
+    assert(verifyPreparedNoteCanaries());
     allocator_.setPreparedNoteTable(model_ == InstrumentModel::Bell
         ? &bellPreparedNotes_ : &panPreparedNotes_);
 #endif

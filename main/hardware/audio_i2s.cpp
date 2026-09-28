@@ -1,5 +1,6 @@
 #include "audio_i2s.h"
 #include "block_timing_histogram.h"
+#include "../diag/ui_audio_sync.h"
 
 #ifdef ESP_PLATFORM
 #include "esp_check.h"
@@ -284,6 +285,17 @@ void AudioI2S::audioTaskLoop() {
         int64_t tRenderDone = esp_timer_get_time();
         uint32_t processTimeUs = static_cast<uint32_t>(tRenderDone - tStart);
 
+#ifdef ESP_PLATFORM
+        pocketpan::diag::gUiAudioCorrelation.recordBlock(processTimeUs);
+#if defined(POCKETPAN_RARE_STALL_FORENSICS) && POCKETPAN_RARE_STALL_FORENSICS
+        if (processTimeUs > 2000) {
+            pocketpan::diag::gRareStallForensics.record(
+                processTimeUs, 0, 0, 0, 0,
+                stats_.blocksProcessed.load(std::memory_order_relaxed));
+        }
+#endif
+#endif
+
         // Update real-time profiling stats
         if (timingResetRequested_.exchange(false, std::memory_order_acq_rel)) {
             totalProcessTimeUs = 0;
@@ -294,6 +306,9 @@ void AudioI2S::audioTaskLoop() {
             stats_.avgBlockTimeUs.store(0, std::memory_order_relaxed);
             stats_.p99BlockTimeUs.store(0, std::memory_order_relaxed);
             stats_.cpuLoadPercent.store(0.0f, std::memory_order_relaxed);
+#ifdef ESP_PLATFORM
+            pocketpan::diag::gUiAudioCorrelation.reset();
+#endif
         }
         if (processTimeUs >= static_cast<uint32_t>(blockBudgetUs)) {
             stats_.deadlineMisses.fetch_add(1, std::memory_order_relaxed);

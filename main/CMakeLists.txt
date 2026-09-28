@@ -22,6 +22,7 @@ idf_component_register(
         "dsp"
         "midi"
         "ui"
+        "diag"
     PRIV_REQUIRES
         driver
         esp_driver_gpio
@@ -69,6 +70,11 @@ set(POCKETPAN_UI_TELEMETRY_PERIOD_MS 200 CACHE STRING "Telemetry redraw period (
 set(POCKETPAN_UI_TIMING 0 CACHE STRING "M6.3.7: log Core-1 state/format/render/LCD microseconds")
 # Fine forensics histogram for M6.3.6: 5 us bins around the gate (default off).
 set(POCKETPAN_FORENSICS_FINE_BINS 0 CACHE STRING "0=25us bins (legacy), 5=5us bins, 10=10us bins")
+# M6.3.8 UI architecture: 0=F0 full fb + row bands, 1=F1 full fb + true rect, 2=F2 tile scratch + rect
+set(POCKETPAN_UI_ARCH 2 CACHE STRING "0=F0 row band, 1=F1 full fb + true rect, 2=F2 tile scratch + rect")
+set(POCKETPAN_UI_PSRAM 0 CACHE STRING "M6.3.8 F3 experiment: full framebuffer in PSRAM")
+set(POCKETPAN_RARE_STALL_FORENSICS 1 CACHE STRING "M6.3.8 Phase I: rare stall ring buffer capture")
+
 target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE}
     POCKETPAN_FORENSICS_CRITICAL_ONLY=${POCKETPAN_FORENSICS_CRITICAL_ONLY}
@@ -84,7 +90,9 @@ target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_UI_URGENT=${POCKETPAN_UI_URGENT}
     POCKETPAN_UI_TELEMETRY_PERIOD_MS=${POCKETPAN_UI_TELEMETRY_PERIOD_MS}
     POCKETPAN_UI_TIMING=${POCKETPAN_UI_TIMING}
-    POCKETPAN_FORENSICS_FINE_BINS=${POCKETPAN_FORENSICS_FINE_BINS})
-
+    POCKETPAN_FORENSICS_FINE_BINS=${POCKETPAN_FORENSICS_FINE_BINS}
+    POCKETPAN_UI_ARCH=${POCKETPAN_UI_ARCH}
+    POCKETPAN_UI_PSRAM=${POCKETPAN_UI_PSRAM}
+    POCKETPAN_RARE_STALL_FORENSICS=${POCKETPAN_RARE_STALL_FORENSICS})
 
 set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29)
