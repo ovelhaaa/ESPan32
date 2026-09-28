@@ -50,7 +50,7 @@ def summary(path):
     for (i, kind), r in sorted(rows.items()):
         print(f'| {r["model"]}/{i} ({r["voices"]} voices) | {kind} | {r["n"]} | {r["avg_us"]} | {r["p99_us"]} | {r["max_us"]} | {r["deadline"]} | {r["bad_voices"]}/{r["ble_lost"]} |')
     for offset, model in [(0, "PAN"), (8, "BELL")]:
-        selected = [rows.get((offset + i, "steady")) for i in range(6)]
+        selected = [rows.get((offset + i, "true_steady")) or rows.get((offset + i, "steady")) for i in range(6)]
         if not all(selected):
             continue
         xs = [float(r["voices"]) for r in selected]
@@ -61,7 +61,7 @@ def summary(path):
         print("\nIncremental cost per additional voice:")
         for j in range(1, 6):
             print(f"- {xs[j-1]:g}->{xs[j]:g}: {(ys[j]-ys[j-1])/(xs[j]-xs[j-1]):.2f} us/voice")
-    profile_keys = sorted(totals, key=lambda key: (key[0], key[1] != "steady", key[1]))
+    profile_keys = sorted(totals, key=lambda key: (key[0], key[1] not in ("steady", "true_steady"), key[1]))
     for i, profile_kind in profile_keys:
         total = totals[i, profile_kind]
         p = {phase: cycles for (fixture, kind, phase), cycles in phases.items()
@@ -76,10 +76,10 @@ def summary(path):
         body = p.get(5, 0)
         output = p.get(7, 0) + p.get(8, 0)
 
-        if profile_kind == "steady":
+        if profile_kind in ("steady", "true_steady"):
             other = total - p.get(0, 0) - body - output
-            print(f"\nProfile fixture {i} (steady): total {total/240:.2f} us; modal {modal/total*100:.1f}%, voice/allocator residual {voice/total*100:.1f}%, body {body/total*100:.1f}%, limiter/PCM {output/total*100:.1f}%, other {other/total*100:.1f}%.")
-            row = rows.get((i, "steady"))
+            print(f"\nProfile fixture {i} ({profile_kind}): total {total/240:.2f} us; modal {modal/total*100:.1f}%, voice/allocator residual {voice/total*100:.1f}%, body {body/total*100:.1f}%, limiter/PCM {output/total*100:.1f}%, other {other/total*100:.1f}%.")
+            row = rows.get((i, "true_steady")) or rows.get((i, "steady"))
             if row and (voices := float(row["voices"])):
                 modes = 8 if i < 8 or i in (16, 18) else 9 if i == 17 else 10
                 print(f"Modal diagnostic cost: {modal/240/voices:.2f} us/voice/block, {modal/240/voices/modes:.2f} us/voice/mode/block. Includes probe overhead; use unprofiled differences for optimization decisions.")

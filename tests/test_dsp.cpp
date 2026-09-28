@@ -1509,6 +1509,85 @@ void testPeakLimiter() {
     std::cout << "  -> PASSED: linear below threshold; ceiling and release verified.\n";
 }
 
+void testForensicsClassification() {
+    std::cout << "[Test M6.3.9] Forensics 3-class classification & exciter duration...\n";
+    struct VelocityExpectation {
+        uint8_t velocity;
+        uint32_t expectedAttackTailBlocks;
+    };
+    const VelocityExpectation velTests[] = {
+        {30, 2},
+        {70, 1},
+        {100, 1},
+        {110, 1},
+        {127, 1}
+    };
+    for (const auto& vt : velTests) {
+        dsp::SynthEngine synth;
+        synth.init(48000.0f);
+        synth.setInstrumentModel(dsp::InstrumentModel::Pan);
+        midi::MidiEvent ev{};
+        ev.type = midi::MidiEventType::NoteOn;
+        ev.data1 = 50;
+        ev.data2 = vt.velocity;
+        synth.handleMidiEvent(ev);
+
+        // Block 0 is the event block. Exciter is active.
+        assert(synth.hasActiveExciter());
+        int32_t out[128 * 2];
+        synth.renderBlock(out, 128);
+
+        // Subsequent blocks are attack_tail while exciter remains active entering block
+        uint32_t tailBlocks = 0;
+        while (synth.hasActiveExciter()) {
+            ++tailBlocks;
+            synth.renderBlock(out, 128);
+        }
+        assert(tailBlocks == vt.expectedAttackTailBlocks);
+        // After tail blocks, block is true_steady
+        assert(!synth.hasActiveExciter());
+        synth.renderBlock(out, 128);
+        assert(!synth.hasActiveExciter());
+    }
+
+    // 2. Simulate 8192-block fixture for cluster8 (velocity 100)
+    // Confirm exact block counts: event = 44, attack_tail = 44, true_steady = 8104, sum = 8192
+    {
+        dsp::SynthEngine synth;
+        synth.init(48000.0f);
+        synth.setInstrumentModel(dsp::InstrumentModel::Pan);
+        uint32_t eventCount = 0;
+        uint32_t attackTailCount = 0;
+        uint32_t trueSteadyCount = 0;
+        int32_t out[128 * 2];
+        constexpr uint8_t cluster[8] = {50, 52, 54, 56, 57, 59, 61, 62};
+
+        for (unsigned block = 0; block < 8192; ++block) {
+            const bool event = (block % 188 == 0);
+            if (event) {
+                synth.reset();
+                for (unsigned v = 0; v < 8; ++v) {
+                    midi::MidiEvent note{}; note.type = midi::MidiEventType::NoteOn;
+                    note.data1 = cluster[v]; note.data2 = 100;
+                    synth.handleMidiEvent(note);
+                }
+            }
+            const bool attackTail = !event && synth.hasActiveExciter();
+            const unsigned timingClass = event ? 2 : (attackTail ? 1 : 0);
+            if (timingClass == 2) ++eventCount;
+            else if (timingClass == 1) ++attackTailCount;
+            else ++trueSteadyCount;
+
+            synth.renderBlock(out, 128);
+        }
+        assert(eventCount == 44);
+        assert(attackTailCount == 44);
+        assert(trueSteadyCount == 8192 - 44 - 44);
+        assert(eventCount + attackTailCount + trueSteadyCount == 8192);
+    }
+    std::cout << "  -> PASSED: Forensics 3-class classification validated (44/44/8104).\n";
+}
+
 int main() {
     std::cout << "=======================================================\n";
     std::cout << "  Pocket Pan / Metal Modal Synth - Comprehensive DSP  \n";
@@ -1540,6 +1619,7 @@ int main() {
     testM6ModelArchitectureAndBell();
     testBellM62Qualification();
     testBellM621FreezeQualification();
+    testForensicsClassification();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

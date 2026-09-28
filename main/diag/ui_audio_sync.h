@@ -88,8 +88,12 @@ class RareStallForensics {
 public:
     static constexpr size_t kCapacity = 64;
 
-    inline void record(uint32_t durationUs, uint8_t activeVoices, uint8_t model,
-                       uint8_t bleState, uint32_t lastMidiMs, uint32_t blockSeq) {
+    void setActiveVoices(uint8_t v) { cachedActiveVoices_.store(v, std::memory_order_relaxed); }
+    void setModel(uint8_t m) { cachedModel_.store(m, std::memory_order_relaxed); }
+    void setBleState(uint8_t s) { cachedBleState_.store(s, std::memory_order_relaxed); }
+    void updateLastMidiMs(uint32_t ms) { lastMidiMs_.store(ms, std::memory_order_relaxed); }
+
+    inline void record(uint32_t durationUs, uint32_t blockSeq) {
         if (durationUs <= 2000) return;
         const uint32_t idx = head_.fetch_add(1, std::memory_order_relaxed) % kCapacity;
         RareStallRecord& r = records_[idx];
@@ -99,15 +103,25 @@ public:
         r.timestampMs = 0;
 #endif
         r.renderDurationUs = durationUs;
-        r.activeVoices = activeVoices;
-        r.model = model;
+        r.activeVoices = cachedActiveVoices_.load(std::memory_order_relaxed);
+        r.model = cachedModel_.load(std::memory_order_relaxed);
         r.uiDrawing = gUiAudioCorrelation.uiDrawing.load(std::memory_order_relaxed);
         r.lcdTransferActive = gUiAudioCorrelation.lcdTransferActive.load(std::memory_order_relaxed);
-        r.bleState = bleState;
+        r.bleState = cachedBleState_.load(std::memory_order_relaxed);
         r.telemetryPublish = telemetryPublishActive_.load(std::memory_order_relaxed);
-        r.lastMidiAgeMs = r.timestampMs >= lastMidiMs ? (r.timestampMs - lastMidiMs) : 0;
+        const uint32_t lastMidi = lastMidiMs_.load(std::memory_order_relaxed);
+        r.lastMidiAgeMs = (lastMidi > 0 && r.timestampMs >= lastMidi) ? (r.timestampMs - lastMidi) : 0;
         r.audioBlockSequence = blockSeq;
         totalRecorded_.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    inline void record(uint32_t durationUs, uint8_t activeVoices, uint8_t model,
+                       uint8_t bleState, uint32_t lastMidiMs, uint32_t blockSeq) {
+        setActiveVoices(activeVoices);
+        setModel(model);
+        setBleState(bleState);
+        updateLastMidiMs(lastMidiMs);
+        record(durationUs, blockSeq);
     }
 
     uint32_t totalRecorded() const { return totalRecorded_.load(std::memory_order_relaxed); }
@@ -136,6 +150,10 @@ private:
     std::atomic<uint32_t> head_{0};
     std::atomic<uint32_t> totalRecorded_{0};
     std::atomic<bool> telemetryPublishActive_{false};
+    std::atomic<uint8_t> cachedActiveVoices_{0};
+    std::atomic<uint8_t> cachedModel_{0};
+    std::atomic<uint8_t> cachedBleState_{0};
+    std::atomic<uint32_t> lastMidiMs_{0};
 };
 
 inline RareStallForensics gRareStallForensics;

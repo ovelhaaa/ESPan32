@@ -286,11 +286,13 @@ void AudioI2S::audioTaskLoop() {
         uint32_t processTimeUs = static_cast<uint32_t>(tRenderDone - tStart);
 
 #ifdef ESP_PLATFORM
+#if defined(POCKETPAN_UI_AUDIO_CORRELATION) && POCKETPAN_UI_AUDIO_CORRELATION
         pocketpan::diag::gUiAudioCorrelation.recordBlock(processTimeUs);
+#endif
 #if defined(POCKETPAN_RARE_STALL_FORENSICS) && POCKETPAN_RARE_STALL_FORENSICS
         if (processTimeUs > 2000) {
             pocketpan::diag::gRareStallForensics.record(
-                processTimeUs, 0, 0, 0, 0,
+                processTimeUs,
                 stats_.blocksProcessed.load(std::memory_order_relaxed));
         }
 #endif
@@ -307,7 +309,9 @@ void AudioI2S::audioTaskLoop() {
             stats_.p99BlockTimeUs.store(0, std::memory_order_relaxed);
             stats_.cpuLoadPercent.store(0.0f, std::memory_order_relaxed);
 #ifdef ESP_PLATFORM
+#if defined(POCKETPAN_UI_AUDIO_CORRELATION) && POCKETPAN_UI_AUDIO_CORRELATION
             pocketpan::diag::gUiAudioCorrelation.reset();
+#endif
 #endif
         }
         if (processTimeUs >= static_cast<uint32_t>(blockBudgetUs)) {

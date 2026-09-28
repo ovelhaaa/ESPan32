@@ -308,12 +308,38 @@ void testPanBellPan() {
     }
 }
 
+void testPreparedTableResetAndSwitch() {
+    std::cout << "[PreparedNote] in-place reset and model switch regression guard...\n";
+    static pocketpan::dsp::PreparedNoteTable table;
+    pocketpan::dsp::VoiceAllocator allocator;
+    allocator.init(static_cast<float>(kSampleRate));
+
+    // 1. Prepare PAN
+    allocator.preparePreparedNoteTable(pocketpan::dsp::getInstrumentModelConfig(InstrumentModel::Pan), table);
+    assert(table.ready);
+    assert(table.find(60, pocketpan::midi::MidiMapping::noteToHz(60))->modeCount == 8);
+
+    // 2. In-place reset
+    table.reset();
+    assert(!table.ready);
+    assert(table.find(60, pocketpan::midi::MidiMapping::noteToHz(60)) == nullptr);
+
+    // 3. Prepare BELL
+    allocator.preparePreparedNoteTable(pocketpan::dsp::getInstrumentModelConfig(InstrumentModel::Bell), table);
+    assert(table.ready);
+    assert(table.find(60, pocketpan::midi::MidiMapping::noteToHz(60))->modeCount == 10);
+
+    // 4. Verify stack safety guard
+    static_assert(sizeof(pocketpan::dsp::PreparedNoteTable) > 4096, "PreparedNoteTable must be large");
+}
+
 } // namespace
 
 int main() {
     std::cout << "M6.3.2 PreparedNote cache host qualification (candidate "
               << POCKETPAN_DSP_CANDIDATE << ")\n";
     testPreparedTableCoverage();
+    testPreparedTableResetAndSwitch();
     testGrid();
     testFallbacks();
     testSameNoteRestrike();

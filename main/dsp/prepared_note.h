@@ -39,6 +39,14 @@ struct PreparedNoteTable {
     PreparedNote entries[kPreparedNoteCount]{};
     bool ready = false;
 
+    // Reset table in-place to avoid stack temporary allocations.
+    void reset() {
+        ready = false;
+        for (auto& entry : entries) {
+            entry = PreparedNote{};
+        }
+    }
+
     const PreparedNote* find(uint8_t note, float frequencyHz) const {
         if (!ready || note < kPreparedNoteFirst || note > kPreparedNoteLast) {
             return nullptr;
@@ -51,5 +59,12 @@ struct PreparedNoteTable {
 
     static constexpr size_t bytesPerModel() { return sizeof(PreparedNoteTable); }
 };
+
+// SAFETY GUARD (M6.3.8 / M6.3.9): PreparedNoteTable is ~10.5 KB, exceeding
+// the ESP-IDF main task stack (typically 8,192 bytes). Never allocate
+// PreparedNoteTable as a local stack variable or automatic temporary!
+// Always allocate as static, member of SynthEngine in BSS/heap, or reset in-place.
+static_assert(sizeof(PreparedNoteTable) > 4096,
+              "PreparedNoteTable is large; must never be allocated on the stack");
 
 } // namespace pocketpan::dsp

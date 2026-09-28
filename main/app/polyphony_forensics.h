@@ -53,21 +53,32 @@ struct Timing {
     uint32_t p995() const { return quantile(995, 1000); }
     uint32_t p999() const { return quantile(999, 1000); }
 };
+inline constexpr const char* kForensicsClassNames[3] = {"true_steady", "attack_tail", "event"};
+
 struct Result {
-    Timing steady, event;
+    Timing trueSteady, attackTail, event;
     uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0;
     // Diagnostic counters for the M6.3.5 fast paths.  Read from the allocator at
     // fixture completion only; never touched by DSP processing.
     uint32_t stable8 = 0, attack = 0;
+    Timing& timing(unsigned c) {
+        return c == 2 ? event : (c == 1 ? attackTail : trueSteady);
+    }
+    const Timing& timing(unsigned c) const {
+        return c == 2 ? event : (c == 1 ? attackTail : trueSteady);
+    }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-    // Keep the sparse steady samples and every NoteOn block separate.  Event
-    // blocks include deliberate trigger work, so blending them into the
-    // steady average hides precisely the cost this fixture is meant to find.
     struct Profile {
         uint64_t phases[dsp::profile::Count]{};
         uint64_t total = 0;
         uint32_t count = 0;
-    } steadyProfile, eventProfile;
+    } trueSteadyProfile, attackTailProfile, eventProfile;
+    Profile& profile(unsigned c) {
+        return c == 2 ? eventProfile : (c == 1 ? attackTailProfile : trueSteadyProfile);
+    }
+    const Profile& profile(unsigned c) const {
+        return c == 2 ? eventProfile : (c == 1 ? attackTailProfile : trueSteadyProfile);
+    }
 #endif
 };
 inline Result results[19]{};
@@ -139,18 +150,25 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
             synth.handleMidiEvent(note);
         }
     }
+    // M6.3.9 exact three-class classification:
+    // Class 2: event (NoteOn injection)
+    // Class 1: attack_tail (post-NoteOn exciter running in active voice)
+    // Class 0: true_steady (no active exciter, pure ringing segment)
+    const bool attackTail = !event && synth.hasActiveExciter();
+    const unsigned timingClass = event ? 2 : (attackTail ? 1 : 0);
+
     synth.renderBlock(output, frames);
     const uint32_t elapsed = esp_cpu_get_cycle_count() - start;
     auto& r = results[id];
-    (event ? r.event : r.steady).add(elapsed);
+    r.timing(timingClass).add(elapsed);
     if (synth.getVoiceAllocator().getActiveVoiceCount() != counts[kind]) ++r.badVoices;
     if (!ready.load(std::memory_order_acquire)) ++r.bleLost;
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
     if (profiled) {
-        auto& profile = event ? r.eventProfile : r.steadyProfile;
-        profile.total += elapsed;
-        for (unsigned i = 0; i < dsp::profile::Count; ++i) profile.phases[i] += dsp::profile::cycles[i];
-        ++profile.count;
+        auto& prof = r.profile(timingClass);
+        prof.total += elapsed;
+        for (unsigned i = 0; i < dsp::profile::Count; ++i) prof.phases[i] += dsp::profile::cycles[i];
+        ++prof.count;
     }
     dsp::profile::enabled = false;
 #endif
@@ -171,17 +189,17 @@ inline void logCompleted() {
     while (logged < done) {
         const unsigned id = fixtureId(logged);
         const auto& r = results[id];
-        for (unsigned e = 0; e < 2; ++e) {
-            const auto& t = e ? r.event : r.steady;
+        for (unsigned c = 0; c < 3; ++c) {
+            const auto& t = r.timing(c);
             ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u bin_us=%u",
-                isPan(id) ? "PAN" : "BELL", id, counts[kindOf(id)], e ? "event" : "steady", (unsigned)t.count,
+                isPan(id) ? "PAN" : "BELL", id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)t.count,
                 t.count ? double(t.sum) / t.count / 240 : 0, (unsigned)t.p95(), (unsigned)t.p99(),
                 (unsigned)t.p995(), (unsigned)t.p999(), (unsigned)t.maximum, (unsigned)t.deadline,
                 (unsigned)r.badVoices, (unsigned)r.bleLost, (unsigned)r.hardClamp, (unsigned)r.modalSat,
                 (unsigned)kForensicsBinUs);
-            for (unsigned i = 0; i < t.bins.size(); ++i) if (t.bins[i])
+            for (size_t i = 0; i < t.bins.size(); ++i) if (t.bins[i])
                 ESP_LOGI("forensics", "[HIST] fixture=%u class=%s lower_us=%u n=%u", id,
-                    e ? "event" : "steady", (unsigned)(i * kForensicsBinUs), (unsigned)t.bins[i]);
+                    kForensicsClassNames[c], (unsigned)(i * kForensicsBinUs), (unsigned)t.bins[i]);
         }
         {
 #if POCKETPAN_PAN_STABLE8_FASTPATH
@@ -198,17 +216,18 @@ inline void logCompleted() {
                      id, stable8, attack);
         }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
-        for (unsigned e = 0; e < 2; ++e) {
-            const auto& profile = e ? r.eventProfile : r.steadyProfile;
-            const char* profileClass = e ? "event" : "steady";
+        for (unsigned c = 0; c < 3; ++c) {
+            const auto& prof = r.profile(c);
+            const char* profileClass = kForensicsClassNames[c];
+            if (!prof.count) continue;
             ESP_LOGI("forensics", "[PROFILE_TOTAL] fixture=%u class=%s cycles_per_block=%.2f n=%u", id,
-                profileClass, profile.count ? double(profile.total) / profile.count : 0, (unsigned)profile.count);
+                profileClass, double(prof.total) / prof.count, (unsigned)prof.count);
             // Count deliberately follows dsp::profile::Phase, including the
             // M6.3.2 trigger-path phases appended after the M6.3.1 values.
             for (unsigned i = 0; i < dsp::profile::Count; ++i)
                 ESP_LOGI("forensics", "[PHASE] fixture=%u class=%s phase=%u cycles_per_block=%.2f n=%u", id,
-                    profileClass, i, profile.count ? double(profile.phases[i]) / profile.count : 0,
-                    (unsigned)profile.count);
+                    profileClass, i, double(prof.phases[i]) / prof.count,
+                    (unsigned)prof.count);
         }
 #endif
         ++logged;

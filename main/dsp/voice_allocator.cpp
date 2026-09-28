@@ -535,7 +535,7 @@ void VoiceAllocator::setPanConfigsForTest(const ExciterConfig& exciter, const Pa
 #if POCKETPAN_PREPARED_NOTE_CACHE
 void VoiceAllocator::preparePreparedNoteTable(const InstrumentModelConfig& config,
                                               PreparedNoteTable& table) const {
-    table = PreparedNoteTable{};
+    table.reset();
     ModalVoice preparer;
     preparer.init(sampleRate_);
     preparer.setModelConfig(config);

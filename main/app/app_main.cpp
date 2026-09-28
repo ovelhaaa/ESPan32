@@ -99,6 +99,9 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
             ? pocketpan::dsp::InstrumentModel::Bell : pocketpan::dsp::InstrumentModel::Pan;
         sSynth.setInstrumentModel(model);
         sAudio.resetTimingStats();
+#if defined(POCKETPAN_RARE_STALL_FORENSICS) && POCKETPAN_RARE_STALL_FORENSICS
+        pocketpan::diag::gRareStallForensics.setModel(sBellModelSelected.load(std::memory_order_relaxed) ? 1 : 0);
+#endif
     }
     if (sSynthResetRequested.exchange(false, std::memory_order_acq_rel)) {
         sSynth.killAllVoices();
@@ -111,6 +114,9 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
         // intentionally cannot create hidden musical state while diagnostics run.
         #ifndef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
         if (sDiagnosticTone.isPan()) sSynth.handleMidiEvent(ev);
+#endif
+#if defined(POCKETPAN_RARE_STALL_FORENSICS) && POCKETPAN_RARE_STALL_FORENSICS
+        pocketpan::diag::gRareStallForensics.updateLastMidiMs(static_cast<uint32_t>(esp_timer_get_time() / 1000));
 #endif
 
         // Record raw numeric event data for telemetry (no string formatting on Core 0)
@@ -419,6 +425,7 @@ void uiTaskLoop(void* param) {
                      sUiState.lastRawBytes[0], sUiState.lastRawBytes[1], sUiState.lastRawBytes[2]);
             ESP_LOGI(kTag, "[BLE] state=%u interval_ms=%.2f latency=%u rssi=%d reconnects=%u last_disconnect=%u", (unsigned)bleState, sUiState.bleIntervalUnits * 1.25f, (unsigned)sUiState.bleLatency, sUiState.bleRssi, (unsigned)sUiState.bleReconnects, sUiState.bleLastDisconnectReason);
             ESP_LOGI(kTag, "[MEM] internal_free=%u largest_internal=%u", (unsigned)sUiState.internalHeapFree, (unsigned)sUiState.largestInternalBlock);
+#if defined(POCKETPAN_UI_AUDIO_CORRELATION) && POCKETPAN_UI_AUDIO_CORRELATION
             {
                 auto& corr = pocketpan::diag::gUiAudioCorrelation;
                 ESP_LOGI(kTag, "[UICORR] >1733(tot=%u draw=%u lcd=%u both=%u none=%u) >2000(tot=%u draw=%u lcd=%u both=%u none=%u)",
@@ -438,6 +445,10 @@ void uiTaskLoop(void* param) {
                          (unsigned long long)sDisplay.totalPixelsTransferred(),
                          (unsigned)sDisplay.lastSubmitDurationUs(),
                          (unsigned)sDisplay.lastTransferDurationUs());
+            }
+#endif
+#if defined(POCKETPAN_RARE_STALL_FORENSICS) && POCKETPAN_RARE_STALL_FORENSICS
+            {
                 pocketpan::diag::RareStallRecord stalls[4];
                 size_t nStalls = pocketpan::diag::gRareStallForensics.copyRecords(stalls, 4);
                 for (size_t i = 0; i < nStalls; ++i) {
@@ -449,6 +460,7 @@ void uiTaskLoop(void* param) {
                              (unsigned)stalls[i].lastMidiAgeMs);
                 }
             }
+#endif
 #if defined(POCKETPAN_UI_URGENT) && POCKETPAN_UI_URGENT
             ESP_LOGI(kTag, "[UIREDRAW] urgent=%u telemetry=%u skip=%u",
                      (unsigned)renderer.urgentRenderCountForTest(),
@@ -511,7 +523,9 @@ extern "C" void app_main(void) {
     if (!sDisplay.init()) {
         ESP_LOGE(kTag, "Failed to initialize ST7789 display");
     } else {
+#if defined(POCKETPAN_LCD_BENCHMARK) && POCKETPAN_LCD_BENCHMARK
         sDisplay.benchmarkTransfers();
+#endif
     }
 #if POCKETPAN_PREPARED_NOTE_CACHE
     ESP_LOGI(kTag, "[CANARY] PreparedNote canaries OK=%d", sSynth.verifyPreparedNoteCanaries());

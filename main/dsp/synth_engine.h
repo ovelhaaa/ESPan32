@@ -54,6 +54,7 @@ public:
     float getAverageGainReductionDb() const { return limiter_.getAverageGainReductionDb(); }
     uint32_t getHardClampCount() const { return hardClampCount_; }
     uint32_t getModalInternalSaturationCount() const;
+    bool hasActiveExciter() const { return allocator_.hasActiveExciter(); }
     // Host qualification only; normal firmware uses the PAN model default.
     void setInternalSafetySaturation(bool enabled) { allocator_.setInternalSafetySaturation(enabled); }
     void setPanConfigsForTest(const ExciterConfig& exciter, const PanVoicingConfig& voicing) { allocator_.setPanConfigsForTest(exciter, voicing); }

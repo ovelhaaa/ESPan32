@@ -73,6 +73,7 @@ public:
 
     // Query state for voice allocator
     bool isActive() const { return active_; }
+    bool hasActiveExciter() const { return active_ && exciter_.isActive(); }
     bool isReleased() const { return released_; }
     uint8_t getMidiNote() const { return midiNote_; }
     float getFundamentalFrequencyHz() const { return fundamentalFrequencyHz_; }

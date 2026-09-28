@@ -92,6 +92,12 @@ public:
     void setPreparedNoteCacheEnabledForTest(bool enabled) { preparedNoteCacheEnabled_ = enabled; }
     bool isPreparedNoteCacheEnabledForTest() const { return preparedNoteCacheEnabled_; }
 #endif
+    bool hasActiveExciter() const {
+        for (const auto& voice : voices_) {
+            if (voice.hasActiveExciter()) return true;
+        }
+        return false;
+    }
     const ModalVoice& getVoice(size_t index) const { return voices_[index]; }
 
 private:
