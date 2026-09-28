@@ -22,6 +22,7 @@
 #include "ui/audio_telemetry.h"
 #include "diag/ui_audio_sync.h"
 #include "diag/active_soak.h"
+#include "diag/transient_qual.h"
 #include "esp_timer.h"
 
 namespace {
@@ -94,6 +95,11 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
     const int64_t tCb0 = esp_timer_get_time();
 #endif
+#if POCKETPAN_TRANSIENT_QUAL
+    const int64_t tqStart = esp_timer_get_time();
+    uint8_t qualNoteOns = 0, qualNoteOffs = 0, qualPoly = 0, qualChan = 0;
+    const uint8_t qualVoicesBefore = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
+#endif
     // SynthEngine is owned exclusively by this Core 0 callback.
     const bool modelChangeReq = sModelChangeRequested.exchange(false, std::memory_order_acq_rel);
     if (modelChangeReq) {
@@ -123,6 +129,15 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
         ++midiConsumed;
 #endif
+#if POCKETPAN_TRANSIENT_QUAL
+        switch (ev.type) {
+            case pocketpan::midi::MidiEventType::NoteOn: ++qualNoteOns; break;
+            case pocketpan::midi::MidiEventType::NoteOff: ++qualNoteOffs; break;
+            case pocketpan::midi::MidiEventType::PolyPressure: ++qualPoly; break;
+            case pocketpan::midi::MidiEventType::ChannelPressure: ++qualChan; break;
+            default: break;
+        }
+#endif
         // Diagnostic tones own audio TX. MIDI remains visible in telemetry but
         // intentionally cannot create hidden musical state while diagnostics run.
         #ifndef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
@@ -149,6 +164,9 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     }};
     consume(sBleMidiQueue);
     consume(sDemoMidiQueue);
+#if POCKETPAN_TRANSIENT_QUAL
+    const int64_t tqAfterMidi = esp_timer_get_time();
+#endif
 
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
     const int64_t tCb2 = esp_timer_get_time();
@@ -162,6 +180,10 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
 #else
     if (sDiagnosticTone.isPan()) sSynth.renderBlock(outInterleaved, frames);
     else sDiagnosticTone.render(outInterleaved, frames, static_cast<float>(pocketpan::board::audio::kSampleRate));
+#endif
+
+#if POCKETPAN_TRANSIENT_QUAL
+    const int64_t tqAfterRender = esp_timer_get_time();
 #endif
 
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
@@ -221,6 +243,27 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
         static_cast<uint32_t>(tCb3 - tCb2),
         static_cast<uint32_t>(tCb4 - tCb3)
     );
+#endif
+
+#if POCKETPAN_TRANSIENT_QUAL
+    {
+        auto& ctx = pocketpan::diag::transient::gContext;
+        ctx.model = sBellModelSelected.load(std::memory_order_acquire) ? 1 : 0;
+        ctx.voicesBefore = qualVoicesBefore;
+        ctx.voicesAfter = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
+        ctx.noteOns = qualNoteOns;
+        ctx.noteOffs = qualNoteOffs;
+        ctx.polyPressure = qualPoly;
+        ctx.channelPressure = qualChan;
+        ctx.midiConsumed = static_cast<uint8_t>(qualNoteOns + qualNoteOffs + qualPoly + qualChan);
+        ctx.exciterActive = sSynth.hasActiveExciter();
+        ctx.modelChange = modelChangeReq;
+        ctx.synthReset = synthResetReq;
+        ctx.telemetryPublished = (sTelemetryDivider == 0);
+        ctx.midiDispatchUs = static_cast<uint32_t>(tqAfterMidi - tqStart);
+        ctx.renderUs = static_cast<uint32_t>(tqAfterRender - tqAfterMidi);
+        (void)tqStart;
+    }
 #endif
 }
 
@@ -462,6 +505,12 @@ void uiTaskLoop(void* param) {
 #ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
         if (nowMs - lastLogMs >= 5000) {
             lastLogMs = nowMs;
+#if defined(POCKETPAN_TRANSIENT_QUAL) && POCKETPAN_TRANSIENT_QUAL
+            // M6.3.9.2 lifetime qualification counters and per-overrun records.
+            // These are intentionally never reset on PAN/BELL model switches.
+            pocketpan::diag::transient::logNewOverruns();
+            pocketpan::diag::transient::logSummary();
+#endif
 #if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
             ESP_LOGI(kTag, "[UI] dirty_render=%u dirty_skip=%u",
                      (unsigned)renderer.dirtyRenderCountForTest(),

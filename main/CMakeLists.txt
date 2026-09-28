@@ -77,6 +77,10 @@ set(POCKETPAN_RARE_STALL_FORENSICS 0 CACHE STRING "M6.3.8 Phase I: rare stall ri
 set(POCKETPAN_UI_AUDIO_CORRELATION 0 CACHE STRING "M6.3.8 UI/audio timing correlation diagnostics")
 set(POCKETPAN_LCD_BENCHMARK 0 CACHE STRING "M6.3.8 LCD transfer benchmark on boot")
 set(POCKETPAN_ACTIVE_SOAK 0 CACHE STRING "M6.3.9.1 Phase E: automated realistic musical soak workload")
+# M6.3.9.2 transient burst closure diagnostics: lifetime overrun counters,
+# consecutive-overrun streaks, timing debt, DMA headroom occupancy and
+# per-overrun musical-transition classification.  Diagnostic builds only.
+set(POCKETPAN_TRANSIENT_QUAL 0 CACHE STRING "M6.3.9.2: transient burst closure qualification instrumentation")
 
 target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE}
@@ -99,6 +103,7 @@ target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_RARE_STALL_FORENSICS=${POCKETPAN_RARE_STALL_FORENSICS}
     POCKETPAN_UI_AUDIO_CORRELATION=${POCKETPAN_UI_AUDIO_CORRELATION}
     POCKETPAN_LCD_BENCHMARK=${POCKETPAN_LCD_BENCHMARK}
-    POCKETPAN_ACTIVE_SOAK=${POCKETPAN_ACTIVE_SOAK})
+    POCKETPAN_ACTIVE_SOAK=${POCKETPAN_ACTIVE_SOAK}
+    POCKETPAN_TRANSIENT_QUAL=${POCKETPAN_TRANSIENT_QUAL})
 
 set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29)

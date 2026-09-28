@@ -1,6 +1,7 @@
 #include "audio_i2s.h"
 #include "block_timing_histogram.h"
 #include "../diag/ui_audio_sync.h"
+#include "../diag/transient_qual.h"
 #include "sdkconfig.h"
 #if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS)
 #include "../app/polyphony_forensics.h"
@@ -343,6 +344,10 @@ void AudioI2S::audioTaskLoop() {
         }
 
         // 2. Write to I2S DMA. This blocks until a DMA buffer is free, pacing the real-time audio loop.
+        int64_t tWrite0 = 0;
+#if POCKETPAN_TRANSIENT_QUAL
+        tWrite0 = esp_timer_get_time();
+#endif
         size_t bytesWritten = 0;
         esp_err_t err = i2s_channel_write(txHandle_, txBuffer_, bytesPerBlock, &bytesWritten, txTimeoutMs);
 
@@ -374,6 +379,15 @@ void AudioI2S::audioTaskLoop() {
             deadWriteRun = 0;
         }
 
+#if POCKETPAN_TRANSIENT_QUAL
+        {
+            const int64_t tWrite1 = esp_timer_get_time();
+            const uint32_t writeUs = static_cast<uint32_t>(tWrite1 - tWrite0);
+            const uint32_t blockSequence = stats_.blocksProcessed.load(std::memory_order_relaxed);
+            pocketpan::diag::transient::gQual.onBlock(
+                static_cast<uint32_t>(tWrite1), processTimeUs, writeUs, blockSequence);
+        }
+#endif
         stats_.blocksProcessed.fetch_add(1, std::memory_order_relaxed);
         esp_task_wdt_reset();
     }

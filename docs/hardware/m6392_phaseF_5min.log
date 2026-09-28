@@ -1,0 +1,608 @@
+18:18:07.734 [0;32mI (201) esp_image: segment 3: paddr=00092df0 vaddr=3fc9da0c size=06f84h ( 28548) load[0m
+18:18:07.740 [0;32mI (207) esp_image: segment 4: paddr=00099d7c vaddr=40374000 size=18f70h (102256) load[0m
+18:18:07.773 [0;32mI (241) boot: Loaded app from partition at offset 0x10000[0m
+18:18:07.785 [0;32mI (241) boot: Disabling RNG early entropy source...[0m
+18:18:07.785 [0;32mI (253) esp_psram: Found 2MB PSRAM device[0m
+18:18:07.786 [0;32mI (253) esp_psram: Speed: 40MHz[0m
+18:18:07.786 [0;32mI (253) cpu_start: Multicore app[0m
+18:18:08.205 [0;32mI (673) esp_psram: SPI SRAM memory test OK[0m
+18:18:08.213 [0;32mI (682) cpu_start: Pro cpu start user code[0m
+18:18:08.217 [0;32mI (682) cpu_start: cpu freq: 240000000 Hz[0m
+18:18:08.218 [0;32mI (682) app_init: Application information:[0m
+18:18:08.221 [0;32mI (685) app_init: Project name:     pocket_pan[0m
+18:18:08.227 [0;32mI (690) app_init: App version:      7f629cf-dirty[0m
+18:18:08.233 [0;32mI (695) app_init: Compile time:     Sep 28 2026 18:04:42[0m
+18:18:08.238 [0;32mI (701) app_init: ELF file SHA256:  ecb9dffc0...[0m
+18:18:08.243 [0;32mI (706) app_init: ESP-IDF:          v5.3-dirty[0m
+18:18:08.248 [0;32mI (712) efuse_init: Min chip rev:     v0.0[0m
+18:18:08.253 [0;32mI (716) efuse_init: Max chip rev:     v0.99 [0m
+18:18:08.257 [0;32mI (721) efuse_init: Chip rev:         v0.2[0m
+18:18:08.265 [0;32mI (726) heap_init: Initializing. RAM available for dynamic allocation:[0m
+18:18:08.272 [0;32mI (733) heap_init: At 3FCAE8D8 len 0003AE38 (235 KiB): RAM[0m
+18:18:08.277 [0;32mI (739) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+18:18:08.283 [0;32mI (746) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+18:18:08.290 [0;32mI (752) heap_init: At 600FE100 len 00001EE8 (7 KiB): RTCRAM[0m
+18:18:08.297 [0;32mI (758) esp_psram: Adding pool of 2048K of PSRAM memory to heap allocator[0m
+18:18:08.302 [0;32mI (766) spi_flash: detected chip: generic[0m
+18:18:08.306 [0;32mI (770) spi_flash: flash io: dio[0m
+18:18:08.313 [0;32mI (774) sleep: Configure to isolate all GPIO pins in sleep state[0m
+18:18:08.320 [0;32mI (781) sleep: Enable automatic switching of GPIO sleep configuration[0m
+18:18:08.326 [0;32mI (788) coexist: coex firmware version: dab85ae96[0m
+18:18:08.330 [0;32mI (793) coexist: coexist rom version e7ae62f[0m
+18:18:08.334 [0;32mI (799) main_task: Started on CPU0[0m
+18:18:08.343 [0;32mI (809) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations[0m
+18:18:08.347 [0;32mI (809) main_task: Calling app_main()[0m
+18:18:08.355 [0;32mI (819) pocket_pan_main: ===============================================[0m
+18:18:08.362 [0;32mI (819) pocket_pan_main:   Pocket Pan / Metal Modal Synthesizer v1.0.0[0m
+18:18:08.369 [0;32mI (829) pocket_pan_main:   Hardware: TENSTAR TS-ESP32-S3 (Feather TFT)[0m
+18:18:08.377 [0;32mI (839) pocket_pan_main: ===============================================[0m
+18:18:08.386 [0;32mI (849) gpio: GPIO[10]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 1| Intr:0 [0m
+18:18:08.397 [0;32mI (859) AudioI2S: I2S TX initialized (48kHz, 32-bit slot, stereo, 6x128 frames DMA = 1024 bytes/buf)[0m
+18:18:08.402 [0;32mI (869) AudioI2S: Audio task started on Core 0 at priority 12[0m
+18:18:08.412 [0;32mI (869) Display: [DISP_MEM_PRE] before: int_free=262931 int_largest=163840 psram_free=2094528[0m
+18:18:08.422 [0;32mI (879) Display: [DISP_MEM] framebuffer=0x3fcbfff0 (size=64800, align=0, internal=1, dma=1, psram=0)[0m
+18:18:08.430 [0;32mI (889) Display: [DISP_MEM] scratch=0x3fccfd14 (size=9600, align=4, internal=1, dma=1)[0m
+18:18:08.439 [0;32mI (899) Display: [DISP_MEM] before: int_free=262931 int_largest=163840 psram_free=2094528[0m
+18:18:08.448 [0;32mI (909) Display: [DISP_MEM] after:  int_free=188523 int_largest=94208 psram_free=2094528[0m
+18:18:08.457 [0;32mI (919) gpio: GPIO[39]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+18:18:08.466 [0;32mI (929) gpio: GPIO[40]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+18:18:08.475 [0;32mI (939) gpio: GPIO[21]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+18:18:08.686 [0;32mI (1159) gpio: GPIO[45]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+18:18:08.694 [0;32mI (1159) Display: ST7789 240x135 display initialized successfully (SPI 40MHz, GDMA callback armed)[0m
+18:18:08.700 [0;32mI (1159) pocket_pan_main: [CANARY] PreparedNote canaries OK=1[0m
+18:18:08.706 [0;32mI (1169) BLE_INIT: BT controller compile version [ba3b3e3][0m
+18:18:08.719 [0;32mI (1179) BLE_INIT: Bluetooth MAC: b4:3a:45:ae:6f:2a[0m
+18:18:08.720 [0;32mI (1179) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10[0m
+18:18:08.760 [0;32mI (1229) BleMidi: NimBLE BLE MIDI Central initialized and pinned to Core 1[0m
+18:18:08.762 [0;32mI (1229) BleMidi: NimBLE Host task running on Core 1[0m
+18:18:08.770 [0;32mI (1229) pocket_pan_main: Pocket Pan initialization complete. Realtime audio active.[0m
+18:18:08.776 [0;32mI (1229) NimBLE: Failed to restore IRKs from store; status=8
+18:18:08.776 [0m
+18:18:08.782 [0;32mI (1249) NimBLE: GAP procedure initiated: discovery; [0m
+18:18:08.791 [0;32mI (1249) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=1 [0m
+18:18:08.796 [0;32mI (1239) main_task: Returned from app_main()[0m
+18:18:08.800 [0;32mI (1259) NimBLE: duration=forever[0m
+18:18:08.802 [0;32mI (1269) NimBLE: 
+18:18:08.802 [0m
+18:18:08.808 [0;32mI (1269) BleMidi: Scanning for BLE MIDI devices...[0m
+18:18:08.818 [0;32mI (1229) gpio: GPIO[0]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 1| Pulldown: 0| Intr:0 [0m
+18:18:09.040 [0;32mI (1509) BleMidi: BLE MIDI device found (59:FB:B6:B7:BF:0F); connecting[0m
+18:18:09.046 [0;32mI (1509) NimBLE: GAP procedure initiated: connect; [0m
+18:18:09.047 [0;32mI (1509) NimBLE: peer_addr_type=0 peer_addr=[0m
+18:18:09.050 [0;32mI (1519) NimBLE: 59:fb:b6:b7:bf:0f[0m
+18:18:09.067 [0;32mI (1519) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0[0m
+18:18:09.067 [0;32mI (1529) NimBLE: 
+18:18:09.068 [0m
+18:18:09.150 [0;32mI (1619) BleMidi: BLE Connected! conn_handle=1[0m
+18:18:09.150 [0;32mI (1619) NimBLE: GAP procedure initiated: [0m
+18:18:09.163 [0;32mI (1619) NimBLE: connection parameter update; conn_handle=1 itvl_min=6 itvl_max=12 latency=0 supervision_timeout=200 min_ce_len=0 max_ce_len=0[0m
+18:18:09.164 [0;32mI (1629) NimBLE: 
+18:18:09.164 [0m
+18:18:09.173 [0;32mI (1629) BleMidi: Requested connection params 7.5-15ms latency=0 timeout=2s rc=0[0m
+18:18:09.179 [0;32mI (1639) NimBLE: GATT procedure initiated: discover all services
+18:18:09.179 [0m
+18:18:09.508 [0;32mI (1979) BleMidi: Found BLE MIDI Service! start_handle=112 end_handle=115[0m
+18:18:09.512 [0;32mI (1979) NimBLE: GATT procedure initiated: discover all characteristics; [0m
+18:18:09.517 [0;32mI (1979) NimBLE: start_handle=112 end_handle=115
+18:18:09.517 [0m
+18:18:09.608 [0;32mI (2079) BleMidi: Found BLE MIDI Characteristic! def_handle=113 val_handle=114 props=0x16[0m
+18:18:09.613 [0;32mI (2079) NimBLE: GATT procedure initiated: discover all descriptors; [0m
+18:18:09.618 [0;32mI (2079) NimBLE: chr_val_handle=114 end_handle=115
+18:18:09.618 [0m
+18:18:09.707 [0;32mI (2179) BleMidi: Negotiated params interval=7.50ms latency=0 timeout=2000ms[0m
+18:18:09.709 [0;32mI (2179) BleMidi: Discovered CCCD (0x2902) handle=115[0m
+18:18:09.715 [0;32mI (2179) NimBLE: GATT procedure initiated: write; [0m
+18:18:09.718 [0;32mI (2179) NimBLE: att_handle=115 len=2
+18:18:09.718 [0m
+18:18:09.730 [0;32mI (2199) BleMidi: CCCD subscription successful; BLE MIDI ready[0m
+18:18:09.731 [0;32mI (2199) NimBLE: GAP procedure initiated: [0m
+18:18:09.744 [0;32mI (2199) NimBLE: connection parameter update; conn_handle=1 itvl_min=6 itvl_max=9 latency=0 supervision_timeout=100 min_ce_len=0 max_ce_len=0[0m
+18:18:09.745 [0;32mI (2209) NimBLE: 
+18:18:09.746 [0m
+18:18:09.825 [0;32mI (2289) BleMidi: Negotiated params interval=11.25ms latency=0 timeout=1000ms[0m
+18:18:13.355 [0;32mI (5819) m6392: [QUAL] callbacks=1855 overruns=0 max_cb_us=2235 max_streak=0 max_debt_us=0 min_occ_milliblocks=988 max_occ_milliblocks=1003 max_recovery_blocks=0 write_avg_us=1617.0[0m
+18:18:13.364 [0;32mI (5819) m6392: [QUAL_BY_TRANSITION] other=0 1to2=0 2to4=0 4to6=0 6to8=0 restrike=0 pressure=0 model_switch=0[0m
+18:18:13.377 [0;32mI (5829) pocket_pan_main: [AUDIO] model=PAN blocks=1861 avg_us=1584 p99_us=0 max_us=2235 cpu_load=59.4 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:18:13.386 [0;32mI (5849) pocket_pan_main: [MIDI] push=45 pop=45 drop=0 hwm=4 last=(n=53 v=64 t=78 hex=803540)[0m
+18:18:13.397 [0;32mI (5859) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:18:13.404 [0;32mI (5869) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:13.411 [0;32mI (5869) pocket_pan_main: [UIREDRAW] urgent=36 telemetry=7 skip=108[0m
+18:18:18.368 [0;32mI (10829) m6392: [QUAL] callbacks=3735 overruns=0 max_cb_us=2449 max_streak=0 max_debt_us=0 min_occ_milliblocks=987 max_occ_milliblocks=1003 max_recovery_blocks=0 write_avg_us=1671.3[0m
+18:18:18.379 [0;32mI (10839) m6392: [QUAL_BY_TRANSITION] other=0 1to2=0 2to4=0 4to6=0 6to8=0 restrike=0 pressure=0 model_switch=0[0m
+18:18:18.392 [0;32mI (10849) pocket_pan_main: [AUDIO] model=PAN blocks=3742 avg_us=500 p99_us=1800 max_us=2449 cpu_load=18.7 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:18:18.401 [0;32mI (10859) pocket_pan_main: [MIDI] push=69 pop=69 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:18:18.412 [0;32mI (10869) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-67 reconnects=0 last_disconnect=0[0m
+18:18:18.419 [0;32mI (10879) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:18.426 [0;32mI (10889) pocket_pan_main: [UIREDRAW] urgent=60 telemetry=19 skip=237[0m
+18:18:23.391 [0;33mW (15849) m6392: [OVERRUN] seq=3875 cb_us=3043 prev=1433 next=2486 render_us=2599 midi_us=435 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=376 occ_milliblocks=844 telem=0 exc=1 transition=6->8[0m
+18:18:23.412 [0;33mW (15859) m6392: [OVERRUN] seq=3884 cb_us=3074 prev=2393 next=2485 render_us=3049 midi_us=2 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=407 occ_milliblocks=824 telem=0 exc=0 transition=other[0m
+18:18:23.428 [0;32mI (15879) m6392: [QUAL] callbacks=5629 overruns=2 max_cb_us=3074 max_streak=1 max_debt_us=407 min_occ_milliblocks=824 max_occ_milliblocks=1003 max_recovery_blocks=2 write_avg_us=1680.7[0m
+18:18:23.438 [0;32mI (15899) m6392: [QUAL_BY_TRANSITION] other=1 1to2=0 2to4=0 4to6=0 6to8=1 restrike=0 pressure=0 model_switch=0[0m
+18:18:23.452 [0;32mI (15909) pocket_pan_main: [AUDIO] model=PAN blocks=5639 avg_us=936 p99_us=2400 max_us=3074 cpu_load=35.1 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:18:23.461 [0;32mI (15919) pocket_pan_main: [MIDI] push=104 pop=104 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:18:23.472 [0;32mI (15929) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-70 reconnects=0 last_disconnect=0[0m
+18:18:23.479 [0;32mI (15939) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:23.486 [0;32mI (15949) pocket_pan_main: [UIREDRAW] urgent=92 telemetry=32 skip=357[0m
+18:18:28.388 [0;33mW (20849) m6392: [OVERRUN] seq=6099 cb_us=2702 prev=1398 next=2072 render_us=2139 midi_us=546 model=PAN v=5->6 on=2 off=1 poly=0 ch=1 streak=1 debt_before=0 debt_after=35 occ_milliblocks=951 telem=0 exc=1 transition=4->6[0m
+18:18:28.407 [0;33mW (20859) m6392: [OVERRUN] seq=6121 cb_us=2700 prev=2149 next=2347 render_us=2378 midi_us=313 model=PAN v=6->7 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=33 occ_milliblocks=968 telem=0 exc=1 transition=other[0m
+18:18:28.428 [0;33mW (20879) m6392: [OVERRUN] seq=6132 cb_us=2786 prev=2226 next=2335 render_us=2763 midi_us=2 model=PAN v=7->7 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=119 occ_milliblocks=933 telem=0 exc=0 transition=other[0m
+18:18:28.444 [0;32mI (20899) m6392: [QUAL] callbacks=7510 overruns=5 max_cb_us=3074 max_streak=1 max_debt_us=407 min_occ_milliblocks=824 max_occ_milliblocks=1003 max_recovery_blocks=2 write_avg_us=1644.6[0m
+18:18:28.455 [0;32mI (20909) m6392: [QUAL_BY_TRANSITION] other=3 1to2=0 2to4=0 4to6=1 6to8=1 restrike=0 pressure=0 model_switch=0[0m
+18:18:28.468 [0;32mI (20919) pocket_pan_main: [AUDIO] model=PAN blocks=7521 avg_us=1372 p99_us=2225 max_us=3074 cpu_load=51.4 deadline=5 timeout=0 tx_error=0 short=0[0m
+18:18:28.477 [0;32mI (20939) pocket_pan_main: [MIDI] push=151 pop=151 drop=0 hwm=4 last=(n=72 v=75 t=80 hex=A0484B)[0m
+18:18:28.488 [0;32mI (20949) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-63 reconnects=0 last_disconnect=0[0m
+18:18:28.495 [0;32mI (20959) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:28.503 [0;32mI (20969) pocket_pan_main: [UIREDRAW] urgent=133 telemetry=40 skip=471[0m
+18:18:33.401 [0;33mW (25859) m6392: [OVERRUN] seq=9136 cb_us=3056 prev=1458 next=2508 render_us=2580 midi_us=458 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=389 occ_milliblocks=830 telem=0 exc=1 transition=6->8[0m
+18:18:33.421 [0;33mW (25869) m6392: [OVERRUN] seq=9145 cb_us=3134 prev=2411 next=2571 render_us=3107 midi_us=3 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=467 occ_milliblocks=797 telem=0 exc=0 transition=other[0m
+18:18:33.438 [0;32mI (25889) m6392: [QUAL] callbacks=9383 overruns=7 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1654.7[0m
+18:18:33.448 [0;32mI (25909) m6392: [QUAL_BY_TRANSITION] other=4 1to2=0 2to4=0 4to6=1 6to8=2 restrike=0 pressure=0 model_switch=0[0m
+18:18:33.464 [0;32mI (25919) pocket_pan_main: [AUDIO] model=PAN blocks=9393 avg_us=1627 p99_us=1725 max_us=3134 cpu_load=61.0 deadline=7 timeout=0 tx_error=0 short=0[0m
+18:18:33.472 [0;32mI (25929) pocket_pan_main: [MIDI] push=184 pop=184 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:18:33.482 [0;32mI (25939) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-66 reconnects=0 last_disconnect=0[0m
+18:18:33.489 [0;32mI (25949) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:33.496 [0;32mI (25959) pocket_pan_main: [UIREDRAW] urgent=160 telemetry=53 skip=594[0m
+18:18:38.394 [0;32mI (30859) m6392: [QUAL] callbacks=11245 overruns=7 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1701.5[0m
+18:18:38.404 [0;32mI (30859) m6392: [QUAL_BY_TRANSITION] other=4 1to2=0 2to4=0 4to6=1 6to8=2 restrike=0 pressure=0 model_switch=0[0m
+18:18:38.419 [0;32mI (30869) pocket_pan_main: [AUDIO] model=PAN blocks=11252 avg_us=1206 p99_us=2400 max_us=3134 cpu_load=45.2 deadline=7 timeout=0 tx_error=0 short=0[0m
+18:18:38.427 [0;32mI (30889) pocket_pan_main: [MIDI] push=212 pop=212 drop=0 hwm=4 last=(n=65 v=64 t=78 hex=804140)[0m
+18:18:38.437 [0;32mI (30899) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-67 reconnects=0 last_disconnect=0[0m
+18:18:38.445 [0;32mI (30909) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:38.452 [0;32mI (30919) pocket_pan_main: [UIREDRAW] urgent=179 telemetry=66 skip=725[0m
+18:18:43.408 [0;32mI (35869) m6392: [QUAL] callbacks=13125 overruns=7 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1699.0[0m
+18:18:43.417 [0;32mI (35879) m6392: [QUAL_BY_TRANSITION] other=4 1to2=0 2to4=0 4to6=1 6to8=2 restrike=0 pressure=0 model_switch=0[0m
+18:18:43.431 [0;32mI (35889) pocket_pan_main: [AUDIO] model=PAN blocks=13132 avg_us=661 p99_us=1850 max_us=3134 cpu_load=24.8 deadline=7 timeout=0 tx_error=0 short=0[0m
+18:18:43.440 [0;32mI (35899) pocket_pan_main: [MIDI] push=250 pop=250 drop=0 hwm=4 last=(n=67 v=64 t=78 hex=804340)[0m
+18:18:43.451 [0;32mI (35909) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-65 reconnects=0 last_disconnect=0[0m
+18:18:43.458 [0;32mI (35919) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:43.465 [0;32mI (35929) pocket_pan_main: [UIREDRAW] urgent=208 telemetry=78 skip=849[0m
+18:18:48.431 [0;33mW (40889) m6392: [OVERRUN] seq=14401 cb_us=3037 prev=1433 next=2498 render_us=2603 midi_us=422 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=370 occ_milliblocks=840 telem=0 exc=1 transition=6->8[0m
+18:18:48.451 [0;33mW (40899) m6392: [OVERRUN] seq=14410 cb_us=2917 prev=2398 next=2508 render_us=2892 midi_us=2 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=250 occ_milliblocks=883 telem=0 exc=0 transition=other[0m
+18:18:48.468 [0;32mI (40919) m6392: [QUAL] callbacks=15019 overruns=9 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1699.4[0m
+18:18:48.478 [0;32mI (40939) m6392: [QUAL_BY_TRANSITION] other=5 1to2=0 2to4=0 4to6=1 6to8=3 restrike=0 pressure=0 model_switch=0[0m
+18:18:48.492 [0;32mI (40949) pocket_pan_main: [AUDIO] model=PAN blocks=15030 avg_us=656 p99_us=1575 max_us=3134 cpu_load=24.6 deadline=9 timeout=0 tx_error=0 short=0[0m
+18:18:48.501 [0;32mI (40959) pocket_pan_main: [MIDI] push=272 pop=272 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:18:48.512 [0;32mI (40969) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-75 reconnects=0 last_disconnect=0[0m
+18:18:48.519 [0;32mI (40979) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:48.526 [0;32mI (40989) pocket_pan_main: [UIREDRAW] urgent=229 telemetry=94 skip=977[0m
+18:18:53.423 [0;32mI (45889) m6392: [QUAL] callbacks=16882 overruns=9 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1713.7[0m
+18:18:53.433 [0;32mI (45889) m6392: [QUAL_BY_TRANSITION] other=5 1to2=0 2to4=0 4to6=1 6to8=3 restrike=0 pressure=0 model_switch=0[0m
+18:18:53.448 [0;32mI (45899) pocket_pan_main: [AUDIO] model=PAN blocks=16888 avg_us=1285 p99_us=2400 max_us=3134 cpu_load=48.2 deadline=9 timeout=0 tx_error=0 short=0[0m
+18:18:53.457 [0;32mI (45919) pocket_pan_main: [MIDI] push=303 pop=303 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:18:53.468 [0;32mI (45929) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-70 reconnects=0 last_disconnect=0[0m
+18:18:53.474 [0;32mI (45939) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:53.482 [0;32mI (45949) pocket_pan_main: [UIREDRAW] urgent=251 telemetry=105 skip=1107[0m
+18:18:58.437 [0;32mI (50899) m6392: [QUAL] callbacks=18762 overruns=9 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1718.2[0m
+18:18:58.447 [0;32mI (50909) m6392: [QUAL_BY_TRANSITION] other=5 1to2=0 2to4=0 4to6=1 6to8=3 restrike=0 pressure=0 model_switch=0[0m
+18:18:58.462 [0;32mI (50919) pocket_pan_main: [AUDIO] model=PAN blocks=18768 avg_us=1121 p99_us=1650 max_us=3134 cpu_load=42.0 deadline=9 timeout=0 tx_error=0 short=0[0m
+18:18:58.470 [0;32mI (50929) pocket_pan_main: [MIDI] push=341 pop=341 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:18:58.481 [0;32mI (50939) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-67 reconnects=0 last_disconnect=0[0m
+18:18:58.488 [0;32mI (50949) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:18:58.495 [0;32mI (50959) pocket_pan_main: [UIREDRAW] urgent=285 telemetry=115 skip=1228[0m
+18:19:03.461 [0;33mW (55919) m6392: [OVERRUN] seq=19666 cb_us=2830 prev=1438 next=2277 render_us=2384 midi_us=434 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=163 occ_milliblocks=918 telem=0 exc=1 transition=6->8[0m
+18:19:03.481 [0;33mW (55929) m6392: [OVERRUN] seq=19675 cb_us=2690 prev=2183 next=2294 render_us=2665 midi_us=2 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=23 occ_milliblocks=967 telem=0 exc=0 transition=other[0m
+18:19:03.497 [0;32mI (55949) m6392: [QUAL] callbacks=20655 overruns=11 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1727.2[0m
+18:19:03.507 [0;32mI (55969) m6392: [QUAL_BY_TRANSITION] other=6 1to2=0 2to4=0 4to6=1 6to8=4 restrike=0 pressure=0 model_switch=0[0m
+18:19:03.521 [0;32mI (55979) pocket_pan_main: [AUDIO] model=PAN blocks=20666 avg_us=503 p99_us=2200 max_us=3134 cpu_load=18.9 deadline=11 timeout=0 tx_error=0 short=0[0m
+18:19:03.530 [0;32mI (55989) pocket_pan_main: [MIDI] push=364 pop=364 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:19:03.541 [0;32mI (55999) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:19:03.548 [0;32mI (56009) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:03.555 [0;32mI (56019) pocket_pan_main: [UIREDRAW] urgent=305 telemetry=132 skip=1356[0m
+18:19:08.455 [0;32mI (60919) m6392: [QUAL] callbacks=22518 overruns=11 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1731.6[0m
+18:19:08.464 [0;32mI (60919) m6392: [QUAL_BY_TRANSITION] other=6 1to2=0 2to4=0 4to6=1 6to8=4 restrike=0 pressure=0 model_switch=0[0m
+18:19:08.478 [0;32mI (60939) pocket_pan_main: [AUDIO] model=PAN blocks=22525 avg_us=655 p99_us=2200 max_us=3134 cpu_load=24.6 deadline=11 timeout=0 tx_error=0 short=0[0m
+18:19:08.487 [0;32mI (60949) pocket_pan_main: [MIDI] push=392 pop=392 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:19:08.498 [0;32mI (60959) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-75 reconnects=0 last_disconnect=0[0m
+18:19:08.505 [0;32mI (60969) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:08.512 [0;32mI (60979) pocket_pan_main: [UIREDRAW] urgent=328 telemetry=146 skip=1482[0m
+18:19:13.467 [0;32mI (65929) m6392: [QUAL] callbacks=24398 overruns=11 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1729.5[0m
+18:19:13.477 [0;32mI (65939) m6392: [QUAL_BY_TRANSITION] other=6 1to2=0 2to4=0 4to6=1 6to8=4 restrike=0 pressure=0 model_switch=0[0m
+18:19:13.491 [0;32mI (65949) pocket_pan_main: [AUDIO] model=PAN blocks=24404 avg_us=775 p99_us=1625 max_us=3134 cpu_load=29.1 deadline=11 timeout=0 tx_error=0 short=0[0m
+18:19:13.500 [0;32mI (65959) pocket_pan_main: [MIDI] push=425 pop=425 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:19:13.510 [0;32mI (65969) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:19:13.518 [0;32mI (65979) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:13.525 [0;32mI (65989) pocket_pan_main: [UIREDRAW] urgent=356 telemetry=156 skip=1609[0m
+18:19:18.490 [0;33mW (70949) m6392: [OVERRUN] seq=24931 cb_us=2944 prev=1438 next=2391 render_us=2493 midi_us=440 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=277 occ_milliblocks=876 telem=0 exc=1 transition=6->8[0m
+18:19:18.512 [0;33mW (70959) m6392: [OVERRUN] seq=24940 cb_us=2807 prev=2299 next=2416 render_us=2783 midi_us=2 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=140 occ_milliblocks=923 telem=0 exc=0 transition=other[0m
+18:19:18.528 [0;32mI (70979) m6392: [QUAL] callbacks=26292 overruns=13 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1742.4[0m
+18:19:18.537 [0;32mI (70999) m6392: [QUAL_BY_TRANSITION] other=7 1to2=0 2to4=0 4to6=1 6to8=5 restrike=0 pressure=0 model_switch=0[0m
+18:19:18.551 [0;32mI (71009) pocket_pan_main: [AUDIO] model=BELL blocks=26302 avg_us=136 p99_us=0 max_us=1444 cpu_load=5.1 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:19:18.561 [0;32mI (71019) pocket_pan_main: [MIDI] push=454 pop=454 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:19:18.571 [0;32mI (71029) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-67 reconnects=0 last_disconnect=0[0m
+18:19:18.578 [0;32mI (71039) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:18.585 [0;32mI (71049) pocket_pan_main: [UIREDRAW] urgent=379 telemetry=169 skip=1738[0m
+18:19:23.483 [0;32mI (75949) m6392: [QUAL] callbacks=28154 overruns=13 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1730.3[0m
+18:19:23.493 [0;32mI (75949) m6392: [QUAL_BY_TRANSITION] other=7 1to2=0 2to4=0 4to6=1 6to8=5 restrike=0 pressure=0 model_switch=0[0m
+18:19:23.507 [0;32mI (75959) pocket_pan_main: [AUDIO] model=BELL blocks=28161 avg_us=1461 p99_us=1825 max_us=2333 cpu_load=54.8 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:19:23.516 [0;32mI (75979) pocket_pan_main: [MIDI] push=495 pop=495 drop=0 hwm=4 last=(n=50 v=127 t=78 hex=90327F)[0m
+18:19:23.526 [0;32mI (75989) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-73 reconnects=0 last_disconnect=0[0m
+18:19:23.534 [0;32mI (75999) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:23.541 [0;32mI (76009) pocket_pan_main: [UIREDRAW] urgent=404 telemetry=181 skip=1864[0m
+18:19:28.497 [0;32mI (80959) m6392: [QUAL] callbacks=30034 overruns=13 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1703.3[0m
+18:19:28.506 [0;32mI (80969) m6392: [QUAL_BY_TRANSITION] other=7 1to2=0 2to4=0 4to6=1 6to8=5 restrike=0 pressure=0 model_switch=0[0m
+18:19:28.520 [0;32mI (80979) pocket_pan_main: [AUDIO] model=BELL blocks=30041 avg_us=1596 p99_us=2000 max_us=2501 cpu_load=59.8 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:19:28.529 [0;32mI (80989) pocket_pan_main: [MIDI] push=527 pop=527 drop=0 hwm=4 last=(n=65 v=64 t=78 hex=804140)[0m
+18:19:28.540 [0;32mI (80999) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:19:28.547 [0;32mI (81009) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:28.554 [0;32mI (81019) pocket_pan_main: [UIREDRAW] urgent=431 telemetry=191 skip=1992[0m
+18:19:33.521 [0;33mW (85979) m6392: [OVERRUN] seq=30196 cb_us=3100 prev=1614 next=2558 render_us=2772 midi_us=318 model=BELL v=8->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=433 occ_milliblocks=815 telem=0 exc=1 transition=restrike[0m
+18:19:33.540 [0;33mW (85989) m6392: [OVERRUN] seq=30205 cb_us=3026 prev=2469 next=2553 render_us=3003 midi_us=2 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=359 occ_milliblocks=844 telem=0 exc=0 transition=other[0m
+18:19:33.557 [0;32mI (86009) m6392: [QUAL] callbacks=31928 overruns=15 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1674.8[0m
+18:19:33.567 [0;32mI (86029) m6392: [QUAL_BY_TRANSITION] other=8 1to2=0 2to4=0 4to6=1 6to8=5 restrike=1 pressure=0 model_switch=0[0m
+18:19:33.581 [0;32mI (86039) pocket_pan_main: [AUDIO] model=BELL blocks=31939 avg_us=1537 p99_us=2000 max_us=3100 cpu_load=57.6 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:19:33.591 [0;32mI (86049) pocket_pan_main: [MIDI] push=562 pop=562 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:19:33.601 [0;32mI (86059) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-77 reconnects=0 last_disconnect=0[0m
+18:19:33.609 [0;32mI (86069) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:33.616 [0;32mI (86079) pocket_pan_main: [UIREDRAW] urgent=459 telemetry=200 skip=2120[0m
+18:19:38.514 [0;32mI (90979) m6392: [QUAL] callbacks=33790 overruns=15 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1655.2[0m
+18:19:38.522 [0;32mI (90979) m6392: [QUAL_BY_TRANSITION] other=8 1to2=0 2to4=0 4to6=1 6to8=5 restrike=1 pressure=0 model_switch=0[0m
+18:19:38.537 [0;32mI (90989) pocket_pan_main: [AUDIO] model=BELL blocks=33797 avg_us=1807 p99_us=2475 max_us=3100 cpu_load=67.8 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:19:38.546 [0;32mI (91009) pocket_pan_main: [MIDI] push=606 pop=606 drop=0 hwm=4 last=(n=55 v=88 t=78 hex=903758)[0m
+18:19:38.556 [0;32mI (91019) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-71 reconnects=0 last_disconnect=0[0m
+18:19:38.563 [0;32mI (91029) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:38.570 [0;32mI (91039) pocket_pan_main: [UIREDRAW] urgent=490 telemetry=209 skip=2243[0m
+18:19:43.531 [0;33mW (95989) m6392: [OVERRUN] seq=35435 cb_us=3119 prev=1448 next=2566 render_us=2648 midi_us=459 model=BELL v=7->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=452 occ_milliblocks=807 telem=0 exc=1 transition=6->8[0m
+18:19:43.550 [0;33mW (95999) m6392: [OVERRUN] seq=35444 cb_us=2979 prev=2469 next=2626 render_us=2958 midi_us=2 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=312 occ_milliblocks=862 telem=0 exc=0 transition=other[0m
+18:19:43.567 [0;32mI (96019) m6392: [QUAL] callbacks=35682 overruns=17 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1633.5[0m
+18:19:43.578 [0;32mI (96039) m6392: [QUAL_BY_TRANSITION] other=9 1to2=0 2to4=0 4to6=1 6to8=6 restrike=1 pressure=0 model_switch=0[0m
+18:19:43.591 [0;32mI (96049) pocket_pan_main: [AUDIO] model=BELL blocks=35692 avg_us=1670 p99_us=2175 max_us=3119 cpu_load=62.6 deadline=4 timeout=0 tx_error=0 short=0[0m
+18:19:43.600 [0;32mI (96059) pocket_pan_main: [MIDI] push=632 pop=632 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:19:43.610 [0;32mI (96069) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-71 reconnects=0 last_disconnect=0[0m
+18:19:43.618 [0;32mI (96079) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:43.625 [0;32mI (96089) pocket_pan_main: [UIREDRAW] urgent=514 telemetry=221 skip=2372[0m
+18:19:48.524 [0;32mI (100989) m6392: [QUAL] callbacks=37545 overruns=17 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1638.7[0m
+18:19:48.534 [0;32mI (100999) m6392: [QUAL_BY_TRANSITION] other=9 1to2=0 2to4=0 4to6=1 6to8=6 restrike=1 pressure=0 model_switch=0[0m
+18:19:48.548 [0;32mI (101009) pocket_pan_main: [AUDIO] model=BELL blocks=37552 avg_us=1034 p99_us=2475 max_us=3119 cpu_load=38.8 deadline=4 timeout=0 tx_error=0 short=0[0m
+18:19:48.558 [0;32mI (101019) pocket_pan_main: [MIDI] push=654 pop=654 drop=0 hwm=4 last=(n=62 v=110 t=78 hex=903E6E)[0m
+18:19:48.569 [0;32mI (101029) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:19:48.576 [0;32mI (101039) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:48.583 [0;32mI (101049) pocket_pan_main: [UIREDRAW] urgent=529 telemetry=238 skip=2503[0m
+18:19:53.544 [0;32mI (106009) m6392: [QUAL] callbacks=39427 overruns=17 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1628.0[0m
+18:19:53.553 [0;32mI (106009) m6392: [QUAL_BY_TRANSITION] other=9 1to2=0 2to4=0 4to6=1 6to8=6 restrike=1 pressure=0 model_switch=0[0m
+18:19:53.567 [0;32mI (106029) pocket_pan_main: [AUDIO] model=BELL blocks=39433 avg_us=953 p99_us=1850 max_us=3119 cpu_load=35.7 deadline=4 timeout=0 tx_error=0 short=0[0m
+18:19:53.576 [0;32mI (106039) pocket_pan_main: [MIDI] push=687 pop=687 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:19:53.586 [0;32mI (106049) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-77 reconnects=0 last_disconnect=0[0m
+18:19:53.594 [0;32mI (106059) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:53.601 [0;32mI (106069) pocket_pan_main: [UIREDRAW] urgent=551 telemetry=253 skip=2631[0m
+18:19:58.559 [0;33mW (111019) m6392: [OVERRUN] seq=40700 cb_us=3082 prev=1282 next=2565 render_us=2636 midi_us=434 model=BELL v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=415 occ_milliblocks=822 telem=0 exc=1 transition=6->8[0m
+18:19:58.580 [0;33mW (111029) m6392: [OVERRUN] seq=40709 cb_us=2964 prev=2461 next=2615 render_us=2941 midi_us=2 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=297 occ_milliblocks=867 telem=0 exc=0 transition=other[0m
+18:19:58.596 [0;32mI (111049) m6392: [QUAL] callbacks=41318 overruns=19 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1616.8[0m
+18:19:58.606 [0;32mI (111069) m6392: [QUAL_BY_TRANSITION] other=10 1to2=0 2to4=0 4to6=1 6to8=7 restrike=1 pressure=0 model_switch=0[0m
+18:19:58.620 [0;32mI (111079) pocket_pan_main: [AUDIO] model=BELL blocks=41329 avg_us=1605 p99_us=1850 max_us=3119 cpu_load=60.2 deadline=6 timeout=0 tx_error=0 short=0[0m
+18:19:58.630 [0;32mI (111089) pocket_pan_main: [MIDI] push=708 pop=708 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:19:58.640 [0;32mI (111099) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:19:58.648 [0;32mI (111109) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:19:58.655 [0;32mI (111119) pocket_pan_main: [UIREDRAW] urgent=567 telemetry=270 skip=2763[0m
+18:20:03.554 [0;32mI (116019) m6392: [QUAL] callbacks=43181 overruns=19 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1628.2[0m
+18:20:03.564 [0;32mI (116029) m6392: [QUAL_BY_TRANSITION] other=10 1to2=0 2to4=0 4to6=1 6to8=7 restrike=1 pressure=0 model_switch=0[0m
+18:20:03.579 [0;32mI (116039) pocket_pan_main: [AUDIO] model=BELL blocks=43188 avg_us=1125 p99_us=2475 max_us=3119 cpu_load=42.2 deadline=6 timeout=0 tx_error=0 short=0[0m
+18:20:03.587 [0;32mI (116049) pocket_pan_main: [MIDI] push=737 pop=737 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:20:03.599 [0;32mI (116059) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-70 reconnects=0 last_disconnect=0[0m
+18:20:03.606 [0;32mI (116069) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:03.613 [0;32mI (116079) pocket_pan_main: [UIREDRAW] urgent=588 telemetry=284 skip=2891[0m
+18:20:08.571 [0;32mI (121039) m6392: [QUAL] callbacks=45063 overruns=19 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1622.3[0m
+18:20:08.581 [0;32mI (121039) m6392: [QUAL_BY_TRANSITION] other=10 1to2=0 2to4=0 4to6=1 6to8=7 restrike=1 pressure=0 model_switch=0[0m
+18:20:08.596 [0;32mI (121049) pocket_pan_main: [AUDIO] model=BELL blocks=45069 avg_us=743 p99_us=1875 max_us=3119 cpu_load=27.9 deadline=6 timeout=0 tx_error=0 short=0[0m
+18:20:08.605 [0;32mI (121069) pocket_pan_main: [MIDI] push=769 pop=769 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:20:08.615 [0;32mI (121079) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:20:08.623 [0;32mI (121089) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:08.630 [0;32mI (121099) pocket_pan_main: [UIREDRAW] urgent=614 telemetry=298 skip=3016[0m
+18:20:13.589 [0;33mW (126049) m6392: [OVERRUN] seq=45965 cb_us=2956 prev=1287 next=2415 render_us=2500 midi_us=444 model=BELL v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=289 occ_milliblocks=870 telem=0 exc=1 transition=6->8[0m
+18:20:13.609 [0;33mW (126059) m6392: [OVERRUN] seq=45974 cb_us=2686 prev=2327 next=2581 render_us=2665 midi_us=2 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=19 occ_milliblocks=974 telem=0 exc=0 transition=other[0m
+18:20:13.626 [0;32mI (126079) m6392: [QUAL] callbacks=46954 overruns=21 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1613.6[0m
+18:20:13.636 [0;32mI (126099) m6392: [QUAL_BY_TRANSITION] other=11 1to2=0 2to4=0 4to6=1 6to8=8 restrike=1 pressure=0 model_switch=0[0m
+18:20:13.650 [0;32mI (126109) pocket_pan_main: [AUDIO] model=BELL blocks=46965 avg_us=453 p99_us=2325 max_us=3119 cpu_load=17.0 deadline=8 timeout=0 tx_error=0 short=0[0m
+18:20:13.659 [0;32mI (126119) pocket_pan_main: [MIDI] push=792 pop=792 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:20:13.670 [0;32mI (126129) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:20:13.677 [0;32mI (126139) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:13.684 [0;32mI (126149) pocket_pan_main: [UIREDRAW] urgent=634 telemetry=314 skip=3145[0m
+18:20:18.584 [0;32mI (131049) m6392: [QUAL] callbacks=48817 overruns=21 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1620.7[0m
+18:20:18.594 [0;32mI (131059) m6392: [QUAL_BY_TRANSITION] other=11 1to2=0 2to4=0 4to6=1 6to8=8 restrike=1 pressure=0 model_switch=0[0m
+18:20:18.608 [0;32mI (131069) pocket_pan_main: [AUDIO] model=BELL blocks=48824 avg_us=1278 p99_us=1825 max_us=3119 cpu_load=47.9 deadline=8 timeout=0 tx_error=0 short=0[0m
+18:20:18.617 [0;32mI (131079) pocket_pan_main: [MIDI] push=818 pop=818 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:20:18.628 [0;32mI (131089) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:20:18.635 [0;32mI (131099) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:18.643 [0;32mI (131109) pocket_pan_main: [UIREDRAW] urgent=647 telemetry=330 skip=3279[0m
+18:20:23.601 [0;32mI (136069) m6392: [QUAL] callbacks=50699 overruns=21 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1615.6[0m
+18:20:23.611 [0;32mI (136069) m6392: [QUAL_BY_TRANSITION] other=11 1to2=0 2to4=0 4to6=1 6to8=8 restrike=1 pressure=0 model_switch=0[0m
+18:20:23.625 [0;32mI (136079) pocket_pan_main: [AUDIO] model=BELL blocks=50706 avg_us=1278 p99_us=1850 max_us=3119 cpu_load=47.9 deadline=8 timeout=0 tx_error=0 short=0[0m
+18:20:23.634 [0;32mI (136099) pocket_pan_main: [MIDI] push=845 pop=845 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:20:23.645 [0;32mI (136109) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-77 reconnects=0 last_disconnect=0[0m
+18:20:23.652 [0;32mI (136119) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:23.660 [0;32mI (136129) pocket_pan_main: [UIREDRAW] urgent=668 telemetry=344 skip=3409[0m
+18:20:28.618 [0;33mW (141079) m6392: [OVERRUN] seq=51230 cb_us=3086 prev=1287 next=2596 render_us=2636 midi_us=436 model=BELL v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=419 occ_milliblocks=822 telem=0 exc=1 transition=6->8[0m
+18:20:28.638 [0;33mW (141089) m6392: [OVERRUN] seq=51239 cb_us=2983 prev=2462 next=2626 render_us=2894 midi_us=2 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=316 occ_milliblocks=860 telem=1 exc=0 transition=other[0m
+18:20:28.655 [0;32mI (141109) m6392: [QUAL] callbacks=52590 overruns=23 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1622.9[0m
+18:20:28.665 [0;32mI (141129) m6392: [QUAL_BY_TRANSITION] other=12 1to2=0 2to4=0 4to6=1 6to8=9 restrike=1 pressure=0 model_switch=0[0m
+18:20:28.679 [0;32mI (141139) pocket_pan_main: [AUDIO] model=PAN blocks=52601 avg_us=343 p99_us=0 max_us=1645 cpu_load=12.9 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:20:28.688 [0;32mI (141149) pocket_pan_main: [MIDI] push=868 pop=868 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:20:28.699 [0;32mI (141159) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-67 reconnects=0 last_disconnect=0[0m
+18:20:28.707 [0;32mI (141169) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:28.714 [0;32mI (141179) pocket_pan_main: [UIREDRAW] urgent=685 telemetry=356 skip=3545[0m
+18:20:33.613 [0;32mI (146079) m6392: [QUAL] callbacks=54454 overruns=23 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1626.8[0m
+18:20:33.623 [0;32mI (146089) m6392: [QUAL_BY_TRANSITION] other=12 1to2=0 2to4=0 4to6=1 6to8=9 restrike=1 pressure=0 model_switch=0[0m
+18:20:33.637 [0;32mI (146099) pocket_pan_main: [AUDIO] model=PAN blocks=54460 avg_us=978 p99_us=1700 max_us=2558 cpu_load=36.7 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:20:33.647 [0;32mI (146109) pocket_pan_main: [MIDI] push=903 pop=903 drop=0 hwm=4 last=(n=50 v=127 t=78 hex=90327F)[0m
+18:20:33.657 [0;32mI (146119) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-71 reconnects=0 last_disconnect=0[0m
+18:20:33.664 [0;32mI (146129) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:33.672 [0;32mI (146139) pocket_pan_main: [UIREDRAW] urgent=707 telemetry=368 skip=3674[0m
+18:20:38.630 [0;32mI (151099) m6392: [QUAL] callbacks=56335 overruns=23 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1627.3[0m
+18:20:38.640 [0;32mI (151099) m6392: [QUAL_BY_TRANSITION] other=12 1to2=0 2to4=0 4to6=1 6to8=9 restrike=1 pressure=0 model_switch=0[0m
+18:20:38.654 [0;32mI (151109) pocket_pan_main: [AUDIO] model=PAN blocks=56342 avg_us=655 p99_us=1725 max_us=2558 cpu_load=24.6 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:20:38.663 [0;32mI (151129) pocket_pan_main: [MIDI] push=941 pop=941 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:20:38.674 [0;32mI (151139) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-62 reconnects=0 last_disconnect=0[0m
+18:20:38.681 [0;32mI (151149) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:38.689 [0;32mI (151159) pocket_pan_main: [UIREDRAW] urgent=739 telemetry=378 skip=3797[0m
+18:20:43.648 [0;33mW (156109) m6392: [OVERRUN] seq=56495 cb_us=3012 prev=1438 next=2526 render_us=2670 midi_us=295 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=345 occ_milliblocks=851 telem=1 exc=1 transition=6->8[0m
+18:20:43.668 [0;33mW (156119) m6392: [OVERRUN] seq=56504 cb_us=2903 prev=2423 next=2588 render_us=2881 midi_us=3 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=236 occ_milliblocks=889 telem=0 exc=0 transition=other[0m
+18:20:43.688 [0;33mW (156139) m6392: [OVERRUN] seq=56538 cb_us=2745 prev=2399 next=2460 render_us=2723 midi_us=2 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=78 occ_milliblocks=950 telem=0 exc=0 transition=other[0m
+18:20:43.705 [0;32mI (156159) m6392: [QUAL] callbacks=58234 overruns=26 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1633.2[0m
+18:20:43.716 [0;32mI (156179) m6392: [QUAL_BY_TRANSITION] other=14 1to2=0 2to4=0 4to6=1 6to8=10 restrike=1 pressure=0 model_switch=0[0m
+18:20:43.729 [0;32mI (156189) pocket_pan_main: [AUDIO] model=PAN blocks=58245 avg_us=924 p99_us=2400 max_us=3012 cpu_load=34.6 deadline=3 timeout=0 tx_error=0 short=0[0m
+18:20:43.738 [0;32mI (156199) pocket_pan_main: [MIDI] push=964 pop=964 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:20:43.749 [0;32mI (156209) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-63 reconnects=0 last_disconnect=0[0m
+18:20:43.757 [0;32mI (156219) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:43.764 [0;32mI (156229) pocket_pan_main: [UIREDRAW] urgent=755 telemetry=392 skip=3932[0m
+18:20:48.665 [0;32mI (161129) m6392: [QUAL] callbacks=60098 overruns=26 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1631.2[0m
+18:20:48.675 [0;32mI (161139) m6392: [QUAL_BY_TRANSITION] other=14 1to2=0 2to4=0 4to6=1 6to8=10 restrike=1 pressure=0 model_switch=0[0m
+18:20:48.689 [0;32mI (161149) pocket_pan_main: [AUDIO] model=PAN blocks=60105 avg_us=1343 p99_us=1625 max_us=3012 cpu_load=50.4 deadline=3 timeout=0 tx_error=0 short=0[0m
+18:20:48.699 [0;32mI (161159) pocket_pan_main: [MIDI] push=1011 pop=1011 drop=0 hwm=4 last=(n=72 v=75 t=80 hex=A0484B)[0m
+18:20:48.709 [0;32mI (161169) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-60 reconnects=0 last_disconnect=0[0m
+18:20:48.716 [0;32mI (161179) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:48.724 [0;32mI (161189) pocket_pan_main: [UIREDRAW] urgent=791 telemetry=401 skip=4050[0m
+18:20:53.685 [0;33mW (166149) m6392: [OVERRUN] seq=61745 cb_us=2719 prev=1468 next=2284 render_us=2440 midi_us=274 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=52 occ_milliblocks=965 telem=0 exc=1 transition=6->8[0m
+18:20:53.706 [0;33mW (166159) m6392: [OVERRUN] seq=61756 cb_us=2678 prev=2178 next=2288 render_us=2619 midi_us=43 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=11 occ_milliblocks=947 telem=0 exc=0 transition=other[0m
+18:20:53.723 [0;32mI (166179) m6392: [QUAL] callbacks=61991 overruns=28 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1636.6[0m
+18:20:53.733 [0;32mI (166199) m6392: [QUAL_BY_TRANSITION] other=15 1to2=0 2to4=0 4to6=1 6to8=11 restrike=1 pressure=0 model_switch=0[0m
+18:20:53.748 [0;32mI (166209) pocket_pan_main: [AUDIO] model=PAN blocks=62002 avg_us=1628 p99_us=2200 max_us=3012 cpu_load=61.0 deadline=5 timeout=0 tx_error=0 short=0[0m
+18:20:53.757 [0;32mI (166219) pocket_pan_main: [MIDI] push=1036 pop=1036 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:20:53.768 [0;32mI (166229) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-61 reconnects=0 last_disconnect=0[0m
+18:20:53.775 [0;32mI (166239) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:53.782 [0;32mI (166249) pocket_pan_main: [UIREDRAW] urgent=808 telemetry=417 skip=4182[0m
+18:20:58.679 [0;32mI (171149) m6392: [QUAL] callbacks=63854 overruns=28 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1641.4[0m
+18:20:58.689 [0;32mI (171149) m6392: [QUAL_BY_TRANSITION] other=15 1to2=0 2to4=0 4to6=1 6to8=11 restrike=1 pressure=0 model_switch=0[0m
+18:20:58.703 [0;32mI (171159) pocket_pan_main: [AUDIO] model=PAN blocks=63860 avg_us=1060 p99_us=2200 max_us=3012 cpu_load=39.7 deadline=5 timeout=0 tx_error=0 short=0[0m
+18:20:58.712 [0;32mI (171179) pocket_pan_main: [MIDI] push=1068 pop=1068 drop=0 hwm=4 last=(n=62 v=110 t=78 hex=903E6E)[0m
+18:20:58.723 [0;32mI (171189) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-65 reconnects=0 last_disconnect=0[0m
+18:20:58.730 [0;32mI (171199) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:20:58.738 [0;32mI (171209) pocket_pan_main: [UIREDRAW] urgent=837 telemetry=428 skip=4305[0m
+18:21:03.693 [0;32mI (176159) m6392: [QUAL] callbacks=65734 overruns=28 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1642.5[0m
+18:21:03.703 [0;32mI (176169) m6392: [QUAL_BY_TRANSITION] other=15 1to2=0 2to4=0 4to6=1 6to8=11 restrike=1 pressure=0 model_switch=0[0m
+18:21:03.718 [0;32mI (176179) pocket_pan_main: [AUDIO] model=PAN blocks=65741 avg_us=503 p99_us=1700 max_us=3012 cpu_load=18.9 deadline=5 timeout=0 tx_error=0 short=0[0m
+18:21:03.726 [0;32mI (176189) pocket_pan_main: [MIDI] push=1111 pop=1111 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:21:03.737 [0;32mI (176199) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-64 reconnects=0 last_disconnect=0[0m
+18:21:03.745 [0;32mI (176209) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:03.752 [0;32mI (176219) pocket_pan_main: [UIREDRAW] urgent=874 telemetry=438 skip=4423[0m
+18:21:08.715 [0;33mW (181179) m6392: [OVERRUN] seq=67010 cb_us=2717 prev=1472 next=2289 render_us=2439 midi_us=273 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=50 occ_milliblocks=963 telem=0 exc=1 transition=6->8[0m
+18:21:08.735 [0;33mW (181189) m6392: [OVERRUN] seq=67021 cb_us=2681 prev=2176 next=2293 render_us=2621 midi_us=42 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=14 occ_milliblocks=943 telem=0 exc=0 transition=other[0m
+18:21:08.752 [0;32mI (181209) m6392: [QUAL] callbacks=67628 overruns=30 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1644.9[0m
+18:21:08.763 [0;32mI (181229) m6392: [QUAL_BY_TRANSITION] other=16 1to2=0 2to4=0 4to6=1 6to8=12 restrike=1 pressure=0 model_switch=0[0m
+18:21:08.777 [0;32mI (181239) pocket_pan_main: [AUDIO] model=PAN blocks=67638 avg_us=821 p99_us=1775 max_us=3012 cpu_load=30.8 deadline=7 timeout=0 tx_error=0 short=0[0m
+18:21:08.786 [0;32mI (181249) pocket_pan_main: [MIDI] push=1132 pop=1132 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:21:08.797 [0;32mI (181259) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-63 reconnects=0 last_disconnect=0[0m
+18:21:08.805 [0;32mI (181269) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:08.812 [0;32mI (181279) pocket_pan_main: [UIREDRAW] urgent=890 telemetry=456 skip=4554[0m
+18:21:13.709 [0;32mI (186179) m6392: [QUAL] callbacks=69490 overruns=30 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1644.5[0m
+18:21:13.719 [0;32mI (186179) m6392: [QUAL_BY_TRANSITION] other=16 1to2=0 2to4=0 4to6=1 6to8=12 restrike=1 pressure=0 model_switch=0[0m
+18:21:13.733 [0;32mI (186189) pocket_pan_main: [AUDIO] model=PAN blocks=69497 avg_us=1268 p99_us=2200 max_us=3012 cpu_load=47.5 deadline=7 timeout=0 tx_error=0 short=0[0m
+18:21:13.743 [0;32mI (186209) pocket_pan_main: [MIDI] push=1181 pop=1181 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:21:13.753 [0;32mI (186219) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-61 reconnects=0 last_disconnect=0[0m
+18:21:13.760 [0;32mI (186229) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:13.768 [0;32mI (186239) pocket_pan_main: [UIREDRAW] urgent=930 telemetry=462 skip=4671[0m
+18:21:18.723 [0;32mI (191189) m6392: [QUAL] callbacks=71370 overruns=30 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1649.2[0m
+18:21:18.733 [0;32mI (191199) m6392: [QUAL_BY_TRANSITION] other=16 1to2=0 2to4=0 4to6=1 6to8=12 restrike=1 pressure=0 model_switch=0[0m
+18:21:18.747 [0;32mI (191209) pocket_pan_main: [AUDIO] model=PAN blocks=71377 avg_us=1143 p99_us=1725 max_us=3012 cpu_load=42.9 deadline=7 timeout=0 tx_error=0 short=0[0m
+18:21:18.756 [0;32mI (191219) pocket_pan_main: [MIDI] push=1213 pop=1213 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:21:18.767 [0;32mI (191229) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-78 reconnects=0 last_disconnect=0[0m
+18:21:18.775 [0;32mI (191239) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:18.782 [0;32mI (191249) pocket_pan_main: [UIREDRAW] urgent=958 telemetry=473 skip=4797[0m
+18:21:23.745 [0;33mW (196209) m6392: [OVERRUN] seq=72275 cb_us=2830 prev=1476 next=2381 render_us=2537 midi_us=287 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=163 occ_milliblocks=924 telem=0 exc=1 transition=6->8[0m
+18:21:23.765 [0;33mW (196219) m6392: [OVERRUN] seq=72286 cb_us=2767 prev=2313 next=2460 render_us=2728 midi_us=21 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=100 occ_milliblocks=920 telem=0 exc=0 transition=other[0m
+18:21:23.782 [0;32mI (196239) m6392: [QUAL] callbacks=73264 overruns=32 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1652.5[0m
+18:21:23.792 [0;32mI (196259) m6392: [QUAL_BY_TRANSITION] other=17 1to2=0 2to4=0 4to6=1 6to8=13 restrike=1 pressure=0 model_switch=0[0m
+18:21:23.806 [0;32mI (196269) pocket_pan_main: [AUDIO] model=PAN blocks=73274 avg_us=502 p99_us=1575 max_us=3012 cpu_load=18.8 deadline=9 timeout=0 tx_error=0 short=0[0m
+18:21:23.815 [0;32mI (196279) pocket_pan_main: [MIDI] push=1236 pop=1236 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:21:23.827 [0;32mI (196289) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:21:23.834 [0;32mI (196299) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:23.841 [0;32mI (196309) pocket_pan_main: [UIREDRAW] urgent=976 telemetry=489 skip=4928[0m
+18:21:28.737 [0;32mI (201209) m6392: [QUAL] callbacks=75126 overruns=32 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1656.2[0m
+18:21:28.748 [0;32mI (201209) m6392: [QUAL_BY_TRANSITION] other=17 1to2=0 2to4=0 4to6=1 6to8=13 restrike=1 pressure=0 model_switch=0[0m
+18:21:28.762 [0;32mI (201219) pocket_pan_main: [AUDIO] model=PAN blocks=75133 avg_us=664 p99_us=2300 max_us=3012 cpu_load=24.9 deadline=9 timeout=0 tx_error=0 short=0[0m
+18:21:28.771 [0;32mI (201239) pocket_pan_main: [MIDI] push=1262 pop=1262 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:21:28.782 [0;32mI (201249) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-71 reconnects=0 last_disconnect=0[0m
+18:21:28.789 [0;32mI (201259) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:28.797 [0;32mI (201269) pocket_pan_main: [UIREDRAW] urgent=996 telemetry=501 skip=5059[0m
+18:21:33.752 [0;32mI (206219) m6392: [QUAL] callbacks=77007 overruns=32 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1658.8[0m
+18:21:33.762 [0;32mI (206229) m6392: [QUAL_BY_TRANSITION] other=17 1to2=0 2to4=0 4to6=1 6to8=13 restrike=1 pressure=0 model_switch=0[0m
+18:21:33.776 [0;32mI (206239) pocket_pan_main: [AUDIO] model=PAN blocks=77013 avg_us=745 p99_us=1625 max_us=3012 cpu_load=27.9 deadline=9 timeout=0 tx_error=0 short=0[0m
+18:21:33.786 [0;32mI (206249) pocket_pan_main: [MIDI] push=1289 pop=1289 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:21:33.796 [0;32mI (206259) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-79 reconnects=0 last_disconnect=0[0m
+18:21:33.804 [0;32mI (206269) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:33.811 [0;32mI (206279) pocket_pan_main: [UIREDRAW] urgent=1018 telemetry=516 skip=5187[0m
+18:21:38.774 [0;33mW (211239) m6392: [OVERRUN] seq=77540 cb_us=3085 prev=1472 next=2546 render_us=2744 midi_us=327 model=BELL v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=418 occ_milliblocks=821 telem=0 exc=1 transition=6->8[0m
+18:21:38.795 [0;33mW (211249) m6392: [OVERRUN] seq=77551 cb_us=3070 prev=2597 next=2563 render_us=2977 midi_us=22 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=403 occ_milliblocks=807 telem=1 exc=0 transition=other[0m
+18:21:38.812 [0;32mI (211269) m6392: [QUAL] callbacks=78900 overruns=34 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1658.2[0m
+18:21:38.822 [0;32mI (211289) m6392: [QUAL_BY_TRANSITION] other=18 1to2=0 2to4=0 4to6=1 6to8=14 restrike=1 pressure=0 model_switch=0[0m
+18:21:38.836 [0;32mI (211299) pocket_pan_main: [AUDIO] model=BELL blocks=78911 avg_us=625 p99_us=0 max_us=3085 cpu_load=23.4 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:21:38.845 [0;32mI (211309) pocket_pan_main: [MIDI] push=1312 pop=1312 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:21:38.856 [0;32mI (211319) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-71 reconnects=0 last_disconnect=0[0m
+18:21:38.864 [0;32mI (211329) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:38.871 [0;32mI (211339) pocket_pan_main: [UIREDRAW] urgent=1035 telemetry=532 skip=5319[0m
+18:21:43.767 [0;32mI (216239) m6392: [QUAL] callbacks=80762 overruns=34 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1654.8[0m
+18:21:43.777 [0;32mI (216239) m6392: [QUAL_BY_TRANSITION] other=18 1to2=0 2to4=0 4to6=1 6to8=14 restrike=1 pressure=0 model_switch=0[0m
+18:21:43.791 [0;32mI (216249) pocket_pan_main: [AUDIO] model=BELL blocks=80769 avg_us=1292 p99_us=2475 max_us=3085 cpu_load=48.4 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:21:43.801 [0;32mI (216269) pocket_pan_main: [MIDI] push=1347 pop=1347 drop=0 hwm=4 last=(n=50 v=127 t=78 hex=90327F)[0m
+18:21:43.812 [0;32mI (216279) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:21:43.819 [0;32mI (216289) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:43.827 [0;32mI (216299) pocket_pan_main: [UIREDRAW] urgent=1057 telemetry=545 skip=5447[0m
+18:21:48.782 [0;32mI (221249) m6392: [QUAL] callbacks=82643 overruns=34 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1649.9[0m
+18:21:48.792 [0;32mI (221259) m6392: [QUAL_BY_TRANSITION] other=18 1to2=0 2to4=0 4to6=1 6to8=14 restrike=1 pressure=0 model_switch=0[0m
+18:21:48.806 [0;32mI (221269) pocket_pan_main: [AUDIO] model=BELL blocks=82650 avg_us=1281 p99_us=1875 max_us=3085 cpu_load=48.0 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:21:48.815 [0;32mI (221279) pocket_pan_main: [MIDI] push=1371 pop=1371 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:21:48.826 [0;32mI (221289) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:21:48.833 [0;32mI (221299) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:48.841 [0;32mI (221309) pocket_pan_main: [UIREDRAW] urgent=1076 telemetry=561 skip=5577[0m
+18:21:53.804 [0;33mW (226269) m6392: [OVERRUN] seq=82805 cb_us=3018 prev=1490 next=2572 render_us=2722 midi_us=289 model=BELL v=7->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=351 occ_milliblocks=853 telem=0 exc=1 transition=6->8[0m
+18:21:53.825 [0;33mW (226279) m6392: [OVERRUN] seq=82816 cb_us=3004 prev=2576 next=2564 render_us=2969 midi_us=12 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=337 occ_milliblocks=835 telem=0 exc=0 transition=other[0m
+18:21:53.842 [0;32mI (226299) m6392: [QUAL] callbacks=84536 overruns=36 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1646.6[0m
+18:21:53.852 [0;32mI (226319) m6392: [QUAL_BY_TRANSITION] other=19 1to2=0 2to4=0 4to6=1 6to8=15 restrike=1 pressure=0 model_switch=0[0m
+18:21:53.866 [0;32mI (226329) pocket_pan_main: [AUDIO] model=BELL blocks=84547 avg_us=952 p99_us=2475 max_us=3085 cpu_load=35.7 deadline=4 timeout=0 tx_error=0 short=0[0m
+18:21:53.875 [0;32mI (226339) pocket_pan_main: [MIDI] push=1394 pop=1394 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:21:53.886 [0;32mI (226349) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-76 reconnects=0 last_disconnect=0[0m
+18:21:53.894 [0;32mI (226359) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:53.901 [0;32mI (226369) pocket_pan_main: [UIREDRAW] urgent=1095 telemetry=573 skip=5711[0m
+18:21:58.796 [0;32mI (231269) m6392: [QUAL] callbacks=86399 overruns=36 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1641.4[0m
+18:21:58.807 [0;32mI (231269) m6392: [QUAL_BY_TRANSITION] other=19 1to2=0 2to4=0 4to6=1 6to8=15 restrike=1 pressure=0 model_switch=0[0m
+18:21:58.821 [0;32mI (231279) pocket_pan_main: [AUDIO] model=BELL blocks=86405 avg_us=1583 p99_us=1850 max_us=3085 cpu_load=59.4 deadline=4 timeout=0 tx_error=0 short=0[0m
+18:21:58.830 [0;32mI (231299) pocket_pan_main: [MIDI] push=1431 pop=1431 drop=0 hwm=4 last=(n=72 v=75 t=80 hex=A0484B)[0m
+18:21:58.841 [0;32mI (231309) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-76 reconnects=0 last_disconnect=0[0m
+18:21:58.848 [0;32mI (231319) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:21:58.857 [0;32mI (231329) pocket_pan_main: [UIREDRAW] urgent=1118 telemetry=585 skip=5839[0m
+18:22:03.815 [0;33mW (236279) m6392: [OVERRUN] seq=88044 cb_us=2899 prev=1561 next=2423 render_us=2594 midi_us=300 model=BELL v=7->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=232 occ_milliblocks=899 telem=0 exc=1 transition=6->8[0m
+18:22:03.836 [0;33mW (236289) m6392: [OVERRUN] seq=88053 cb_us=2811 prev=2431 next=2399 render_us=2771 midi_us=12 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=144 occ_milliblocks=907 telem=0 exc=0 transition=other[0m
+18:22:03.853 [0;32mI (236309) m6392: [QUAL] callbacks=88291 overruns=38 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1636.4[0m
+18:22:03.863 [0;32mI (236329) m6392: [QUAL_BY_TRANSITION] other=20 1to2=0 2to4=0 4to6=1 6to8=16 restrike=1 pressure=0 model_switch=0[0m
+18:22:03.876 [0;32mI (236339) pocket_pan_main: [AUDIO] model=BELL blocks=88301 avg_us=1606 p99_us=1850 max_us=3085 cpu_load=60.2 deadline=6 timeout=0 tx_error=0 short=0[0m
+18:22:03.886 [0;32mI (236349) pocket_pan_main: [MIDI] push=1456 pop=1456 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:22:03.897 [0;32mI (236359) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-70 reconnects=0 last_disconnect=0[0m
+18:22:03.904 [0;32mI (236369) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:03.912 [0;32mI (236379) pocket_pan_main: [UIREDRAW] urgent=1136 telemetry=601 skip=5970[0m
+18:22:08.808 [0;32mI (241279) m6392: [QUAL] callbacks=90153 overruns=38 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1636.1[0m
+18:22:08.818 [0;32mI (241279) m6392: [QUAL_BY_TRANSITION] other=20 1to2=0 2to4=0 4to6=1 6to8=16 restrike=1 pressure=0 model_switch=0[0m
+18:22:08.832 [0;32mI (241289) pocket_pan_main: [AUDIO] model=BELL blocks=90160 avg_us=985 p99_us=2325 max_us=3085 cpu_load=36.9 deadline=6 timeout=0 tx_error=0 short=0[0m
+18:22:08.841 [0;32mI (241309) pocket_pan_main: [MIDI] push=1478 pop=1478 drop=0 hwm=4 last=(n=62 v=110 t=78 hex=903E6E)[0m
+18:22:08.852 [0;32mI (241319) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:22:08.860 [0;32mI (241329) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:08.867 [0;32mI (241339) pocket_pan_main: [UIREDRAW] urgent=1154 telemetry=614 skip=6102[0m
+18:22:13.821 [0;32mI (246289) m6392: [QUAL] callbacks=92033 overruns=38 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1630.9[0m
+18:22:13.831 [0;32mI (246299) m6392: [QUAL_BY_TRANSITION] other=20 1to2=0 2to4=0 4to6=1 6to8=16 restrike=1 pressure=0 model_switch=0[0m
+18:22:13.845 [0;32mI (246309) pocket_pan_main: [AUDIO] model=BELL blocks=92040 avg_us=1278 p99_us=1900 max_us=3085 cpu_load=47.9 deadline=6 timeout=0 tx_error=0 short=0[0m
+18:22:13.855 [0;32mI (246319) pocket_pan_main: [MIDI] push=1511 pop=1511 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:22:13.865 [0;32mI (246329) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:22:13.872 [0;32mI (246339) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:13.880 [0;32mI (246349) pocket_pan_main: [UIREDRAW] urgent=1173 telemetry=629 skip=6233[0m
+18:22:18.844 [0;33mW (251309) m6392: [OVERRUN] seq=93309 cb_us=2924 prev=1578 next=2426 render_us=2589 midi_us=328 model=BELL v=7->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=257 occ_milliblocks=885 telem=0 exc=1 transition=6->8[0m
+18:22:18.864 [0;33mW (251319) m6392: [OVERRUN] seq=93318 cb_us=2791 prev=2411 next=2460 render_us=2748 midi_us=17 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=124 occ_milliblocks=906 telem=0 exc=0 transition=other[0m
+18:22:18.881 [0;32mI (251339) m6392: [QUAL] callbacks=93927 overruns=40 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1625.0[0m
+18:22:18.892 [0;32mI (251359) m6392: [QUAL_BY_TRANSITION] other=21 1to2=0 2to4=0 4to6=1 6to8=17 restrike=1 pressure=0 model_switch=0[0m
+18:22:18.906 [0;32mI (251369) pocket_pan_main: [AUDIO] model=BELL blocks=93937 avg_us=1603 p99_us=2325 max_us=3085 cpu_load=60.1 deadline=8 timeout=0 tx_error=0 short=0[0m
+18:22:18.915 [0;32mI (251379) pocket_pan_main: [MIDI] push=1532 pop=1532 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:22:18.927 [0;32mI (251389) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-72 reconnects=0 last_disconnect=0[0m
+18:22:18.934 [0;32mI (251399) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:18.941 [0;32mI (251409) pocket_pan_main: [UIREDRAW] urgent=1189 telemetry=646 skip=6365[0m
+18:22:23.837 [0;32mI (256309) m6392: [QUAL] callbacks=95789 overruns=40 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1626.8[0m
+18:22:23.847 [0;32mI (256309) m6392: [QUAL_BY_TRANSITION] other=21 1to2=0 2to4=0 4to6=1 6to8=17 restrike=1 pressure=0 model_switch=0[0m
+18:22:23.861 [0;32mI (256319) pocket_pan_main: [AUDIO] model=BELL blocks=95796 avg_us=1115 p99_us=2325 max_us=3085 cpu_load=41.8 deadline=8 timeout=0 tx_error=0 short=0[0m
+18:22:23.871 [0;32mI (256339) pocket_pan_main: [MIDI] push=1561 pop=1561 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:22:23.881 [0;32mI (256349) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:22:23.888 [0;32mI (256359) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:23.896 [0;32mI (256369) pocket_pan_main: [UIREDRAW] urgent=1209 telemetry=657 skip=6497[0m
+18:22:28.850 [0;32mI (261319) m6392: [QUAL] callbacks=97669 overruns=40 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1623.2[0m
+18:22:28.861 [0;32mI (261329) m6392: [QUAL_BY_TRANSITION] other=21 1to2=0 2to4=0 4to6=1 6to8=17 restrike=1 pressure=0 model_switch=0[0m
+18:22:28.875 [0;32mI (261339) pocket_pan_main: [AUDIO] model=BELL blocks=97676 avg_us=1259 p99_us=1850 max_us=3085 cpu_load=47.2 deadline=8 timeout=0 tx_error=0 short=0[0m
+18:22:28.884 [0;32mI (261349) pocket_pan_main: [MIDI] push=1593 pop=1593 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:22:28.895 [0;32mI (261359) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:22:28.903 [0;32mI (261369) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:28.910 [0;32mI (261379) pocket_pan_main: [UIREDRAW] urgent=1234 telemetry=672 skip=6622[0m
+18:22:33.873 [0;33mW (266339) m6392: [OVERRUN] seq=98574 cb_us=2910 prev=1527 next=2456 render_us=2601 midi_us=305 model=BELL v=7->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=243 occ_milliblocks=892 telem=0 exc=1 transition=6->8[0m
+18:22:33.894 [0;33mW (266349) m6392: [OVERRUN] seq=98583 cb_us=2902 prev=2418 next=2417 render_us=2797 midi_us=24 model=BELL v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=235 occ_milliblocks=873 telem=1 exc=0 transition=other[0m
+18:22:33.911 [0;32mI (266369) m6392: [QUAL] callbacks=99563 overruns=42 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1618.0[0m
+18:22:33.921 [0;32mI (266389) m6392: [QUAL_BY_TRANSITION] other=22 1to2=0 2to4=0 4to6=1 6to8=18 restrike=1 pressure=0 model_switch=0[0m
+18:22:33.935 [0;32mI (266399) pocket_pan_main: [AUDIO] model=BELL blocks=99574 avg_us=711 p99_us=1850 max_us=3085 cpu_load=26.7 deadline=10 timeout=0 tx_error=0 short=0[0m
+18:22:33.945 [0;32mI (266409) pocket_pan_main: [MIDI] push=1616 pop=1616 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:22:33.955 [0;32mI (266419) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:22:33.963 [0;32mI (266429) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:33.971 [0;32mI (266439) pocket_pan_main: [UIREDRAW] urgent=1254 telemetry=685 skip=6754[0m
+18:22:38.867 [0;32mI (271339) m6392: [QUAL] callbacks=101425 overruns=42 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1618.8[0m
+18:22:38.877 [0;32mI (271339) m6392: [QUAL_BY_TRANSITION] other=22 1to2=0 2to4=0 4to6=1 6to8=18 restrike=1 pressure=0 model_switch=0[0m
+18:22:38.891 [0;32mI (271349) pocket_pan_main: [AUDIO] model=BELL blocks=101432 avg_us=1279 p99_us=2325 max_us=3085 cpu_load=48.0 deadline=10 timeout=0 tx_error=0 short=0[0m
+18:22:38.900 [0;32mI (271369) pocket_pan_main: [MIDI] push=1642 pop=1642 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:22:38.911 [0;32mI (271379) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-71 reconnects=0 last_disconnect=0[0m
+18:22:38.918 [0;32mI (271389) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:38.926 [0;32mI (271399) pocket_pan_main: [UIREDRAW] urgent=1269 telemetry=700 skip=6887[0m
+18:22:43.880 [0;32mI (276349) m6392: [QUAL] callbacks=103305 overruns=42 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1617.2[0m
+18:22:43.890 [0;32mI (276359) m6392: [QUAL_BY_TRANSITION] other=22 1to2=0 2to4=0 4to6=1 6to8=18 restrike=1 pressure=0 model_switch=0[0m
+18:22:43.904 [0;32mI (276369) pocket_pan_main: [AUDIO] model=PAN blocks=103312 avg_us=345 p99_us=0 max_us=1527 cpu_load=12.9 deadline=0 timeout=0 tx_error=0 short=0[0m
+18:22:43.913 [0;32mI (276379) pocket_pan_main: [MIDI] push=1669 pop=1669 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:22:43.924 [0;32mI (276389) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-69 reconnects=0 last_disconnect=0[0m
+18:22:43.931 [0;32mI (276399) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:43.939 [0;32mI (276409) pocket_pan_main: [UIREDRAW] urgent=1293 telemetry=715 skip=7013[0m
+18:22:48.903 [0;33mW (281369) m6392: [OVERRUN] seq=103839 cb_us=2991 prev=1526 next=2523 render_us=2675 midi_us=279 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=324 occ_milliblocks=860 telem=1 exc=1 transition=6->8[0m
+18:22:48.924 [0;33mW (281379) m6392: [OVERRUN] seq=103848 cb_us=2833 prev=2606 next=2478 render_us=2789 midi_us=26 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=166 occ_milliblocks=888 telem=0 exc=0 transition=other[0m
+18:22:48.941 [0;32mI (281399) m6392: [QUAL] callbacks=105199 overruns=44 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1622.3[0m
+18:22:48.951 [0;32mI (281419) m6392: [QUAL_BY_TRANSITION] other=23 1to2=0 2to4=0 4to6=1 6to8=19 restrike=1 pressure=0 model_switch=0[0m
+18:22:48.965 [0;32mI (281429) pocket_pan_main: [AUDIO] model=PAN blocks=105210 avg_us=501 p99_us=2425 max_us=2991 cpu_load=18.8 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:22:48.974 [0;32mI (281439) pocket_pan_main: [MIDI] push=1692 pop=1692 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+18:22:48.985 [0;32mI (281449) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-71 reconnects=0 last_disconnect=0[0m
+18:22:48.992 [0;32mI (281459) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:49.000 [0;32mI (281469) pocket_pan_main: [UIREDRAW] urgent=1309 telemetry=731 skip=7146[0m
+18:22:53.896 [0;32mI (286369) m6392: [QUAL] callbacks=107062 overruns=44 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1623.9[0m
+18:22:53.906 [0;32mI (286369) m6392: [QUAL_BY_TRANSITION] other=23 1to2=0 2to4=0 4to6=1 6to8=19 restrike=1 pressure=0 model_switch=0[0m
+18:22:53.921 [0;32mI (286379) pocket_pan_main: [AUDIO] model=PAN blocks=107068 avg_us=1000 p99_us=2425 max_us=2991 cpu_load=37.5 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:22:53.930 [0;32mI (286399) pocket_pan_main: [MIDI] push=1727 pop=1727 drop=0 hwm=4 last=(n=50 v=127 t=78 hex=90327F)[0m
+18:22:53.940 [0;32mI (286409) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-70 reconnects=0 last_disconnect=0[0m
+18:22:53.948 [0;32mI (286419) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:53.955 [0;32mI (286429) pocket_pan_main: [UIREDRAW] urgent=1336 telemetry=741 skip=7272[0m
+18:22:58.910 [0;32mI (291379) m6392: [QUAL] callbacks=108942 overruns=44 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1627.9[0m
+18:22:58.920 [0;32mI (291389) m6392: [QUAL_BY_TRANSITION] other=23 1to2=0 2to4=0 4to6=1 6to8=19 restrike=1 pressure=0 model_switch=0[0m
+18:22:58.934 [0;32mI (291399) pocket_pan_main: [AUDIO] model=PAN blocks=108948 avg_us=500 p99_us=1625 max_us=2991 cpu_load=18.7 deadline=2 timeout=0 tx_error=0 short=0[0m
+18:22:58.943 [0;32mI (291409) pocket_pan_main: [MIDI] push=1751 pop=1751 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+18:22:58.954 [0;32mI (291419) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:22:58.961 [0;32mI (291429) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:22:58.969 [0;32mI (291439) pocket_pan_main: [UIREDRAW] urgent=1358 telemetry=755 skip=7401[0m
+18:23:03.932 [0;33mW (296399) m6392: [OVERRUN] seq=109104 cb_us=2761 prev=1521 next=2290 render_us=2458 midi_us=293 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=94 occ_milliblocks=947 telem=0 exc=1 transition=6->8[0m
+18:23:03.952 [0;33mW (296409) m6392: [OVERRUN] seq=109113 cb_us=2672 prev=2238 next=2263 render_us=2607 midi_us=38 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=5 occ_milliblocks=943 telem=0 exc=0 transition=other[0m
+18:23:03.970 [0;32mI (296429) m6392: [QUAL] callbacks=110835 overruns=46 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1629.0[0m
+18:23:03.980 [0;32mI (296449) m6392: [QUAL_BY_TRANSITION] other=24 1to2=0 2to4=0 4to6=1 6to8=20 restrike=1 pressure=0 model_switch=0[0m
+18:23:03.994 [0;32mI (296459) pocket_pan_main: [AUDIO] model=PAN blocks=110846 avg_us=890 p99_us=2200 max_us=2991 cpu_load=33.4 deadline=4 timeout=0 tx_error=0 short=0[0m
+18:23:04.004 [0;32mI (296469) pocket_pan_main: [MIDI] push=1788 pop=1788 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:23:04.014 [0;32mI (296479) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-83 reconnects=0 last_disconnect=0[0m
+18:23:04.022 [0;32mI (296489) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:23:04.029 [0;32mI (296499) pocket_pan_main: [UIREDRAW] urgent=1390 telemetry=765 skip=7524[0m
+18:23:08.927 [0;32mI (301399) m6392: [QUAL] callbacks=112698 overruns=46 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1629.5[0m
+18:23:08.937 [0;32mI (301399) m6392: [QUAL_BY_TRANSITION] other=24 1to2=0 2to4=0 4to6=1 6to8=20 restrike=1 pressure=0 model_switch=0[0m
+18:23:08.951 [0;32mI (301419) pocket_pan_main: [AUDIO] model=PAN blocks=112705 avg_us=1319 p99_us=1625 max_us=2991 cpu_load=49.5 deadline=4 timeout=0 tx_error=0 short=0[0m
+18:23:08.960 [0;32mI (301429) pocket_pan_main: [MIDI] push=1825 pop=1825 drop=0 hwm=4 last=(n=72 v=75 t=80 hex=A0484B)[0m
+18:23:08.971 [0;32mI (301439) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-75 reconnects=0 last_disconnect=0[0m
+18:23:08.978 [0;32mI (301449) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:23:08.986 [0;32mI (301459) pocket_pan_main: [UIREDRAW] urgent=1421 telemetry=777 skip=7644[0m
+18:23:13.947 [0;33mW (306419) m6392: [OVERRUN] seq=114345 cb_us=2727 prev=1481 next=2276 render_us=2449 midi_us=269 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=60 occ_milliblocks=961 telem=0 exc=1 transition=6->8[0m
+18:23:13.965 [0;32mI (306429) m6392: [QUAL] callbacks=114584 overruns=47 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1632.5[0m
+18:23:13.975 [0;32mI (306439) m6392: [QUAL_BY_TRANSITION] other=24 1to2=0 2to4=0 4to6=1 6to8=21 restrike=1 pressure=0 model_switch=0[0m
+18:23:13.989 [0;32mI (306449) pocket_pan_main: [AUDIO] model=PAN blocks=114594 avg_us=1627 p99_us=1625 max_us=2991 cpu_load=61.0 deadline=5 timeout=0 tx_error=0 short=0[0m
+18:23:13.999 [0;32mI (306469) pocket_pan_main: [MIDI] push=1850 pop=1850 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+18:23:14.009 [0;32mI (306479) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-78 reconnects=0 last_disconnect=0[0m
+18:23:14.017 [0;32mI (306489) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:23:14.024 [0;32mI (306499) pocket_pan_main: [UIREDRAW] urgent=1437 telemetry=793 skip=7777[0m
+18:23:18.948 [0;32mI (311419) m6392: [QUAL] callbacks=116457 overruns=47 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1635.7[0m
+18:23:18.959 [0;32mI (311429) m6392: [QUAL_BY_TRANSITION] other=24 1to2=0 2to4=0 4to6=1 6to8=21 restrike=1 pressure=0 model_switch=0[0m
+18:23:18.973 [0;32mI (311439) pocket_pan_main: [AUDIO] model=PAN blocks=116463 avg_us=1029 p99_us=2200 max_us=2991 cpu_load=38.6 deadline=5 timeout=0 tx_error=0 short=0[0m
+18:23:18.983 [0;32mI (311449) pocket_pan_main: [MIDI] push=1878 pop=1878 drop=0 hwm=4 last=(n=62 v=110 t=78 hex=903E6E)[0m
+18:23:18.994 [0;32mI (311459) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-106 reconnects=0 last_disconnect=0[0m
+18:23:19.001 [0;32mI (311469) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:23:19.009 [0;32mI (311479) pocket_pan_main: [UIREDRAW] urgent=1464 telemetry=803 skip=7904[0m
+18:23:23.966 [0;32mI (316439) m6392: [QUAL] callbacks=118338 overruns=47 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1633.8[0m
+18:23:23.977 [0;32mI (316439) m6392: [QUAL_BY_TRANSITION] other=24 1to2=0 2to4=0 4to6=1 6to8=21 restrike=1 pressure=0 model_switch=0[0m
+18:23:23.991 [0;32mI (316459) pocket_pan_main: [AUDIO] model=PAN blocks=118345 avg_us=953 p99_us=1625 max_us=2991 cpu_load=35.7 deadline=5 timeout=0 tx_error=0 short=0[0m
+18:23:24.000 [0;32mI (316469) pocket_pan_main: [MIDI] push=1933 pop=1933 drop=0 hwm=4 last=(n=62 v=64 t=78 hex=803E40)[0m
+18:23:24.011 [0;32mI (316479) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-72 reconnects=0 last_disconnect=0[0m
+18:23:24.018 [0;32mI (316489) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:23:24.026 [0;32mI (316499) pocket_pan_main: [UIREDRAW] urgent=1506 telemetry=810 skip=8020[0m
+18:23:28.987 [0;33mW (321459) m6392: [OVERRUN] seq=119604 cb_us=2889 prev=1476 next=2392 render_us=2588 midi_us=292 model=PAN v=6->8 on=2 off=0 poly=0 ch=1 streak=1 debt_before=0 debt_after=222 occ_milliblocks=898 telem=0 exc=1 transition=6->8[0m
+18:23:29.008 [0;33mW (321469) m6392: [OVERRUN] seq=119613 cb_us=2765 prev=2322 next=2390 render_us=2709 midi_us=26 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=98 occ_milliblocks=924 telem=0 exc=0 transition=other[0m
+18:23:29.028 [0;33mW (321489) m6392: [OVERRUN] seq=119637 cb_us=2735 prev=2184 next=2293 render_us=2712 midi_us=2 model=PAN v=8->8 on=0 off=0 poly=0 ch=0 streak=1 debt_before=0 debt_after=68 occ_milliblocks=952 telem=0 exc=0 transition=other[0m
+18:23:29.045 [0;32mI (321509) m6392: [QUAL] callbacks=120239 overruns=50 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1633.2[0m
+18:23:29.055 [0;32mI (321519) m6392: [QUAL_BY_TRANSITION] other=26 1to2=0 2to4=0 4to6=1 6to8=22 restrike=1 pressure=0 model_switch=0[0m
+18:23:29.070 [0;32mI (321529) pocket_pan_main: [AUDIO] model=PAN blocks=120250 avg_us=1192 p99_us=1875 max_us=2991 cpu_load=44.7 deadline=8 timeout=0 tx_error=0 short=0[0m
+18:23:29.079 [0;32mI (321549) pocket_pan_main: [MIDI] push=1966 pop=1966 drop=0 hwm=4 last=(n=55 v=64 t=78 hex=803740)[0m
+18:23:29.089 [0;32mI (321559) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-75 reconnects=0 last_disconnect=0[0m
+18:23:29.097 [0;32mI (321569) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:23:29.105 [0;32mI (321579) pocket_pan_main: [UIREDRAW] urgent=1539 telemetry=820 skip=8142[0m
+18:23:34.002 [0;33mW (326469) m6392: [OVERRUN] seq=121831 cb_us=2774 prev=1118 next=1842 render_us=1914 midi_us=778 model=PAN v=4->5 on=2 off=1 poly=0 ch=1 streak=1 debt_before=0 debt_after=107 occ_milliblocks=913 telem=1 exc=1 transition=other[0m
+18:23:34.019 [0;32mI (326479) m6392: [QUAL] callbacks=122104 overruns=51 max_cb_us=3134 max_streak=1 max_debt_us=467 min_occ_milliblocks=797 max_occ_milliblocks=1003 max_recovery_blocks=3 write_avg_us=1634.5[0m
+18:23:34.029 [0;32mI (326499) m6392: [QUAL_BY_TRANSITION] other=27 1to2=0 2to4=0 4to6=1 6to8=22 restrike=1 pressure=0 model_switch=0[0m
+18:23:34.043 [0;32mI (326509) pocket_pan_main: [AUDIO] model=PAN blocks=122115 avg_us=1297 p99_us=2275 max_us=2991 cpu_load=48.6 deadline=9 timeout=0 tx_error=0 short=0[0m
+18:23:34.053 [0;32mI (326519) pocket_pan_main: [MIDI] push=2009 pop=2009 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+18:23:34.063 [0;32mI (326529) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+18:23:34.071 [0;32mI (326539) pocket_pan_main: [MEM] internal_free=130015 largest_internal=31744[0m
+18:23:34.079 [0;32mI (326549) pocket_pan_main: [UIREDRAW] urgent=1570 telemetry=832 skip=8262[0m
