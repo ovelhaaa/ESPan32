@@ -5,6 +5,7 @@
 #include <cmath>
 #include "dsp_config.h"
 #include "dsp_profile.h"
+#include "trigger_precompute.h"
 
 namespace pocketpan::dsp {
 
@@ -21,7 +22,14 @@ public:
 
     void init(float sampleRate);
     void reset();
-    void setConfig(const ExciterConfig& config) { config_ = config; }
+    void setConfig(const ExciterConfig& config) {
+        config_ = config;
+#if POCKETPAN_VELOCITY_LUT
+        // Built eagerly at the configuration boundary so the realtime event
+        // block never pays for 128 pow() calls.
+        buildStrikePow();
+#endif
+    }
 
     // Trigger strike with MIDI normalized velocity (0.0 to 1.0)
     void trigger(float velocity, float hardness = 1.0f, float brightnessScale = 1.0f);
@@ -94,6 +102,19 @@ private:
     // Fast 32-bit xorshift PRNG (deterministic, zero allocation)
     uint32_t rngState_ = 123456789U;
     ExciterConfig config_{};
+
+#if POCKETPAN_VELOCITY_LUT
+    // M6.3.7 Phase G: config-dependent pow(energyVelocity,1.25) over the 128
+    // MIDI velocities, built lazily from the identical expression in trigger().
+    float strikePowLut_[kMidiVelocityCount]{};
+    bool strikePowReady_ = false;
+    bool velocityLutEnabled_ = true;
+    void buildStrikePow();
+public:
+    // Host A/B only.  Firmware leaves this at the compiled default.
+    void setVelocityLutEnabledForTest(bool enabled) { velocityLutEnabled_ = enabled; }
+private:
+#endif
 
 #if POCKETPAN_ATTACK_FASTPATH
     // Half-sine window table, built once during init from the same expression

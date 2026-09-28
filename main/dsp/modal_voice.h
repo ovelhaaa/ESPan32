@@ -91,12 +91,24 @@ public:
     bool prepareNote(uint8_t midiNote, float fundamentalFrequencyHz,
                      PreparedNote& prepared) const;
 
+#ifdef POCKETPAN_TRIGGER_DIFFERENTIAL_TEST
+    // Host-only probe for the M6.3.7 register-precompute differential test.
+    float registerPositionForTest(float fundamentalFrequencyHz) const {
+        return registerPositionFor(fundamentalFrequencyHz);
+    }
+#endif
+
 private:
     void configureStrike(float velocity, const PreparedNote* prepared = nullptr);
     float registerPosition() const;
     float registerPositionFor(float fundamentalFrequencyHz) const;
 
     float sampleRate_ = 48000.0f;
+    // Cached model-voicing logarithms for registerPositionFor().  They are the
+    // log() of constant configuration values, so caching them is bit-identical
+    // to recomputing them on every trigger.
+    float registerLogLo_ = 0.0f;
+    float registerLogHi_ = 0.0f;
     bool active_ = false;
     bool released_ = false;
 

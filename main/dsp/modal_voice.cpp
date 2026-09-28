@@ -1,6 +1,7 @@
 #include "modal_voice.h"
 #include "dsp_profile.h"
 #include "pan_calibration.h"
+#include "trigger_precompute.h"
 #include <algorithm>
 #include <cmath>
 
@@ -17,6 +18,10 @@ void ModalVoice::init(float sampleRate) {
     exciter_.setConfig(exciterConfig_);
     resonators_.setConfig(resonatorConfig_);
     resonators_.setPreset(*modalPreset_);
+    // M6.3.7 Phase G: cache the register-domain logarithms (configuration
+    // constants) so registerPositionFor() does one log() instead of three.
+    registerLogLo_ = std::log(voicingConfig_.registerLowHz);
+    registerLogHi_ = std::log(voicingConfig_.registerHighHz);
 
     // Smoothing coefficient for damping filter (~20 ms time constant)
     const float tcSeconds = 0.020f;
@@ -39,6 +44,8 @@ void ModalVoice::setModelConfig(const InstrumentModelConfig& config) {
     exciter_.setConfig(exciterConfig_);
     resonators_.setConfig(resonatorConfig_);
     resonators_.setPreset(*modalPreset_);
+    registerLogLo_ = std::log(voicingConfig_.registerLowHz);
+    registerLogHi_ = std::log(voicingConfig_.registerHighHz);
     reset();
 }
 
@@ -46,6 +53,8 @@ void ModalVoice::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoi
     exciterConfig_ = exciter;
     voicingConfig_ = voicing;
     exciter_.setConfig(exciterConfig_);
+    registerLogLo_ = std::log(voicingConfig_.registerLowHz);
+    registerLogHi_ = std::log(voicingConfig_.registerHighHz);
 }
 
 void ModalVoice::reset() {
@@ -121,9 +130,10 @@ float ModalVoice::registerPosition() const {
 }
 
 float ModalVoice::registerPositionFor(float fundamentalFrequencyHz) const {
-    const auto& v = voicingConfig_;
-    const float lo = std::log(v.registerLowHz);
-    const float hi = std::log(v.registerHighHz);
+    // The register bounds are configuration constants; their logs are cached at
+    // the configuration boundary (bit-identical to recomputing them here).
+    const float lo = registerLogLo_;
+    const float hi = registerLogHi_;
     return std::clamp((std::log(std::max(fundamentalFrequencyHz, 1.0f)) - lo) / (hi - lo), 0.0f, 1.0f);
 }
 
@@ -166,8 +176,21 @@ void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
     float blend;
     {
         DSP_PROFILE_SCOPE(TriggerOther);
+#if POCKETPAN_VELOCITY_LUT
+        // MIDI velocity is discrete, so the identical pow() result is read from
+        // a shared table; any non-MIDI float keeps the historical expression.
+        float powTerm;
+        const int velIndex = exactMidiVelocityIndex(velocity);
+        if (velIndex >= 0) {
+            powTerm = velocityPow115Table()[velIndex];
+        } else {
+            powTerm = std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
+        }
+        hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) * powTerm;
+#else
         hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) *
             std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
+#endif
         blend = std::clamp((velocity - v.upperModeSoftVelocity) /
             (v.upperModeHardVelocity - v.upperModeSoftVelocity), 0.0f, 1.0f);
     }

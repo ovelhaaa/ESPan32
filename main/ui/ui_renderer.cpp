@@ -2,6 +2,13 @@
 #include <cstdio>
 #include <cstring>
 
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING && defined(ESP_PLATFORM)
+#include "esp_timer.h"
+#define POCKETPAN_UI_TIMING_ACTIVE 1
+#else
+#define POCKETPAN_UI_TIMING_ACTIVE 0
+#endif
+
 namespace pocketpan::ui {
 
 // M6.3.6 Phase A U3 (diagnostic only): the unconditional full framebuffer
@@ -23,6 +30,9 @@ void UiRenderer::render(const UiState& state) {
     }
     ++renderCount_;
 #endif
+#if POCKETPAN_UI_TIMING_ACTIVE
+    const int64_t tFb0 = esp_timer_get_time();
+#endif
     if (state.mode == UiScreenMode::MidiDiagnostic) {
         renderDiagnostic(state);
     } else if (state.mode == UiScreenMode::AudioDiagnostic) {
@@ -42,6 +52,9 @@ void UiRenderer::render(const UiState& state) {
     } else {
         renderStatus(state);
     }
+#if POCKETPAN_UI_TIMING_ACTIVE
+    const int64_t tFb1 = esp_timer_get_time();
+#endif
 #if defined(POCKETPAN_UI_PARTIAL) && POCKETPAN_UI_PARTIAL
     if (state.mode == UiScreenMode::Status) {
         if (noTransfer_) {
@@ -56,6 +69,10 @@ void UiRenderer::render(const UiState& state) {
     }
 #else
     display_.update();
+#endif
+#if POCKETPAN_UI_TIMING_ACTIVE
+    lastFramebufferUs_ = static_cast<uint32_t>(tFb1 - tFb0);
+    lastLcdUs_ = static_cast<uint32_t>(esp_timer_get_time() - tFb1);
 #endif
 #if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
     buildSignature(state, lastSignature_, sizeof(lastSignature_));
@@ -269,6 +286,101 @@ size_t UiRenderer::buildSignature(const UiState& state, char* out, size_t cap) {
     }
     if (used >= cap) out[cap - 1] = 0;
     return used;
+}
+#endif
+
+#if defined(POCKETPAN_UI_URGENT) && POCKETPAN_UI_URGENT
+namespace {
+constexpr uint64_t kFnvOffset = 1469598103934665603ull;
+constexpr uint64_t kFnvPrime = 1099511628211ull;
+
+inline uint64_t hashBytes(uint64_t h, const void* data, size_t n) {
+    const uint8_t* p = static_cast<const uint8_t*>(data);
+    for (size_t i = 0; i < n; ++i) {
+        h ^= p[i];
+        h *= kFnvPrime;
+    }
+    return h;
+}
+template <typename T>
+inline uint64_t hashValue(uint64_t h, T value) {
+    return hashBytes(h, &value, sizeof(T));
+}
+inline uint64_t hashText(uint64_t h, const char* text) {
+    for (const char* p = text; *p; ++p) {
+        h ^= static_cast<uint8_t>(*p);
+        h *= kFnvPrime;
+    }
+    return h;
+}
+} // namespace
+
+uint64_t UiRenderer::urgentHash(const UiState& state) {
+    uint64_t h = kFnvOffset;
+    h = hashValue(h, static_cast<uint8_t>(state.mode));
+    h = hashValue(h, state.lastNoteNumber);
+    h = hashValue(h, state.lastVelocity);
+    h = hashValue(h, state.lastPressure);
+    h = hashValue(h, state.lastTimestamp13);
+    h = hashBytes(h, state.lastRawBytes, sizeof(state.lastRawBytes));
+    h = hashValue(h, static_cast<uint8_t>(state.midiDrops > 0 ? 1 : 0));
+    h = hashText(h, state.presetName);
+    h = hashText(h, state.rootNoteName);
+    h = hashText(h, state.bleStatus);
+    h = hashText(h, state.lastEventType);
+    h = hashValue(h, state.activeVoices);
+    h = hashValue(h, state.maxVoices);
+    // Connection details shown on the MIDI monitor are input-feel fields.
+    h = hashValue(h, state.bleIntervalUnits);
+    h = hashValue(h, state.bleLatency);
+    h = hashValue(h, state.bleReconnects);
+    h = hashValue(h, state.bleLastDisconnectReason);
+    return h;
+}
+
+uint64_t UiRenderer::telemetryHash(const UiState& state) {
+    uint64_t h = kFnvOffset;
+    h = hashValue(h, state.cpuLoadPercent);
+    h = hashValue(h, state.avgBlockTimeUs);
+    h = hashValue(h, state.p99BlockTimeUs);
+    h = hashValue(h, state.maxBlockTimeUs);
+    h = hashValue(h, state.deadlineMisses);
+    h = hashValue(h, state.writeTimeouts);
+    h = hashValue(h, state.txErrors);
+    h = hashValue(h, state.shortWrites);
+    h = hashValue(h, state.bleRssi);
+    h = hashValue(h, state.internalHeapFree);
+    h = hashValue(h, state.largestInternalBlock);
+    h = hashValue(h, state.preLimiterPeak);
+    h = hashValue(h, state.postLimiterPeak);
+    h = hashValue(h, state.midiDrops);
+    h = hashValue(h, state.midiHighWater);
+    h = hashValue(h, state.gainReductionOver1DbSamples);
+    h = hashValue(h, state.gainReductionOver0p1DbSamples);
+    h = hashValue(h, state.hardClampCount);
+    h = hashValue(h, state.currentGainReductionDb);
+    h = hashValue(h, state.maxGainReductionDb);
+    return h;
+}
+
+bool UiRenderer::shouldRender(const UiState& state, uint32_t nowMs, uint32_t telemetryPeriodMs) {
+    const uint64_t urgent = urgentHash(state);
+    const uint64_t telemetry = telemetryHash(state);
+    const bool urgentChanged = !hasUrgent_ || urgent != urgentHash_;
+    const bool telemetryChanged = !hasTelemetry_ || telemetry != telemetryHash_;
+
+    if (urgentChanged ||
+        (telemetryChanged && (nowMs - lastTelemetryRenderMs_) >= telemetryPeriodMs)) {
+        urgentHash_ = urgent;
+        telemetryHash_ = telemetry;
+        hasUrgent_ = true;
+        hasTelemetry_ = true;
+        lastTelemetryRenderMs_ = nowMs;
+        if (urgentChanged) ++urgentRenderCount_; else ++telemetryRenderCount_;
+        return true;
+    }
+    ++skipRenderCount_;
+    return false;
 }
 #endif
 

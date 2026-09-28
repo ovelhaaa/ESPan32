@@ -21,8 +21,23 @@
 #include "ui/ui_renderer.h"
 #include "ui/audio_telemetry.h"
 
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+#include "esp_timer.h"
+#endif
+
 namespace {
 constexpr const char* kTag = "pocket_pan_main";
+
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+// M6.3.7 Phase A: Core-1 workload split, diagnostic only (compile-off).
+// state = telemetry read + string formatting; render = framebuffer draw + LCD
+// submit, itself split by the renderer into framebuffer and LCD microseconds.
+struct UiTiming {
+    uint64_t stateSum = 0, renderSum = 0, fbSum = 0, lcdSum = 0;
+    uint32_t count = 0, stateMax = 0, renderMax = 0, fbMax = 0, lcdMax = 0;
+};
+UiTiming sUiTiming;
+#endif
 
 pocketpan::dsp::SynthEngine sSynth;
 pocketpan::dsp::DiagnosticToneSource sDiagnosticTone;
@@ -223,6 +238,10 @@ void uiTaskLoop(void* param) {
         }
         lastBootBtnState = !btnPressed;
 
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+        const int64_t tState0 = esp_timer_get_time();
+#endif
+
         // 2. Read lock-free telemetry snapshot published from Core 0
         pocketpan::ui::AudioTelemetrySnapshot snap;
         if (sTelemetryPub.read(snap)) {
@@ -334,6 +353,10 @@ void uiTaskLoop(void* param) {
             scaleIdx = (scaleIdx + 1) % kScaleLen;
         }
 
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+        const int64_t tState1 = esp_timer_get_time();
+#endif
+
         // 4. Render TFT display.  M6.3.6 Phase A U1b (diagnostic only): the
         // control/telemetry/BLE logic above still runs at the same cadence, but
         // framebuffer drawing and Display::update() are skipped so the tail can
@@ -342,12 +365,40 @@ void uiTaskLoop(void* param) {
         // M6.3.6 Phase C (§35): control/telemetry/BLE stay at the 30 Hz loop
         // cadence; the visual redraw can run at a lower fixed cadence without
         // coupling input latency to the framebuffer cost.
-#if defined(POCKETPAN_UI_RENDER_DIVIDER) && POCKETPAN_UI_RENDER_DIVIDER > 1
+#if defined(POCKETPAN_UI_URGENT) && POCKETPAN_UI_URGENT
+        // M6.3.7 Phase D: immediate redraw on urgent (musical/connection/screen)
+        // changes, otherwise at most one redraw per telemetry period.
+        if (renderer.shouldRender(sUiState, nowMs, POCKETPAN_UI_TELEMETRY_PERIOD_MS))
+            renderer.render(sUiState);
+#elif defined(POCKETPAN_UI_RENDER_DIVIDER) && POCKETPAN_UI_RENDER_DIVIDER > 1
         if ((++renderTick % POCKETPAN_UI_RENDER_DIVIDER) == 0)
-#endif
+            renderer.render(sUiState);
+#else
         renderer.render(sUiState);
+#endif
 #else
         (void)renderer;
+#endif
+
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+        {
+            const int64_t tRender1 = esp_timer_get_time();
+            const uint32_t stateUs = static_cast<uint32_t>(tState1 - tState0);
+            const uint32_t renderUs = static_cast<uint32_t>(tRender1 - tState1);
+            sUiTiming.stateSum += stateUs;
+            sUiTiming.renderSum += renderUs;
+            ++sUiTiming.count;
+            if (stateUs > sUiTiming.stateMax) sUiTiming.stateMax = stateUs;
+            if (renderUs > sUiTiming.renderMax) sUiTiming.renderMax = renderUs;
+#if !(defined(POCKETPAN_UI_LOGIC_ONLY) && POCKETPAN_UI_LOGIC_ONLY)
+            const uint32_t fbUs = renderer.lastFramebufferUs();
+            const uint32_t lcdUs = renderer.lastLcdUs();
+            sUiTiming.fbSum += fbUs;
+            sUiTiming.lcdSum += lcdUs;
+            if (fbUs > sUiTiming.fbMax) sUiTiming.fbMax = fbUs;
+            if (lcdUs > sUiTiming.lcdMax) sUiTiming.lcdMax = lcdUs;
+#endif
+        }
 #endif
 
 #ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
@@ -367,6 +418,23 @@ void uiTaskLoop(void* param) {
                      sUiState.lastRawBytes[0], sUiState.lastRawBytes[1], sUiState.lastRawBytes[2]);
             ESP_LOGI(kTag, "[BLE] state=%u interval_ms=%.2f latency=%u rssi=%d reconnects=%u last_disconnect=%u", (unsigned)bleState, sUiState.bleIntervalUnits * 1.25f, (unsigned)sUiState.bleLatency, sUiState.bleRssi, (unsigned)sUiState.bleReconnects, sUiState.bleLastDisconnectReason);
             ESP_LOGI(kTag, "[MEM] internal_free=%u largest_internal=%u", (unsigned)sUiState.internalHeapFree, (unsigned)sUiState.largestInternalBlock);
+#if defined(POCKETPAN_UI_URGENT) && POCKETPAN_UI_URGENT
+            ESP_LOGI(kTag, "[UIREDRAW] urgent=%u telemetry=%u skip=%u",
+                     (unsigned)renderer.urgentRenderCountForTest(),
+                     (unsigned)renderer.telemetryRenderCountForTest(),
+                     (unsigned)renderer.skipRenderCountForTest());
+#endif
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+            if (sUiTiming.count) {
+                ESP_LOGI(kTag, "[UITIME] n=%u state_avg=%.1f state_max=%u render_avg=%.1f render_max=%u fb_avg=%.1f fb_max=%u lcd_avg=%.1f lcd_max=%u",
+                         (unsigned)sUiTiming.count,
+                         double(sUiTiming.stateSum) / sUiTiming.count, (unsigned)sUiTiming.stateMax,
+                         double(sUiTiming.renderSum) / sUiTiming.count, (unsigned)sUiTiming.renderMax,
+                         double(sUiTiming.fbSum) / sUiTiming.count, (unsigned)sUiTiming.fbMax,
+                         double(sUiTiming.lcdSum) / sUiTiming.count, (unsigned)sUiTiming.lcdMax);
+                sUiTiming = UiTiming{};
+            }
+#endif
         }
 #endif
 

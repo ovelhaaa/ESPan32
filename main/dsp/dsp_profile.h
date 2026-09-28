@@ -25,7 +25,7 @@
      POCKETPAN_DSP_CANDIDATE == 11 || POCKETPAN_DSP_CANDIDATE == 12 || \
      POCKETPAN_DSP_CANDIDATE == 13 || POCKETPAN_DSP_CANDIDATE == 14 || \
      POCKETPAN_DSP_CANDIDATE == 15 || POCKETPAN_DSP_CANDIDATE == 16 || \
-     (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 26))
+     (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 29))
 
 // M6.3.4 candidate matrix.  Candidate 16 = 13 + stable sustain is the
 // production-qualified baseline (Phases A).  Candidates 17-19 move one tail
@@ -37,19 +37,19 @@
 //   20 = 16 + accepted combination                      (T4)
 //   21 = 20 + exact attack/exciter fast path            (final)
 #define POCKETPAN_TAIL_BASE \
-    (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 26)
+    (POCKETPAN_DSP_CANDIDATE >= 17 && POCKETPAN_DSP_CANDIDATE <= 29)
 #define POCKETPAN_IRAM_RENDERBLOCK \
     (POCKETPAN_DSP_CANDIDATE == 17 || POCKETPAN_DSP_CANDIDATE == 20 || \
      POCKETPAN_DSP_CANDIDATE == 21 || \
-     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 26))
+     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 29))
 #define POCKETPAN_IRAM_LIMITER \
     (POCKETPAN_DSP_CANDIDATE == 18 || POCKETPAN_DSP_CANDIDATE == 20 || \
      POCKETPAN_DSP_CANDIDATE == 21 || \
-     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 26))
+     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 29))
 #define POCKETPAN_IRAM_BODY \
     (POCKETPAN_DSP_CANDIDATE == 19 || POCKETPAN_DSP_CANDIDATE == 20 || \
      POCKETPAN_DSP_CANDIDATE == 21 || \
-     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 26))
+     (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 29))
 
 // M6.3.3 additive fast paths.  Candidate 13 is the measured M6.3.2 production
 // baseline and must stay bit-identical: 14 adds the stable-sustain voice path,
@@ -66,13 +66,28 @@
 //   24 = 20 + exact attack-voice fast path + exciter     (Phase B)
 //   25 = 23 + attack-voice fast path                     (best combination)
 #define POCKETPAN_SYMPATHETIC_COEFF_CACHE \
-    (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 26)
+    (POCKETPAN_DSP_CANDIDATE >= 22 && POCKETPAN_DSP_CANDIDATE <= 29)
 #define POCKETPAN_PAN_STABLE8_FASTPATH \
     (POCKETPAN_DSP_CANDIDATE == 23 || POCKETPAN_DSP_CANDIDATE == 25 || \
-     POCKETPAN_DSP_CANDIDATE == 26)
+     POCKETPAN_DSP_CANDIDATE == 26 || \
+     (POCKETPAN_DSP_CANDIDATE >= 27 && POCKETPAN_DSP_CANDIDATE <= 29))
 #define POCKETPAN_ATTACK_VOICE_FASTPATH \
     (POCKETPAN_DSP_CANDIDATE == 24 || POCKETPAN_DSP_CANDIDATE == 25 || \
-     POCKETPAN_DSP_CANDIDATE == 26)
+     POCKETPAN_DSP_CANDIDATE == 26 || \
+     (POCKETPAN_DSP_CANDIDATE >= 27 && POCKETPAN_DSP_CANDIDATE <= 29))
+
+// M6.3.7 Phase G trigger precompute (additive to the production candidate 25):
+//   27/28/29 = 25 + exact MIDI-velocity lookup tables (hardness, exciter
+//               strike/noise) + cached model register logarithms.
+//
+// The per-note register snapshot stored inside PreparedNote was measured on
+// hardware to cause a reproducible boot panic (interrupt watchdog) whenever the
+// struct grew, independent of memory pressure (an equal .bss pad booted).  That
+// approach is therefore dropped and the register win is limited to caching the
+// two configuration logarithms per voice; 28/29 are kept as aliases of 27.
+#define POCKETPAN_VELOCITY_LUT \
+    (POCKETPAN_DSP_CANDIDATE == 27 || POCKETPAN_DSP_CANDIDATE == 28 || \
+     POCKETPAN_DSP_CANDIDATE == 29)
 
 // M6.3.6 candidate 26 (additive to the connected-qualified candidate 25):
 //   * headroom target lookup table: the nine integer voice counts 0..8 are

@@ -17,6 +17,48 @@ private:
 
     hardware::Display& display_;
 
+#if defined(POCKETPAN_UI_URGENT) && POCKETPAN_UI_URGENT
+    // M6.3.7 Phase D: two independent display signatures.  "Urgent" covers
+    // musical/connection/screen state that must feel immediate (<= 1 loop);
+    // "telemetry" covers fast-changing readouts (CPU/avg/p99/max/deadline/RSSI/
+    // heap) that may refresh slowly.  Signatures are committed only when a
+    // redraw is actually performed, so a pending telemetry change is not lost.
+    bool hasUrgent_ = false;
+    bool hasTelemetry_ = false;
+    uint32_t lastTelemetryRenderMs_ = 0;
+    // Formatting-free state fingerprints.  The per-loop dirty test must never
+    // call snprintf/float formatting: that (not the pixels or the transfer) is
+    // what competes with the audio core.  A 64-bit FNV-1a over the raw integer
+    // and float-bit representation is cheap and side-effect free.
+    uint64_t urgentHash_ = 0;
+    uint64_t telemetryHash_ = 0;
+    uint32_t urgentRenderCount_ = 0;
+    uint32_t telemetryRenderCount_ = 0;
+    uint32_t skipRenderCount_ = 0;
+public:
+    // Returns true when a redraw is due: immediately on an urgent change, or
+    // once per telemetry period when only telemetry changed.  Commits both
+    // fingerprints only on the frames it returns true.
+    bool shouldRender(const UiState& state, uint32_t nowMs, uint32_t telemetryPeriodMs);
+    uint32_t urgentRenderCountForTest() const { return urgentRenderCount_; }
+    uint32_t telemetryRenderCountForTest() const { return telemetryRenderCount_; }
+    uint32_t skipRenderCountForTest() const { return skipRenderCount_; }
+private:
+    static uint64_t urgentHash(const UiState& state);
+    static uint64_t telemetryHash(const UiState& state);
+#endif
+
+#if defined(POCKETPAN_UI_TIMING) && POCKETPAN_UI_TIMING
+public:
+    // Microseconds for the last executed render, split into framebuffer drawing
+    // and the LCD submit (Display::update*/updateRows).
+    uint32_t lastFramebufferUs() const { return lastFramebufferUs_; }
+    uint32_t lastLcdUs() const { return lastLcdUs_; }
+private:
+    uint32_t lastFramebufferUs_ = 0;
+    uint32_t lastLcdUs_ = 0;
+#endif
+
 #if defined(POCKETPAN_UI_DIRTY) && POCKETPAN_UI_DIRTY
     // M6.3.6 Phase C candidate (guarded, default off): screen-dirty tracking.
     // The complete render is skipped only when the exact text handed to every

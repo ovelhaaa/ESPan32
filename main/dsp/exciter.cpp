@@ -30,6 +30,9 @@ void Exciter::init(float sampleRate) {
 #if POCKETPAN_ATTACK_FASTPATH
     if (!windowTableReady_) buildWindowTable();
 #endif
+#if POCKETPAN_VELOCITY_LUT
+    buildStrikePow();
+#endif
     // init is a model-boundary reset; make a selected model start from the
     // same deterministic noise sequence as a cold boot.
     rngState_ = 123456789U;
@@ -41,6 +44,21 @@ void Exciter::reset() {
     sampleIndex_ = 0;
     filterState_ = 0.0f;
 }
+
+#if POCKETPAN_VELOCITY_LUT
+void Exciter::buildStrikePow() {
+    // Same clamps and expression as trigger(); only the 128 discrete MIDI
+    // velocities are materialized.
+    const float knee = std::clamp(config_.velocityKnee, 0.01f, 1.0f);
+    const float slope = std::clamp(config_.velocityKneeSlope, 0.01f, 1.0f);
+    for (int i = 0; i < kMidiVelocityCount; ++i) {
+        const float v = std::clamp(static_cast<float>(i) / 127.0f, 0.01f, 1.0f);
+        const float energyVelocity = v <= knee ? v : knee + (v - knee) * slope;
+        strikePowLut_[i] = std::pow(energyVelocity, 1.25f);
+    }
+    strikePowReady_ = true;
+}
+#endif
 
 void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
     const float v = std::clamp(velocity, 0.01f, 1.0f);
@@ -54,7 +72,18 @@ void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
     // A continuous knee keeps v120–127 expressive through hardness and modal
     // content without making the output limiter a timbre processor.
     const float energyVelocity = v <= knee ? v : knee + (v - knee) * slope;
+#if POCKETPAN_VELOCITY_LUT
+    float strikePow;
+    const int velIndex = velocityLutEnabled_ ? exactMidiVelocityIndex(velocity) : -1;
+    if (velIndex >= 0 && strikePowReady_) {
+        strikePow = strikePowLut_[velIndex];
+    } else {
+        strikePow = std::pow(energyVelocity, 1.25f);
+    }
+    const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * strikePow;
+#else
     const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * std::pow(energyVelocity, 1.25f);
+#endif
     strikeAmplitude_ = strikeGain * config_.gain;
 
     // 2. Transient hardness: high velocity yields a shorter, sharper impulse
