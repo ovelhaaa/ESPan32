@@ -34,9 +34,11 @@ See:
 
 1. Record the human listening decision on A/B/C (A wins an unresolved tie;
    keep baseline if no candidate clearly improves it).
-2. Run the final hardware musical smoke (soft/hard singles, four-note chord,
-   eight-voice passage, restrikes, roll, PAN/BELL switching) and record
-   audible defects, I2S errors, BLE reconnects and MIDI drops.
+2. Confirm audibly, while listening, that the hardware musical smoke
+   (soft/hard singles, four-note chord, eight-voice passage, restrikes, roll,
+   PAN/BELL switching) has no click or dropout. The objective counters already
+   passed: `docs/hardware/m64_smoke_summary.md` (I2S 0/0/0, MIDI drops 0,
+   BLE reconnects 0, max streak 1, heap delta 0).
 
 Then replace this status with `BELL V1 FROZEN` in
 [bell_v1_freeze.md](bell_v1_freeze.md). If a candidate wins, record the exact

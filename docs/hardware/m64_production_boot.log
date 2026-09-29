@@ -1,0 +1,25 @@
+[0;32mI (122) esp_image: segment 1: paddr=0002f10c vaddr=3fc9be[0;32mI (15865) pocket_pan_main: [AUDIO] model=PAN blocks=5614 avg_us=329 p99_us=450 max_us=806 cpu_load=12.3 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (15865) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (15875) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-64 reconnects=0 last_disconnect=0[0m
+[0;32mI (15885) pocket_pan_main: [MEM] internal_free=149127 largest_internal=47104[0m
+[0;32mI (15895) pocket_pan_main: [UIREDRAW] urgent=6 telemetry=55 skip=419[0m
+[0;32mI (20875) pocket_pan_main: [AUDIO] model=PAN blocks=7494 avg_us=332 p99_us=450 max_us=806 cpu_load=12.4 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (20875) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (20885) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-62 reconnects=0 last_disconnect=0[0m
+[0;32mI (20895) pocket_pan_main: [MEM] internal_free=149127 largest_internal=47104[0m
+[0;32mI (20905) pocket_pan_main: [UIREDRAW] urgent=6 telemetry=74 skip=566[0m
+[0;32mI (25895) pocket_pan_main: [AUDIO] model=PAN blocks=9377 avg_us=332 p99_us=425 max_us=806 cpu_load=12.4 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (25895) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (25905) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-112 reconnects=0 last_disconnect=0[0m
+[0;32mI (25915) pocket_pan_main: [MEM] internal_free=149127 largest_internal=47104[0m
+[0;32mI (25925) pocket_pan_main: [UIREDRAW] urgent=6 telemetry=95 skip=711[0m
+[0;32mI (30915) pocket_pan_main: [AUDIO] model=PAN blocks=11259 avg_us=333 p99_us=425 max_us=806 cpu_load=12.5 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (30915) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (30925) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-62 reconnects=0 last_disconnect=0[0m
+[0;32mI (30935) pocket_pan_main: [MEM] internal_free=149127 largest_internal=47104[0m
+[0;32mI (30945) pocket_pan_main: [UIREDRAW] urgent=6 telemetry=113 skip=859[0m
+[0;32mI (35935) pocket_pan_main: [AUDIO] model=PAN blocks=13140 avg_us=331 p99_us=425 max_us=806 cpu_load=12.4 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (35935) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (35945) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-64 reconnects=0 last_disconnect=0[0m
+[0;32mI (35955) pocket_pan_main: [MEM] internal_free=149127 largest_internal=47104[0m
+[0;32mI (35965) pocket_pan_main: [UIREDRAW] urgent=6 telemetry=131 skip=1007[0m

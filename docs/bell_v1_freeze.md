@@ -42,6 +42,7 @@ in M6.4.
 | Session | Result |
 |---|---|
 | M6.2.1 host A/B/C | A richest/most inharmonic; B a clearer A; C strongest tonal centre. C was a *recommendation to listen*, not a promotion. |
+| M6.4 hardware objective | PASS — 210 s PAN+BELL soak, 82,686 callbacks, max callback 3,079 us, max streak 1, I2S 0/0/0, MIDI drops 0, BLE reconnects 0, heap delta 0 (`docs/hardware/m64_smoke_summary.md`). |
 | M6.4 human listening | **NOT YET RECORDED.** M6.4 generated the full pack and left the choice open. |
 
 Per-dimension scores are collected independently (pitch, metal character, hum,
