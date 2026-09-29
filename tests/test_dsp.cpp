@@ -810,6 +810,166 @@ void testBellM621FreezeQualification() {
     report.close();
 }
 
+// M6.4: deterministic Bell V1 musical listening pack.  No DSP parameter is
+// changed here; this only renders and documents the current baseline plus the
+// previously qualified host-only A/B/C timbre candidates.  Human listening is
+// the gate; the numeric columns are safety guards only.
+void testBellM64ListeningPack() {
+    std::cout << "[Test 21] M6.4 Bell V1 listening pack...\n";
+    auto note=[](uint8_t n,uint8_t v){ midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    auto allFinite=[](const std::vector<int32_t>& audio){ for(int32_t s:audio) { if(!std::isfinite(static_cast<float>(s))) return false; } return true; };
+
+    const dsp::ModalPreset a=dsp::kPresetBell;
+    dsp::ModalPreset b=dsp::kPresetBell; b.modes[3].gain=.58f;
+    dsp::ModalPreset c=dsp::kPresetBell; c.modes[0].gain=.24f; c.modes[3].gain=.58f; c.modes[5].gain=.90f;
+    const std::array<std::pair<char,const dsp::ModalPreset*>,3> candidates={{{'A',&a},{'B',&b},{'C',&c}}};
+
+    std::ofstream report("bell_m64_listening_pack.md"); report<<std::fixed<<std::setprecision(6);
+    report << "# Bell V1 M6.4 listening pack\n\n"
+              "Generated deterministically by `tests/test_dsp.cpp` (`testBellM64ListeningPack`).\n"
+              "A = current production baseline (`kPresetBell`); B = tierce 0.58; "
+              "C = hum 0.24 + tierce 0.58 + nominal 0.90. All renders are 48 kHz stereo 16-bit PCM.\n\n"
+              "Listening is the primary gate. The numeric columns are safety guards and must "
+              "not be used as a musical score. See `docs/bell_v1_listening_pack.md`.\n\n";
+
+    report << "## 1. Register sweep (baseline A, velocity 90, 4 s)\n\n"
+              "| File | MIDI | Hz | peak | RMS | clamp | modalSat | finite |\n"
+              "|---|---:|---:|---:|---:|---:|---:|---|\n";
+    for (uint8_t n : {36,48,55,60,67,72,84}) {
+        const auto q=renderBellCandidate({{0,note(n,90)}},192000,a);
+        const std::string file="bell_m64_note_"+std::to_string(n)+"_v90.wav";
+        writeWavFile(file.c_str(),q.rendered.audio.data(),192000,48000);
+        assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio));
+        report << "| "<<file<<" | "<<int(n)<<" | "<<midi::MidiMapping::noteToHz(n)<<" | "<<q.rendered.metrics.peak
+               <<" | "<<q.rendered.metrics.rms<<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" | YES |\n";
+    }
+
+    report << "\n## 2. Velocity matrix (baseline A, 3 s)\n\n"
+              "| File | MIDI | Velocity | peak | RMS | attack RMS | tail RMS | clamp | modalSat | FNV-1a64 |\n"
+              "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|\n";
+    for (uint8_t n : {48,60,72}) for (uint8_t v : {30,60,90,110,127}) {
+        const auto q=renderBellCandidate({{0,note(n,v)}},144000,a);
+        const std::string file="bell_m64_single_"+std::to_string(n)+"_v"+std::to_string(v)+".wav";
+        writeWavFile(file.c_str(),q.rendered.audio.data(),144000,48000);
+        assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio));
+        assert(q.maxActiveVoices<=8);
+        report << "| "<<file<<" | "<<int(n)<<" | "<<int(v)<<" | "<<q.rendered.metrics.peak<<" | "<<q.rendered.metrics.rms
+               <<" | "<<q.rendered.metrics.attackRms<<" | "<<q.rendered.metrics.tailRms<<" | "<<q.rendered.hardClampCount
+               <<" | "<<q.rendered.modalSat<<" | 0x"<<std::hex<<fnv1a64(q.rendered.audio)<<std::dec<<" |\n";
+    }
+
+    report << "\n## 3. Intervals (baseline A, velocity 90, 4 s)\n\n"
+              "| File | Notes | peak | RMS | clamp | modalSat | finite |\n"
+              "|---|---|---:|---:|---:|---:|---|\n";
+    for (const auto& item : std::initializer_list<std::pair<const char*,std::pair<uint8_t,uint8_t>>>{
+             {"D3_A3",{50,57}}, {"D4_A4",{62,69}}, {"C4_G4",{60,67}}}) {
+        const auto q=renderBellCandidate({{0,note(item.second.first,90)},{0,note(item.second.second,90)}},192000,a);
+        const std::string file=std::string("bell_m64_interval_")+item.first+".wav";
+        writeWavFile(file.c_str(),q.rendered.audio.data(),192000,48000);
+        assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio));
+        report << "| "<<file<<" | "<<int(item.second.first)<<"+"<<int(item.second.second)<<" | "<<q.rendered.metrics.peak
+               <<" | "<<q.rendered.metrics.rms<<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" | YES |\n";
+    }
+
+    report << "\n## 4. Four-note chord and eight-note polyphony (baseline A, 4 s)\n\n"
+              "| File | Voices | peak | RMS | pre-limiter peak | max GR dB | max voices | clamp | modalSat |\n"
+              "|---|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    const std::vector<uint8_t> chordNotes={50,57,62,69};
+    const std::vector<uint8_t> polyNotes={48,50,55,57,60,62,67,69};
+    for (uint8_t v : {60,90,127}) {
+        std::vector<ScheduledEvent> ev; for (uint8_t n : chordNotes) ev.push_back({0,note(n,v)});
+        const auto q=renderBellCandidate(ev,192000,a);
+        const std::string file="bell_m64_chord4_v"+std::to_string(v)+".wav";
+        writeWavFile(file.c_str(),q.rendered.audio.data(),192000,48000);
+        assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio));
+        report << "| "<<file<<" | 4 | "<<q.rendered.metrics.peak<<" | "<<q.rendered.metrics.rms<<" | "<<q.rendered.metrics.preLimiterPeak
+               <<" | "<<q.rendered.metrics.maxGainReductionDb<<" | "<<q.maxActiveVoices<<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" |\n";
+    }
+    for (uint8_t v : {90,110}) {
+        std::vector<ScheduledEvent> ev; for (uint8_t n : polyNotes) ev.push_back({0,note(n,v)});
+        const auto q=renderBellCandidate(ev,192000,a);
+        const std::string file="bell_m64_poly8_v"+std::to_string(v)+".wav";
+        writeWavFile(file.c_str(),q.rendered.audio.data(),192000,48000);
+        assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio) && q.maxActiveVoices<=8);
+        report << "| "<<file<<" | 8 | "<<q.rendered.metrics.peak<<" | "<<q.rendered.metrics.rms<<" | "<<q.rendered.metrics.preLimiterPeak
+               <<" | "<<q.rendered.metrics.maxGainReductionDb<<" | "<<q.maxActiveVoices<<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" |\n";
+    }
+
+    report << "\n## 5. Restrikes and roll (baseline A, 4 s)\n\n"
+              "| File | Gesture | peak | RMS | max sample delta | clamp | modalSat | finite |\n"
+              "|---|---|---:|---:|---:|---:|---:|---|\n";
+    for (const auto& item : std::initializer_list<std::pair<const char*,std::vector<ScheduledEvent>>>{
+             {"soft_hard",{{0,note(62,30)},{4800,note(62,110)}}},
+             {"hard_soft",{{0,note(62,110)},{4800,note(62,30)}}},
+             {"double_100ms",{{0,note(62,90)},{4800,note(62,90)}}},
+             {"double_250ms",{{0,note(62,90)},{12000,note(62,90)}}}}) {
+        const auto q=renderBellCandidate(item.second,192000,a);
+        const std::string file=std::string("bell_m64_restrike_")+item.first+".wav";
+        writeWavFile(file.c_str(),q.rendered.audio.data(),192000,48000);
+        assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio));
+        report << "| "<<file<<" | "<<item.first<<" | "<<q.rendered.metrics.peak<<" | "<<q.rendered.metrics.rms<<" | "<<q.maxSampleDelta
+               <<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" | YES |\n";
+    }
+    {
+        std::vector<ScheduledEvent> roll; for (uint32_t i=0;i<12;++i) roll.push_back({i*4800,note(62,90)});
+        const auto q=renderBellCandidate(roll,192000,a);
+        writeWavFile("bell_m64_roll.wav",q.rendered.audio.data(),192000,48000);
+        assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio));
+        report << "| bell_m64_roll.wav | roll 100 ms | "<<q.rendered.metrics.peak<<" | "<<q.rendered.metrics.rms<<" | "<<q.maxSampleDelta
+               <<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" | YES |\n";
+    }
+
+    report << "\n## 6. A/B/C level-matched timbre comparison (4 s)\n\n"
+              "A = baseline; B = tierce 0.58; C = hum 0.24 / tierce 0.58 / nominal 0.90. "
+              "Each candidate is written raw and RMS-matched to A so loudness cannot bias the choice.\n\n"
+              "| Fixture | Candidate | raw RMS | matched RMS | peak | max GR dB | clamp | modalSat |\n"
+              "|---|---|---:|---:|---:|---:|---:|---|\n";
+    const std::vector<std::pair<const char*,std::vector<ScheduledEvent>>> abcFixtures={
+        {"D4_v70",{{0,note(62,70)}}},
+        {"D4_v110",{{0,note(62,110)}}},
+        {"chord4",{{0,note(50,90)},{0,note(57,90)},{0,note(62,90)},{0,note(69,90)}}},
+        {"roll",{{0,note(62,90)},{4800,note(62,90)},{9600,note(62,90)},{14400,note(62,90)},
+                 {19200,note(62,90)},{24000,note(62,90)},{28800,note(62,90)},{33600,note(62,90)}}}
+    };
+    for (const auto& fixture : abcFixtures) {
+        const auto ref=renderBellCandidate(fixture.second,192000,a);
+        const float target=ref.rendered.metrics.rms;
+        for (const auto& candidate : candidates) {
+            const auto q=renderBellCandidate(fixture.second,192000,*candidate.second);
+            const std::string base=std::string("bell_m64_abc_")+fixture.first+"_"+candidate.first;
+            writeWavFile((base+".wav").c_str(),q.rendered.audio.data(),192000,48000);
+            writeRmsMatchedWav((base+"_matched.wav").c_str(),q.rendered.audio,target);
+            const float matched=target; // writeRmsMatchedWav normalizes to target RMS.
+            assert(q.rendered.hardClampCount==0 && allFinite(q.rendered.audio));
+            report << "| "<<fixture.first<<" | "<<candidate.first<<" | "<<q.rendered.metrics.rms<<" | "<<matched
+                   <<" | "<<q.rendered.metrics.peak<<" | "<<q.rendered.metrics.maxGainReductionDb<<" | "<<q.rendered.hardClampCount
+                   <<" | "<<q.rendered.modalSat<<" |\n";
+        }
+    }
+
+    report << "\n## 7. Listening checklist (independent dimensions)\n\n"
+              "- pitch clarity / stable tonal centre\n"
+              "- metallic identity\n"
+              "- low-frequency hum balance\n"
+              "- prime definition\n"
+              "- tierce / quint audibility\n"
+              "- high-mode harshness (fizz)\n"
+              "- doublet beating (audible but not distracting)\n"
+              "- attack realism\n"
+              "- decay realism\n"
+              "- velocity progression (soft expressive, hard controlled)\n"
+              "- register consistency\n"
+              "- polyphonic density\n"
+              "- restrike behaviour\n"
+              "- tail smoothness\n"
+              "- limiter interaction\n"
+              "- audible realtime defects (click / dropout / instability): NONE expected\n\n"
+              "Decision rule: if no candidate clearly improves the baseline, keep baseline A. "
+              "Bell parameters are frozen only after a human listening decision.\n";
+    report.close();
+    std::cout << "  -> PASSED: M6.4 listening pack generated deterministically.\n";
+}
+
 std::array<float, 8> bellModalEnergies(const std::vector<int32_t>& audio, float f) {
     // The doublets are intentionally summed into their named musical family.
     return {spectralEnergy(audio,{.5f*f}), spectralEnergy(audio,{f,1.002f*f}), spectralEnergy(audio,{1.2f*f}),
@@ -1662,6 +1822,7 @@ int main() {
     testM6ModelArchitectureAndBell();
     testBellM62Qualification();
     testBellM621FreezeQualification();
+    testBellM64ListeningPack();
     testForensicsClassification();
 
     std::cout << "\n=======================================================\n";

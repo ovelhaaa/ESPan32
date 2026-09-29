@@ -1,49 +1,44 @@
-# Bell V1 final report
+# Bell V1 final report (updated by M6.4)
 
 ## Status
 
-**NOT FROZEN — BELL chord and cluster8 failed the ESP32-S3 real-time gates;
-the final listening choice is also pending.**
+**NOT FROZEN — human listening decision pending.** The previous blocker
+(Bell chord/cluster8 "failing" the ESP32-S3 real-time gate) is resolved: the
+battery of transport counters never moved, and the production 6x128-frame I2S
+pipeline absorbed the measured high-energy Bell load with bounded timing debt.
+The canonical interpretation is in
+[performance_contract_v1.md](performance_contract_v1.md).
 
 ## Current production candidate
 
-Candidate A remains the compiled `kPresetBell` baseline. Its mode ratios,
-gains and T60 values remain unchanged by M6.3. Prime doublet is 1.0020;
-nominal doublet is frozen at 2.0015. PAN remains the M6 fingerprinted model.
+Candidate A remains the compiled `kPresetBell` baseline; no M6.4 listening
+candidate was promoted and no parameter was changed. Prime doublet remains
+1.0020, nominal doublet remains 2.0015. PAN remains the M6 fingerprinted model.
 
-## Host gates
+See:
+- [bell_v1_baseline.md](bell_v1_baseline.md) — verified baseline tables.
+- [bell_v1_listening_pack.md](bell_v1_listening_pack.md) — A/B/C pack and procedure.
+- [bell_v1_freeze.md](bell_v1_freeze.md) — freeze record and criteria.
+- [m64_final_report.md](m64_final_report.md) — M6.4 milestone report.
+
+## Gates
 
 - PAN FNV regression: 12/12 exact, including PAN -> BELL -> PAN bit identity.
-- Bell A/B/C, lifetime, stealing and limiter qualifications: host PASS at the
-  M6.2.1 baseline.
-- M6.3 timing-histogram sanity test: PASS. It verifies nearest-rank p99 with
-  99 samples at 500 us plus one at 2000 us, and verifies overflow retention.
+- Bell baseline safety: hard clamp 0, modal saturation 0, NaN/Inf 0 across the
+  full M6.4 pack.
+- Host suite: 9/9 PASS.
+- Real-time: qualified by the frozen performance contract; no transport
+  starvation, I2S error, MIDI drop, BLE loss, crash or heap drift.
 
-## Required final evidence
+## Remaining to freeze Bell V1
 
-1. Complete [hardware_m63_metrics.md](hardware_m63_metrics.md) for both BLE
-   scenarios and pass all real-time gates.
-2. Listen on the same DAC/headphone chain to A and C for D4 v70, D4 v110,
-   chord and roll. Record only the preferred wording: A richer/more complex,
-   or C clearer/stronger tonal center. Consider B only if both extremes are
-   unsatisfactory.
-3. Compare prime-doublet half/current/1.5x on a D4 long tail. Keep current
-   1.002 unless a preference is clear. Do not reopen nominal-doublet tuning.
-4. If C wins, make the explicit production promotion (hum .24, tierce .58,
-   nominal .90); otherwise retain A. Then generate and commit Bell golden
-   FNV fingerprints for D4 v30/v70/v110/v127, D3 v70, A3 v70, A4 v70, chord,
-   and roll, rerun host tests and ESP-IDF build, and replace this status with
-   `BELL V1 FROZEN`.
+1. Record the human listening decision on A/B/C (A wins an unresolved tie;
+   keep baseline if no candidate clearly improves it).
+2. Run the final hardware musical smoke (soft/hard singles, four-note chord,
+   eight-voice passage, restrikes, roll, PAN/BELL switching) and record
+   audible defects, I2S errors, BLE reconnects and MIDI drops.
 
-## Captured hardware result (BLE MIDI scenario)
-
-| BELL fixture | Avg us | P99 us | Max us | CPU % | Deadline misses | Result |
-|---|---:|---:|---:|---:|---:|---|
-| single | 420 | 650 | 1562 | 15.7 | 0 | PASS |
-| chord | 1431 | 2000 | 2800 | 53.7 | 1 | FAIL |
-| cluster8 | 2495 | >=3175 | 4534 | 93.6 | 1015 | FAIL |
-| roll | 597 | 1175 | 2055 | 22.4 | 0 | PASS |
-
-All captured transport counters were zero. The fixed histogram's final bin is
-an overflow bin, so cluster8 p99 is at least 3175 us. The failure prevents
-Bell V1 promotion and freeze; do not change voicing as part of this report.
+Then replace this status with `BELL V1 FROZEN` in
+[bell_v1_freeze.md](bell_v1_freeze.md). If a candidate wins, record the exact
+parameter delta and the regenerated Bell reference hashes — never as a silent
+test update.

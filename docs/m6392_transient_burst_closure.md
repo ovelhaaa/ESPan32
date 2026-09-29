@@ -2,6 +2,7 @@
 
 Branch: `codex/m632-modal-note-cache`  
 Base commit: `7f629cf7a65213c3fe3b9ac4eb00a34d75b9c6e6`  
+Milestone commit: `eb69ebe69dbd017b90a8c434573d4f50241683ef`  
 Target: **ESP32-S3 @ 240 MHz** (COM10, `USB\VID_303A&PID_1001`, MAC `b4:3a:45:ae:6f:28`)  
 Production DSP: **candidate 25**  
 Production UI: **F0** (`POCKETPAN_UI_ARCH=0`)  
@@ -27,8 +28,24 @@ BELL voices (internal safety saturation active), which the milestone's hard rule
 outside the permitted Phase J optimization scope (no sustain optimization, no sound
 changes, no generic modal-kernel rewrites). No speculative DSP change was therefore made.
 
-Performance is **not unconditionally frozen**. A single targeted follow-up (BELL saturated
-8-voice sustain path) is warranted before declaring the final performance freeze.
+### Historical status versus project-level decision
+
+These two statements are not contradictory:
+
+```text
+M6.3.9.2 milestone status            = PARTIAL
+Generic performance campaign (M6.4)  = CLOSED / FROZEN
+```
+
+M6.3.9.2 failed its strict experimental streak criterion
+(`max consecutive overruns <= 1`). M6.4 accepts the measured hardware behavior as the
+current production performance contract and closes the generic campaign. The canonical,
+frozen wording lives in [performance_contract_v1.md](performance_contract_v1.md).
+
+Remaining cost is confined to extreme high-energy Bell saturation; hardware soak showed
+bounded recovery and zero transport failure; further generic optimization would risk
+modifying sound-defining DSP. Generic performance optimization is therefore
+**FROZEN after M6.3.9.2**.
 
 ---
 
@@ -357,8 +374,8 @@ within this milestone's scope that targets the measured hotspot.
 | Heap | stable (130,015 B) |
 | Transient optimization | NO (outside permitted scope) |
 | Is event burst formally safe? | For the tested workload YES; strict isolated-burst criteria NO |
-| Generic performance optimization | STOP as a generic campaign; one targeted BELL follow-up needed |
-| Next | Bell V1 freeze deferred pending targeted BELL saturated-sustain review |
+| Generic performance optimization | STOP as a generic campaign; campaign CLOSED in M6.4 |
+| Next | M6.4 Bell V1 musical freeze; then M7 instrument family expansion (Tongue Drum) |
 
 ---
 
@@ -376,4 +393,4 @@ build-m6392-soak/                             firmware build (candidate 25 + qua
 build-host-m6392/, build-host-c16-m6392/      host test builds
 ```
 
-Changes are present in the working tree; no commit was made (not requested).
+This milestone was committed as `eb69ebe69dbd017b90a8c434573d4f50241683ef`.
