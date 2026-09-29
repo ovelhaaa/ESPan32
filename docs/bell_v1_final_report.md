@@ -2,12 +2,14 @@
 
 ## Status
 
-**NOT FROZEN — human listening decision pending.** The previous blocker
-(Bell chord/cluster8 "failing" the ESP32-S3 real-time gate) is resolved: the
-battery of transport counters never moved, and the production 6x128-frame I2S
-pipeline absorbed the measured high-energy Bell load with bounded timing debt.
-The canonical interpretation is in
-[performance_contract_v1.md](performance_contract_v1.md).
+**BELL V1 FROZEN.** Human listening found no significant difference between
+candidates A, B and C, so the performance tie-break retained baseline A
+(fewest modal safety-saturation events; no timing difference). No parameter
+changed. The earlier hardware-gate blocker is resolved: all transport counters
+stayed zero and the production 6x128-frame I2S pipeline absorbed the measured
+high-energy Bell load with bounded timing debt. The canonical interpretation is
+in [performance_contract_v1.md](performance_contract_v1.md). Details:
+[bell_v1_freeze.md](bell_v1_freeze.md).
 
 ## Current production candidate
 
@@ -30,17 +32,13 @@ See:
 - Real-time: qualified by the frozen performance contract; no transport
   starvation, I2S error, MIDI drop, BLE loss, crash or heap drift.
 
-## Remaining to freeze Bell V1
+## Freeze closure
 
-1. Record the human listening decision on A/B/C (A wins an unresolved tie;
-   keep baseline if no candidate clearly improves it).
-2. Confirm audibly, while listening, that the hardware musical smoke
-   (soft/hard singles, four-note chord, eight-voice passage, restrikes, roll,
-   PAN/BELL switching) has no click or dropout. The objective counters already
-   passed: `docs/hardware/m64_smoke_summary.md` (I2S 0/0/0, MIDI drops 0,
-   BLE reconnects 0, max streak 1, heap delta 0).
+1. Human listening: DONE — A / B / C perceived as equivalent; no click or
+   dropout on the board.
+2. Performance tie-break: DONE — baseline A has the fewest modal
+   safety-saturation events and no timing difference; A retained.
+3. Hardware objective smoke: PASS (`docs/hardware/m64_smoke_summary.md`).
 
-Then replace this status with `BELL V1 FROZEN` in
-[bell_v1_freeze.md](bell_v1_freeze.md). If a candidate wins, record the exact
-parameter delta and the regenerated Bell reference hashes — never as a silent
-test update.
+Bell V1 is `FROZEN` in [bell_v1_freeze.md](bell_v1_freeze.md). No parameter
+delta and no regenerated Bell hashes are required because nothing changed.

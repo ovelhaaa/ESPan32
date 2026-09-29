@@ -9,16 +9,15 @@ Production: DSP candidate 25, UI F0, 48 kHz / 128 frames, 8 voices
 ## 0. Verdict
 
 ```text
-M6.4 milestone          : PARTIAL
+M6.4 milestone          : PASS
 Generic optimization    : CLOSED / FROZEN
-Bell V1                 : NOT FROZEN (human listening gate pending)
+Bell V1                 : FROZEN (baseline A, no parameter change)
 ```
 
-The engineering campaign is complete, the performance contract is frozen, and
-the objective hardware smoke passed. Bell V1 is technically frozen as an
-unchanged baseline, but the spec forbids freezing Bell from numerical metrics
-alone; the human listening decision remains open. Everything needed for that
-step is produced below.
+The engineering campaign is complete, the performance contract is frozen, the
+objective hardware smoke passed, and the human listening decision was made
+(A/B/C perceived as equivalent; baseline A retained by the performance
+tie-break). Bell V1 is frozen with no parameter delta.
 
 ---
 
@@ -127,16 +126,13 @@ high-energy 8-voice Bell safety saturation can exceed the nominal block period
 for consecutive callbacks; the 6x128-frame I2S pipeline absorbed it with
 bounded debt and zero transport failure.
 
-## 11. Remaining human gate
+## 11. Human listening decision
 
-```text
-1. Human listening decision on A/B/C (critical listening + audible glitch check)
-```
-
-The objective hardware smoke is complete (section 8). Only the human listening
-decision remains. Until it is recorded, Bell V1 is not frozen and M6.4 is
-PARTIAL. No DSP was modified, so this gate cannot change the frozen performance
-contract.
+DONE. The reviewer found no significant difference between A, B and C and no
+audible click/dropout. The tie-break retained baseline A (fewest modal
+safety-saturation events; no timing difference). No Bell parameter changed, so
+no golden was regenerated. Bell V1 is `FROZEN`
+([bell_v1_freeze.md](bell_v1_freeze.md)).
 
 ## 12. Next
 

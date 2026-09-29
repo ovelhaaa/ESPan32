@@ -4,14 +4,15 @@
 
 ```text
 Bell V1 parameters : FROZEN (baseline A retained, no change)
-Human listening    : PENDING
-Bell V1            : NOT FROZEN until the listening decision is recorded
+Human listening    : DONE — A / B / C perceived as equivalent
+Performance tie-break: A (fewest modal safety-saturation events; no timing difference)
+Bell V1            : FROZEN
 ```
 
-The M6.4 baseline was not changed from numerical data alone. The parameter
-table below is the frozen reference. If human listening clearly prefers
-candidate B or C, this record reopens with the exact parameter delta and
-regenerated reference hashes; otherwise baseline A stands.
+The M6.4 baseline was not changed. Human listening found no significant
+perceived difference between A, B and C, so the decision fell to the tie-break
+rule: retained baseline A. The parameter table below is the frozen reference.
+No Bell golden was regenerated because no parameter changed.
 
 Full verified configuration: [bell_v1_baseline.md](bell_v1_baseline.md).
 Listening material: [bell_v1_listening_pack.md](bell_v1_listening_pack.md).
@@ -43,11 +44,37 @@ in M6.4.
 |---|---|
 | M6.2.1 host A/B/C | A richest/most inharmonic; B a clearer A; C strongest tonal centre. C was a *recommendation to listen*, not a promotion. |
 | M6.4 hardware objective | PASS — 210 s PAN+BELL soak, 82,686 callbacks, max callback 3,079 us, max streak 1, I2S 0/0/0, MIDI drops 0, BLE reconnects 0, heap delta 0 (`docs/hardware/m64_smoke_summary.md`). |
-| M6.4 human listening | **NOT YET RECORDED.** M6.4 generated the full pack and left the choice open. |
+| M6.4 human listening | **DONE — no significant perceived difference between A, B and C** across D4 v70, D4 v110, chord4 and roll (matched comparisons), and the baseline register/velocity/polyphony/restrike fixtures. No audible click or dropout on the board. |
 
-Per-dimension scores are collected independently (pitch, metal character, hum,
+Per-dimension scores were assessed independently (pitch, metal character, hum,
 prime, tierce/quint, high-mode fizz, doublets, attack, decay, velocity,
-register, polyphony, restrike, tail, limiter) as listed in the pack.
+register, polyphony, restrike, tail, limiter) as listed in the pack; all read
+as musically equivalent for this instrument. Since no candidate clearly
+improved the baseline, the tie-break selected the retained baseline A.
+
+## A / B / C performance tie-break
+
+Because the three candidates were perceptually equivalent, the decision came
+down to performance. The candidates differ only in modal gains, which can
+change how often the per-mode `|y| > 2.0` `tanh` safety branch fires. A host
+probe rendered a sustained 8-voice Bell cluster at velocity 127 (restruck every
+100 ms, 20 s) for each candidate and counted deterministic modal
+safety-saturation events, with render time as a secondary (noisy) measure:
+
+| Candidate | modal saturation events | us/block (host, min of runs, indicative) |
+|---|---:|---:|
+| A (baseline) | 960 | ~16.6 - 17.1 |
+| B | 984 | ~16.6 - 18.1 |
+| C | 971 | ~16.9 - 17.3 |
+
+- Saturation counts are deterministic: **A < C < B**. A fires the expensive
+  branch least often.
+- Render-time differences are within run-to-run noise (no consistent ordering).
+- Conclusion: no meaningful performance difference; A is (marginally) cheapest
+  and is therefore retained.
+
+This host proxy is indicative only; the authoritative real-time behavior is the
+frozen hardware evidence (M6.3.9.2 15-min soak plus the M6.4 hardware smoke).
 
 ## Golden / reference policy
 
@@ -122,3 +149,17 @@ no audible realtime failures
 
 and the human listening decision (A retained, or B/C promoted with exact delta)
 is recorded here.
+
+### Decision (M6.4)
+
+```text
+Bell V1 = FROZEN (baseline A, no parameter change)
+```
+
+The listening session reported pitch identity stable, velocity progression
+musical, soft notes expressive and hard notes controlled, doublets audible but
+not distracting, upper modes metallic without harsh fizz, coherent decay,
+natural restrikes, usable polyphony, and no audible realtime failures — with no
+significant difference between A, B and C. With perceptually equivalent
+candidates, the performance tie-break retained A. No Bell golden was
+regenerated because no parameter changed.
