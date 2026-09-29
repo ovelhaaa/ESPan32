@@ -44,4 +44,30 @@ inline constexpr ModalPreset kPresetBell = {"BELL", 10, {
     {4.0000f,.32f,2.2f,0.0f}, {5.2000f,.15f,1.4f,0.0f},
 }};
 
+// Steel tongue drum (tank drum) acoustic model:
+// 6 modes:
+// Mode 0: Fundamental (1.0000) - dominant pitch and sustained body
+// Mode 1: Octave overtone (2.0000) - tuned octave slit mode
+// Mode 2: Compound fifth overtone (2.9850) - transverse tongue overtone
+// Mode 3: Metallic partial (4.0600) - higher slit resonance
+// Mode 4: Upper colour mode (5.3800) - boundary rim overtone
+// Mode 5: Short high partial (6.7200) - transient steel attack colour
+inline constexpr ModalPreset kPresetTongue = {
+    "TONGUE",
+    6,
+    {
+        // ratio,   gain,  t60(s), detune
+        { 1.0000f, 1.00f, 3.80f, 0.0000f }, // Mode 0: Fundamental
+        { 2.0000f, 0.48f, 2.40f, 0.0000f }, // Mode 1: Octave
+        { 2.9850f, 0.26f, 1.60f, 0.0000f }, // Mode 2: Compound Fifth
+        { 4.0600f, 0.14f, 1.00f, 0.0000f }, // Mode 3: Metallic Partial
+        { 5.3800f, 0.07f, 0.65f, 0.0000f }, // Mode 4: Upper Colour
+        { 6.7200f, 0.03f, 0.40f, 0.0000f }, // Mode 5: High Partial
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f }
+    }
+};
+
 } // namespace pocketpan::dsp

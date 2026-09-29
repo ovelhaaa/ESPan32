@@ -9,7 +9,31 @@
 
 namespace pocketpan::dsp {
 
-enum class InstrumentModel : uint8_t { Pan = 0, Bell = 1 };
+enum class InstrumentModel : uint8_t {
+    Pan = 0,
+    Bell = 1,
+    Tongue = 2,
+    Count = 3
+};
+
+inline constexpr const char* instrumentModelName(InstrumentModel model) {
+    switch (model) {
+        case InstrumentModel::Bell: return "BELL";
+        case InstrumentModel::Tongue: return "TONGUE";
+        case InstrumentModel::Pan:
+        default: return "PAN";
+    }
+}
+
+inline constexpr InstrumentModel nextInstrumentModel(InstrumentModel model) {
+    switch (model) {
+        case InstrumentModel::Pan: return InstrumentModel::Bell;
+        case InstrumentModel::Bell: return InstrumentModel::Tongue;
+        case InstrumentModel::Tongue: return InstrumentModel::Pan;
+        default: return InstrumentModel::Pan;
+    }
+}
+
 enum class BodyExcitationStrategy : uint8_t { FullMix, Transient, StrikeBus };
 
 // Shared musical controls for a pitch-dependent modal instrument.  A model

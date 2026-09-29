@@ -75,7 +75,7 @@ struct RareStallRecord {
     uint32_t timestampMs = 0;
     uint32_t renderDurationUs = 0;
     uint8_t activeVoices = 0;
-    uint8_t model = 0; // 0=PAN, 1=BELL
+    uint8_t model = 0; // 0=PAN, 1=BELL, 2=TONGUE
     bool uiDrawing = false;
     bool lcdTransferActive = false;
     uint8_t bleState = 0;

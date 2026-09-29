@@ -51,9 +51,17 @@ pocketpan::ui::UiState sUiState;
 // UI/Core 1 requests; audio/Core 0 consumes at the next block boundary.
 std::atomic<bool> sSynthResetRequested{false};
 // UI/Core 1 selects the next model; Core 0 performs the complete model reset
-// at an audio block boundary so no DSP state crosses PAN/BELL.
-std::atomic<bool> sBellModelSelected{false};
+// at an audio block boundary so no DSP state crosses instrument models.
+std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Pan};
 std::atomic<bool> sModelChangeRequested{false};
+
+inline pocketpan::dsp::InstrumentModel selectedInstrumentModel() {
+    return sSelectedInstrumentModel.load(std::memory_order_acquire);
+}
+inline void requestInstrumentModel(pocketpan::dsp::InstrumentModel model) {
+    sSelectedInstrumentModel.store(model, std::memory_order_release);
+    sModelChangeRequested.store(true, std::memory_order_release);
+}
 
 // Static telemetry state maintained on Core 0
 pocketpan::ui::AudioTelemetrySnapshot sAudioSnapshot{};
@@ -103,12 +111,11 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
     // SynthEngine is owned exclusively by this Core 0 callback.
     const bool modelChangeReq = sModelChangeRequested.exchange(false, std::memory_order_acq_rel);
     if (modelChangeReq) {
-        const auto model = sBellModelSelected.load(std::memory_order_acquire)
-            ? pocketpan::dsp::InstrumentModel::Bell : pocketpan::dsp::InstrumentModel::Pan;
+        const auto model = selectedInstrumentModel();
         sSynth.setInstrumentModel(model);
         sAudio.resetTimingStats();
 #if defined(POCKETPAN_RARE_STALL_FORENSICS) && POCKETPAN_RARE_STALL_FORENSICS
-        pocketpan::diag::gRareStallForensics.setModel(sBellModelSelected.load(std::memory_order_relaxed) ? 1 : 0);
+        pocketpan::diag::gRareStallForensics.setModel(static_cast<uint8_t>(model));
 #endif
     }
     const bool synthResetReq = sSynthResetRequested.exchange(false, std::memory_order_acq_rel);
@@ -248,7 +255,7 @@ void audioRenderCallback(void* userData, int32_t* outInterleaved, size_t frames)
 #if POCKETPAN_TRANSIENT_QUAL
     {
         auto& ctx = pocketpan::diag::transient::gContext;
-        ctx.model = sBellModelSelected.load(std::memory_order_acquire) ? 1 : 0;
+        ctx.model = static_cast<uint8_t>(selectedInstrumentModel());
         ctx.voicesBefore = qualVoicesBefore;
         ctx.voicesAfter = static_cast<uint8_t>(sSynth.getVoiceAllocator().getActiveVoiceCount());
         ctx.noteOns = qualNoteOns;
@@ -302,18 +309,17 @@ void uiTaskLoop(void* param) {
 
     while (true) {
         // 1. Check BOOT. Short presses navigate diagnostics; a long press
-        // safely switches PAN/BELL on the audio core.
+        // safely cycles PAN -> BELL -> TONGUE -> PAN on the audio core.
         const bool btnPressed = (gpio_get_level(static_cast<gpio_num_t>(pocketpan::board::ui::kBootButtonGpio)) == 0);
         const uint32_t nowMs = static_cast<uint32_t>(xTaskGetTickCount() * portTICK_PERIOD_MS);
         if (btnPressed && lastBootBtnState) { pressStartMs = nowMs; longPressHandled = false; }
         if (btnPressed && !longPressHandled && nowMs - pressStartMs >= 800) {
-            const bool bell = !sBellModelSelected.load(std::memory_order_acquire);
-            sBellModelSelected.store(bell, std::memory_order_release);
-            sModelChangeRequested.store(true, std::memory_order_release);
+            const auto next = pocketpan::dsp::nextInstrumentModel(selectedInstrumentModel());
+            requestInstrumentModel(next);
             // A model switch must be audible, never hidden behind diagnostic playback.
             sDiagnosticTone.setTone(pocketpan::dsp::DiagnosticTone::Pan);
             sUiState.mode = pocketpan::ui::UiScreenMode::Status;
-            snprintf(sUiState.presetName, sizeof(sUiState.presetName), "%s", bell ? "BELL" : "PAN");
+            snprintf(sUiState.presetName, sizeof(sUiState.presetName), "%s", pocketpan::dsp::instrumentModelName(next));
             longPressHandled = true;
         }
         if (!btnPressed && !lastBootBtnState && !longPressHandled) {
@@ -431,7 +437,7 @@ void uiTaskLoop(void* param) {
         // M6.3.9.1 Phase E: automated realistic musical soak workload
         pocketpan::diag::gActiveSoakGenerator.tick(
             sDemoMidiQueue,
-            sBellModelSelected,
+            sSelectedInstrumentModel,
             sModelChangeRequested,
             sUiState.presetName,
             sizeof(sUiState.presetName)
@@ -517,7 +523,7 @@ void uiTaskLoop(void* param) {
                      (unsigned)renderer.dirtySkipCountForTest());
 #endif
             ESP_LOGI(kTag, "[AUDIO] model=%s blocks=%u avg_us=%u p99_us=%u max_us=%u cpu_load=%.1f deadline=%u timeout=%u tx_error=%u short=%u",
-                     sBellModelSelected.load(std::memory_order_acquire) ? "BELL" : "PAN", (unsigned)sAudio.getStats().blocksProcessed, (unsigned)sUiState.avgBlockTimeUs, (unsigned)sUiState.p99BlockTimeUs, (unsigned)sUiState.maxBlockTimeUs, sUiState.cpuLoadPercent,
+                     pocketpan::dsp::instrumentModelName(selectedInstrumentModel()), (unsigned)sAudio.getStats().blocksProcessed, (unsigned)sUiState.avgBlockTimeUs, (unsigned)sUiState.p99BlockTimeUs, (unsigned)sUiState.maxBlockTimeUs, sUiState.cpuLoadPercent,
                      (unsigned)sUiState.deadlineMisses, (unsigned)sUiState.writeTimeouts, (unsigned)sUiState.txErrors, (unsigned)sUiState.shortWrites);
             ESP_LOGI(kTag, "[MIDI] push=%u pop=%u drop=%u hwm=%u last=(n=%u v=%u t=%u hex=%02X%02X%02X)",
                      (unsigned)sUiState.midiPushCount, (unsigned)sUiState.midiPopCount, (unsigned)sUiState.midiDrops, (unsigned)sUiState.midiHighWater,
@@ -554,7 +560,7 @@ void uiTaskLoop(void* param) {
                 for (size_t i = 0; i < nStalls; ++i) {
                     ESP_LOGI(kTag, "[RARESTALL] block=%u dur=%uus voices=%u model=%s uiDraw=%d lcdDma=%d ble=%u telem=%d midiAge=%ums",
                              (unsigned)stalls[i].audioBlockSequence, (unsigned)stalls[i].renderDurationUs,
-                             stalls[i].activeVoices, stalls[i].model ? "BELL" : "PAN",
+                             stalls[i].activeVoices, stalls[i].model == 0 ? "PAN" : (stalls[i].model == 1 ? "BELL" : "TONGUE"),
                              stalls[i].uiDrawing, stalls[i].lcdTransferActive,
                              stalls[i].bleState, stalls[i].telemetryPublish,
                              (unsigned)stalls[i].lastMidiAgeMs);

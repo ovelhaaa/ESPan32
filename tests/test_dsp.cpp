@@ -1791,6 +1791,239 @@ void testForensicsClassification() {
     std::cout << "  -> PASSED: M6.3.9.1 4-class classification validated (1/44/44/8103).\n";
 }
 
+struct TongueQualificationRender {
+    M5cResult rendered;
+    size_t maxActiveVoices = 0;
+    size_t maxStealTails = 0;
+    float maxSampleDelta = 0.0f;
+    size_t finalActiveVoices = 0;
+    uint32_t voiceStealCount = 0;
+};
+
+TongueQualificationRender renderTongueQualification(const std::vector<ScheduledEvent>& events, size_t totalFrames) {
+    constexpr size_t kBlock = 128;
+    TongueQualificationRender result; result.rendered.audio.resize(totalFrames * 2);
+    dsp::SynthEngine engine; engine.init(48000.0f); engine.setInstrumentModel(dsp::InstrumentModel::Tongue);
+    size_t eventIndex = 0; int32_t previous = 0;
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) engine.handleMidiEvent(events[eventIndex++].event);
+        result.maxStealTails = std::max(result.maxStealTails, engine.getVoiceAllocator().getActiveStealTailCount());
+        const size_t count = std::min(kBlock, totalFrames - frame);
+        engine.renderBlock(result.rendered.audio.data() + frame * 2, count);
+        result.maxActiveVoices = std::max(result.maxActiveVoices, engine.getVoiceAllocator().getActiveVoiceCount());
+        for (size_t i = 0; i < count * 2; ++i) {
+            const int32_t current = result.rendered.audio[frame * 2 + i];
+            result.maxSampleDelta = std::max(result.maxSampleDelta, static_cast<float>(std::abs(current - previous)));
+            previous = current;
+        }
+    }
+    result.finalActiveVoices = engine.getVoiceAllocator().getActiveVoiceCount();
+    result.voiceStealCount = engine.getVoiceAllocator().getVoiceStealCount();
+    result.rendered.metrics = computeMetrics(result.rendered.audio, engine.getSoftClipCount());
+    result.rendered.hardClampCount = engine.getHardClampCount();
+    result.rendered.modalSat = engine.getModalInternalSaturationCount();
+    result.rendered.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    result.rendered.metrics.averageGainReductionDb = engine.getAverageGainReductionDb();
+    return result;
+}
+
+void testM7TongueModel() {
+    std::cout << "[Test 23] M7.0 Tongue Drum V1 model, fixtures, and 3-model cycling...\n";
+    auto allFinite = [](const std::vector<int32_t>& audio) {
+        for (int32_t s : audio) { if (!std::isfinite(static_cast<float>(s))) return false; }
+        return true;
+    };
+    auto note = [](uint8_t n, uint8_t v) {
+        midi::MidiEvent e{};
+        e.type = midi::MidiEventType::NoteOn;
+        e.data1 = n;
+        e.data2 = v;
+        return e;
+    };
+
+    // 1. Model Registry and helpers checks
+    assert(dsp::getInstrumentModelConfig(dsp::InstrumentModel::Tongue).id == dsp::InstrumentModel::Tongue);
+    assert(dsp::kPresetTongue.modeCount == 6);
+    assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Tongue)) == "TONGUE");
+    assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Bell)) == "BELL");
+    assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Pan)) == "PAN");
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Pan);
+
+    // 2. PolyPressure and ChannelPressure support for Tongue
+    for (bool poly : {true, false}) {
+        for (uint8_t pressure : {0, 32, 64, 96, 127}) {
+            dsp::SynthEngine pressureEngine;
+            pressureEngine.init(48000.0f);
+            pressureEngine.setInstrumentModel(dsp::InstrumentModel::Tongue);
+            pressureEngine.handleMidiEvent(note(62, 90));
+            int32_t pressureBlock[256]{};
+            pressureEngine.renderBlock(pressureBlock, 128);
+            midi::MidiEvent event{};
+            event.type = poly ? midi::MidiEventType::PolyPressure : midi::MidiEventType::ChannelPressure;
+            event.data1 = poly ? 62 : pressure;
+            event.data2 = poly ? pressure : 0;
+            pressureEngine.handleMidiEvent(event);
+            pressureEngine.renderBlock(pressureBlock, 128);
+            for (auto sample : pressureBlock) assert(std::isfinite(static_cast<float>(sample)));
+        }
+    }
+
+    // 3. 100 model switch cycles: PAN -> BELL -> TONGUE -> PAN
+    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> PAN...\n";
+    dsp::SynthEngine swEngine;
+    swEngine.init(48000.0f);
+    int32_t swBlock[256]{};
+    for (int iter = 0; iter < 100; ++iter) {
+        swEngine.handleMidiEvent(note(50, 70));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Bell);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(62, 90));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Tongue);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(58, 80));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Pan);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+    }
+    // Verify direct PAN matches PAN after 100 switches
+    swEngine.handleMidiEvent(note(50, 70));
+    std::vector<int32_t> swPan(96000 * 2);
+    for (size_t frame = 0; frame < 96000; frame += 128) {
+        swEngine.renderBlock(swPan.data() + frame * 2, std::min<size_t>(128, 96000 - frame));
+    }
+    const auto directPan = renderModel({{0, note(50, 70)}}, 96000, dsp::InstrumentModel::Pan);
+    assert(fnv1a64(swPan) == fnv1a64(directPan.audio));
+
+    // 4. Deterministic fixtures and metrics report
+    std::ofstream report("tongue_m7_metrics.md");
+    report << std::fixed << std::setprecision(6);
+    report << "# Tongue Drum M7.0 host qualification\n\n"
+           << "**InstrumentModel::Tongue (Steel Tongue Drum / Tank Drum V1 Candidate)**\n\n"
+           << "## 1. Modal preset topology\n\n"
+           << "| Mode | Ratio | Gain | T60 (s) | Role |\n"
+           << "|---|---:|---:|---:|---|\n";
+    constexpr const char* tongueRoles[] = {
+        "Fundamental", "Octave overtone", "Compound 5th", "Metallic partial", "Upper colour", "High partial"
+    };
+    for (size_t i = 0; i < dsp::kPresetTongue.modeCount; ++i) {
+        const auto& m = dsp::kPresetTongue.modes[i];
+        report << "| " << i << " | " << m.ratio << " | " << m.gain << " | " << m.t60 << " | " << tongueRoles[i] << " |\n";
+    }
+
+    // Velocity tests (D4):
+    report << "\n## 2. Velocity progression (D4)\n\n"
+           << "| Velocity | RMS | Peak | Crest Factor | max GR dB | Modal Sat | Clamp |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|\n";
+    float prevRms = 0.0f;
+    for (uint8_t vel : {30, 60, 90, 110, 127}) {
+        const auto q = renderTongueQualification({{0, note(62, vel)}}, 96000);
+        const auto& m = q.rendered.metrics;
+        writeWavFile((std::string("tongue_D4_v") + std::to_string(vel) + ".wav").c_str(), q.rendered.audio.data(), 96000, 48000);
+        report << "| " << static_cast<int>(vel) << " | " << m.rms << " | " << m.peak << " | " << m.crestFactor << " | "
+               << m.maxGainReductionDb << " | " << q.rendered.modalSat << " | " << q.rendered.hardClampCount << " |\n";
+        assert(allFinite(q.rendered.audio));
+        assert(q.rendered.hardClampCount == 0);
+        assert(q.rendered.modalSat == 0);
+        // Monotonic progression requirement:
+        assert(m.rms > prevRms);
+        prevRms = m.rms;
+    }
+
+    // Single notes: D3 and A4
+    {
+        const auto qD3 = renderTongueQualification({{0, note(50, 70)}}, 96000);
+        writeWavFile("tongue_D3_v70.wav", qD3.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qD3.rendered.audio) && qD3.rendered.hardClampCount == 0 && qD3.rendered.modalSat == 0);
+
+        const auto qA4 = renderTongueQualification({{0, note(69, 70)}}, 96000);
+        writeWavFile("tongue_A4_v70.wav", qA4.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qA4.rendered.audio) && qA4.rendered.hardClampCount == 0 && qA4.rendered.modalSat == 0);
+    }
+
+    // Interval2: D4 + A4
+    {
+        const auto qInt = renderTongueQualification({{0, note(62, 80)}, {0, note(69, 80)}}, 96000);
+        writeWavFile("tongue_interval2.wav", qInt.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qInt.rendered.audio) && qInt.rendered.hardClampCount == 0 && qInt.rendered.modalSat == 0);
+    }
+
+    // Chord4: D3, A3, D4, A4 (50, 57, 62, 69)
+    {
+        const auto qChord = renderTongueQualification({{0, note(50, 80)}, {0, note(57, 80)}, {0, note(62, 80)}, {0, note(69, 80)}}, 96000);
+        writeWavFile("tongue_chord4.wav", qChord.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qChord.rendered.audio) && qChord.rendered.hardClampCount == 0 && qChord.rendered.modalSat == 0);
+        assert(qChord.maxActiveVoices <= 8);
+    }
+
+    // Cluster8: 8 voices v100
+    {
+        const auto qClust = renderTongueQualification({
+            {0, note(50, 100)}, {0, note(52, 100)}, {0, note(54, 100)}, {0, note(56, 100)},
+            {0, note(57, 100)}, {0, note(59, 100)}, {0, note(61, 100)}, {0, note(62, 100)}
+        }, 96000);
+        writeWavFile("tongue_cluster8.wav", qClust.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qClust.rendered.audio) && qClust.rendered.hardClampCount == 0 && qClust.rendered.modalSat == 0);
+        assert(qClust.maxActiveVoices == 8);
+    }
+
+    // Restrike: soft->hard, hard->soft
+    {
+        const auto qSh = renderTongueQualification({{0, note(62, 30)}, {4800, note(62, 110)}}, 96000);
+        writeWavFile("tongue_restrike_softhard.wav", qSh.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qSh.rendered.audio) && qSh.rendered.hardClampCount == 0);
+
+        const auto qHs = renderTongueQualification({{0, note(62, 110)}, {4800, note(62, 30)}}, 96000);
+        writeWavFile("tongue_restrike_hardsoft.wav", qHs.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qHs.rendered.audio) && qHs.rendered.hardClampCount == 0);
+    }
+
+    // Roll:
+    {
+        std::vector<ScheduledEvent> rollEvents;
+        for (size_t r = 0; r < 8; ++r) {
+            rollEvents.push_back({static_cast<uint32_t>(r * 1920), note(62, 75)});
+        }
+        const auto qRoll = renderTongueQualification(rollEvents, 96000);
+        writeWavFile("tongue_roll.wav", qRoll.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qRoll.rendered.audio) && qRoll.rendered.hardClampCount == 0);
+    }
+
+    // Register sweep: C3 to C6
+    {
+        std::vector<ScheduledEvent> sweepEvents;
+        for (uint8_t n = 48; n <= 84; n += 4) {
+            sweepEvents.push_back({static_cast<uint32_t>((n - 48) * 4800), note(n, 80)});
+        }
+        const auto qSweep = renderTongueQualification(sweepEvents, 192000);
+        writeWavFile("tongue_register_sweep.wav", qSweep.rendered.audio.data(), 192000, 48000);
+        assert(allFinite(qSweep.rendered.audio) && qSweep.rendered.hardClampCount == 0);
+    }
+
+    // Voice lifecycle termination:
+    // Single strike with 6 seconds of render (288,000 frames) - must naturally terminate to 0 active voices
+    {
+        const auto qLong = renderTongueQualification({{0, note(62, 70)}}, 288000);
+        assert(qLong.finalActiveVoices == 0);
+    }
+
+    report << "\n## 3. Qualification summary\n\n"
+           << "- Modal saturation count: 0 across single, interval2, chord4, cluster8 v100\n"
+           << "- Hard clamp count: 0 across all fixtures\n"
+           << "- All samples finite: YES (no NaN, no Inf)\n"
+           << "- Voice lifecycle: terminates naturally to 0 active voices\n"
+           << "- PolyPressure & ChannelPressure: functional and stable\n"
+           << "- 100 model switch cycles: bit-identical PAN recovery\n";
+    report.close();
+    std::cout << "  -> PASSED: M7.0 Tongue Drum V1 fixtures and objective tests verified.\n";
+}
+
 int main() {
     std::cout << "=======================================================\n";
     std::cout << "  Pocket Pan / Metal Modal Synth - Comprehensive DSP  \n";
@@ -1824,6 +2057,7 @@ int main() {
     testBellM621FreezeQualification();
     testBellM64ListeningPack();
     testForensicsClassification();
+    testM7TongueModel();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

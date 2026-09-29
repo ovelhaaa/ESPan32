@@ -199,6 +199,9 @@ int main() {
         compare("BELL single", InstrumentModel::Bell, chord(0, single, 1, vel), total, true);
         compare("BELL chord4", InstrumentModel::Bell, chord(0, four, 4, vel), total, true);
         compare("BELL cluster8", InstrumentModel::Bell, chord(0, cluster, 8, vel), total, true);
+        compare("TONGUE single", InstrumentModel::Tongue, chord(0, single, 1, vel), total, true);
+        compare("TONGUE chord4", InstrumentModel::Tongue, chord(0, four, 4, vel), total, true);
+        compare("TONGUE cluster8", InstrumentModel::Tongue, chord(0, cluster, 8, vel), total, true);
     }
 
     compare("PAN steal9", InstrumentModel::Pan, chord(0, nine, 9, 100), total, false);

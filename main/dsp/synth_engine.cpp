@@ -12,13 +12,15 @@ void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Model changes are applied by the audio callback.  Build both fixed
+    // Model changes are applied by the audio callback.  Build all three fixed
     // tables now, before the callback/I2S transport exists, so no coefficient
     // table generation or heap work can occur at a realtime boundary.
     assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Pan), panPreparedNotes_);
     assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Bell), bellPreparedNotes_);
+    assert(verifyPreparedNoteCanaries());
+    allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Tongue), tonguePreparedNotes_);
     assert(verifyPreparedNoteCanaries());
 #endif
     model_ = InstrumentModel::Pan;
@@ -73,8 +75,13 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
 #endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
     assert(verifyPreparedNoteCanaries());
-    allocator_.setPreparedNoteTable(model_ == InstrumentModel::Bell
-        ? &bellPreparedNotes_ : &panPreparedNotes_);
+    const PreparedNoteTable* table = &panPreparedNotes_;
+    if (model_ == InstrumentModel::Bell) {
+        table = &bellPreparedNotes_;
+    } else if (model_ == InstrumentModel::Tongue) {
+        table = &tonguePreparedNotes_;
+    }
+    allocator_.setPreparedNoteTable(table);
 #endif
     body_.init(sampleRate_);
     body_.setConfig(modelConfig_.body);

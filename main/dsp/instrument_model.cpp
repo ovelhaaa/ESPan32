@@ -25,10 +25,30 @@ constexpr InstrumentModelConfig kBellModelConfig{
     {false, 0.0f, 0.0f, 1500.0f, 0.0f},
     BodyExcitationStrategy::StrikeBus, 0.0f,
 };
+
+constexpr ModalVoicingConfig kTongueVoicing{
+    0.25f, 0.95f, 1.02f, 0.95f, 1.00f, 0.85f, 0.15f, 0.90f,
+    1.15f, 0.85f, 0.0f, 146.83f, 440.0f, false,
+    {1.00f, 0.35f, 0.15f, 0.05f, 0.02f, 0.00f, 0.0f, 0.0f, 0.0f, 0.0f},
+    {1.00f, 0.80f, 0.65f, 0.45f, 0.30f, 0.18f, 0.0f, 0.0f, 0.0f, 0.0f}, 1.0e-8f};
+
+constexpr InstrumentModelConfig kTongueModelConfig{
+    InstrumentModel::Tongue, &kPresetTongue,
+    {0.78f, 0.42f, 750.0f, 8500.0f, 0.85f, 0.38f},
+    {1.0f, 0.95f, true}, kTongueVoicing,
+    {{}, 0, 0.0f, 0.0f, 1000.0f, false},
+    {false, 0.0f, 0.0f, 1500.0f, 0.0f},
+    BodyExcitationStrategy::StrikeBus, 0.0f,
+};
 }
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
-    return model == InstrumentModel::Bell ? kBellModelConfig : kPanModelConfig;
+    switch (model) {
+        case InstrumentModel::Bell: return kBellModelConfig;
+        case InstrumentModel::Tongue: return kTongueModelConfig;
+        case InstrumentModel::Pan:
+        default: return kPanModelConfig;
+    }
 }
 
 } // namespace pocketpan::dsp

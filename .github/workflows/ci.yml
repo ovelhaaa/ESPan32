@@ -37,6 +37,7 @@ jobs:
           cat build-host/bell_m62_ab.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/bell_m621_freeze.md >> "$GITHUB_STEP_SUMMARY"
           cat build-host/bell_m64_listening_pack.md >> "$GITHUB_STEP_SUMMARY"
+          cat build-host/tongue_m7_metrics.md >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: ESPan32-audio-tests
@@ -61,6 +62,8 @@ jobs:
             build-host/bell_m621_freeze.md
             build-host/bell_m64_*.wav
             build-host/bell_m64_listening_pack.md
+            build-host/tongue_*.wav
+            build-host/tongue_m7_metrics.md
             build-host/pan_m6_regression.md
           if-no-files-found: error
 

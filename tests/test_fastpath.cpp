@@ -110,6 +110,9 @@ int main() {
     compare("BELL single", true, InstrumentModel::Bell, chord(0, single, 1, 90), total);
     compare("BELL chord4", true, InstrumentModel::Bell, chord(0, four, 4, 90), total);
     compare("BELL cluster8", true, InstrumentModel::Bell, chord(0, cluster, 8, 100), total);
+    compare("TONGUE single", true, InstrumentModel::Tongue, chord(0, single, 1, 90), total);
+    compare("TONGUE chord4", true, InstrumentModel::Tongue, chord(0, four, 4, 90), total);
+    compare("TONGUE cluster8", true, InstrumentModel::Tongue, chord(0, cluster, 8, 100), total);
 
     {
         auto events = chord(0, four, 4, 90);
@@ -124,6 +127,11 @@ int main() {
         compare("BELL polypressure", true, InstrumentModel::Bell, events, total);
     }
     {
+        auto events = chord(0, four, 4, 90);
+        events.push_back({48000, midi::MidiEventType::PolyPressure, 62, 90});
+        compare("TONGUE polypressure", true, InstrumentModel::Tongue, events, total);
+    }
+    {
         // A model switch resets every voice, so strike again after the switch
         // to exercise the sustain fast path on the new model too.
         auto events = chord(0, four, 4, 90);
@@ -135,6 +143,18 @@ int main() {
         auto events = chord(0, cluster, 8, 100);
         for (auto e : chord(49152, cluster, 8, 100)) events.push_back(e);
         compare("BELL to PAN switch", true, InstrumentModel::Bell, events,
+                total, 48000, InstrumentModel::Pan);
+    }
+    {
+        auto events = chord(0, four, 4, 90);
+        for (auto e : chord(49152, four, 4, 90)) events.push_back(e);
+        compare("BELL to TONGUE switch", true, InstrumentModel::Bell, events,
+                total, 48000, InstrumentModel::Tongue);
+    }
+    {
+        auto events = chord(0, cluster, 8, 100);
+        for (auto e : chord(49152, cluster, 8, 100)) events.push_back(e);
+        compare("TONGUE to PAN switch", true, InstrumentModel::Tongue, events,
                 total, 48000, InstrumentModel::Pan);
     }
 #else

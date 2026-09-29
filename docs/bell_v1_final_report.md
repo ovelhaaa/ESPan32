@@ -34,7 +34,24 @@ See:
 
 ## Freeze closure
 
-1. Human listening: DONE — A / B / C perceived as equivalent; no click or
+Human listening: COMPLETE
+Bell V1: FROZEN
+
+```text
+Listening:
+A/B/C perceptually equivalent to user
+
+Tie-break:
+performance
+
+Selected:
+A
+
+Reason:
+Candidate A fires the expensive modal safety-saturation branch least often (A: 960 vs C: 971 vs B: 984 in sustained v127 cluster8) with no timing difference. Baseline A retained and frozen.
+```
+
+1. Human listening: COMPLETE — A / B / C perceived as equivalent; no click or
    dropout on the board.
 2. Performance tie-break: DONE — baseline A has the fewest modal
    safety-saturation events and no timing difference; A retained.
@@ -42,3 +59,4 @@ See:
 
 Bell V1 is `FROZEN` in [bell_v1_freeze.md](bell_v1_freeze.md). No parameter
 delta and no regenerated Bell hashes are required because nothing changed.
+

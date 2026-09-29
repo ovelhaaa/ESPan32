@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <atomic>
 #include "midi/midi_event.h"
+#include "dsp/instrument_model.h"
 
 namespace pocketpan::diag {
 
@@ -12,19 +13,19 @@ public:
     // Called from UI task loop on Core 1 (~30 Hz, every ~33 ms)
     template <size_t N>
     void tick(midi::SpscMidiQueue<N>& queue,
-              std::atomic<bool>& bellModelSelected,
+              std::atomic<dsp::InstrumentModel>& selectedModel,
               std::atomic<bool>& modelChangeRequested,
               char* presetName, size_t presetNameLen) {
         tickCount_++;
 
-        // Model switching every 2250 ticks (~75 seconds): PAN -> BELL -> PAN -> BELL
+        // Model switching every 2250 ticks (~75 seconds): PAN -> BELL -> TONGUE -> PAN
         if (tickCount_ - lastModelSwitchTick_ >= 2250) {
             lastModelSwitchTick_ = tickCount_;
-            const bool nextBell = !bellModelSelected.load(std::memory_order_acquire);
-            bellModelSelected.store(nextBell, std::memory_order_release);
+            const auto next = dsp::nextInstrumentModel(selectedModel.load(std::memory_order_acquire));
+            selectedModel.store(next, std::memory_order_release);
             modelChangeRequested.store(true, std::memory_order_release);
             if (presetName && presetNameLen > 0) {
-                snprintf(presetName, presetNameLen, "%s", nextBell ? "BELL" : "PAN");
+                snprintf(presetName, presetNameLen, "%s", dsp::instrumentModelName(next));
             }
         }
 

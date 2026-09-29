@@ -171,18 +171,24 @@ uint64_t expectExactPcm(const std::string& name, InstrumentModel model,
 }
 
 const char* modelName(InstrumentModel model) {
-    return model == InstrumentModel::Pan ? "PAN" : "BELL";
+    switch (model) {
+        case InstrumentModel::Bell: return "BELL";
+        case InstrumentModel::Tongue: return "TONGUE";
+        case InstrumentModel::Pan:
+        default: return "PAN";
+    }
 }
 
 void testPreparedTableCoverage() {
     std::cout << "[PreparedNote] table coverage...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue}) {
         pocketpan::dsp::VoiceAllocator allocator;
         allocator.init(static_cast<float>(kSampleRate));
         pocketpan::dsp::PreparedNoteTable table{};
         allocator.preparePreparedNoteTable(pocketpan::dsp::getInstrumentModelConfig(model), table);
         assert(table.ready);
 
+        const uint8_t expectedModes = (model == InstrumentModel::Pan ? 8U : (model == InstrumentModel::Bell ? 10U : 6U));
         for (uint16_t note = pocketpan::dsp::kPreparedNoteFirst;
              note <= pocketpan::dsp::kPreparedNoteLast; ++note) {
             const uint8_t midiNote = static_cast<uint8_t>(note);
@@ -190,7 +196,7 @@ void testPreparedTableCoverage() {
                 midiNote, pocketpan::midi::MidiMapping::noteToHz(midiNote));
             assert(entry != nullptr);
             assert(entry->midiNote == midiNote);
-            assert(entry->modeCount == (model == InstrumentModel::Pan ? 8U : 10U));
+            assert(entry->modeCount == expectedModes);
         }
 
         // These are deliberately one note outside the bounded 24--96 table,
@@ -204,7 +210,7 @@ void testPreparedTableCoverage() {
 void testGrid() {
     std::cout << "[PreparedNote] PCM/FNV grid: 24--96 x 30/70/110/127...\n";
     constexpr std::array<uint8_t, 4> velocities = {30, 70, 110, 127};
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue}) {
         uint64_t aggregate = 14695981039346656037ULL;
         size_t caseCount = 0;
         for (uint16_t note = pocketpan::dsp::kPreparedNoteFirst;
@@ -226,7 +232,7 @@ void testGrid() {
 
 void testFallbacks() {
     std::cout << "[PreparedNote] below/above-table fallback...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue}) {
         for (const uint8_t note : {uint8_t(23), uint8_t(97)}) {
             const std::string name = std::string(modelName(model)) +
                 (note < pocketpan::dsp::kPreparedNoteFirst ? " low fallback" : " high fallback") +
@@ -238,7 +244,7 @@ void testFallbacks() {
 
 void testSameNoteRestrike() {
     std::cout << "[PreparedNote] same-note restrike...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue}) {
         expectExactPcm(std::string(modelName(model)) + " same-note restrike", model,
                        {{0, noteOn(60, 70)}, {512, noteOn(60, 127)}}, kGridFrames);
     }
@@ -246,7 +252,7 @@ void testSameNoteRestrike() {
 
 void testPolyPressure() {
     std::cout << "[PreparedNote] PolyPressure after cached trigger...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue}) {
         expectExactPcm(std::string(modelName(model)) + " PolyPressure", model,
                        {{0, noteOn(60, 110)}, {512, polyPressure(60, 96)}}, kPressureFrames);
     }
@@ -254,7 +260,7 @@ void testPolyPressure() {
 
 void testChannelPressure() {
     std::cout << "[PreparedNote] ChannelPressure after cached triggers...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue}) {
         expectExactPcm(std::string(modelName(model)) + " ChannelPressure", model,
                        {{0, noteOn(55, 70)}, {0, noteOn(64, 110)},
                         {512, channelPressure(88)}}, kPressureFrames);
@@ -308,6 +314,52 @@ void testPanBellPan() {
     }
 }
 
+SwitchRender renderPanBellTonguePan(bool cacheEnabled) {
+    SynthEngine engine;
+    engine.init(static_cast<float>(kSampleRate));
+    engine.setPreparedNoteCacheEnabledForTest(cacheEnabled);
+    assert(engine.getVoiceAllocator().isPreparedNoteCacheEnabledForTest() == cacheEnabled);
+
+    SwitchRender result;
+    result.whole.samples.reserve((512 + 512 + 512 + kGridFrames) * 2);
+
+    engine.setInstrumentModel(InstrumentModel::Pan);
+    engine.handleMidiEvent(noteOn(50, 70));
+    appendRender(engine, 512, result.whole.samples);
+
+    engine.setInstrumentModel(InstrumentModel::Bell);
+    engine.handleMidiEvent(noteOn(62, 110));
+    appendRender(engine, 512, result.whole.samples);
+
+    engine.setInstrumentModel(InstrumentModel::Tongue);
+    engine.handleMidiEvent(noteOn(58, 90));
+    appendRender(engine, 512, result.whole.samples);
+
+    engine.setInstrumentModel(InstrumentModel::Pan);
+    engine.handleMidiEvent(noteOn(50, 70));
+    appendRender(engine, kGridFrames, result.whole.samples);
+    result.finalPan.samples.assign(result.whole.samples.end() - static_cast<std::ptrdiff_t>(kGridFrames * 2),
+                                   result.whole.samples.end());
+    result.whole.fnv = fnv1a64(result.whole.samples);
+    result.finalPan.fnv = fnv1a64(result.finalPan.samples);
+    return result;
+}
+
+void testPanBellTonguePan() {
+    std::cout << "[PreparedNote] PAN -> BELL -> TONGUE -> PAN...\n";
+    const SwitchRender cached = renderPanBellTonguePan(true);
+    const SwitchRender uncached = renderPanBellTonguePan(false);
+    if (cached.whole.fnv != uncached.whole.fnv || cached.whole.samples != uncached.whole.samples) {
+        failPcmComparison("PAN -> BELL -> TONGUE -> PAN", cached.whole, uncached.whole);
+    }
+
+    const RenderedPcm directPan = renderEvents(InstrumentModel::Pan, true,
+                                                {{0, noteOn(50, 70)}}, kGridFrames);
+    if (cached.finalPan.fnv != directPan.fnv || cached.finalPan.samples != directPan.samples) {
+        failPcmComparison("PAN after TONGUE switch versus direct PAN", cached.finalPan, directPan);
+    }
+}
+
 void testPreparedTableResetAndSwitch() {
     std::cout << "[PreparedNote] in-place reset and model switch regression guard...\n";
     static pocketpan::dsp::PreparedNoteTable table;
@@ -329,7 +381,14 @@ void testPreparedTableResetAndSwitch() {
     assert(table.ready);
     assert(table.find(60, pocketpan::midi::MidiMapping::noteToHz(60))->modeCount == 10);
 
-    // 4. Verify stack safety guard
+    // 4. In-place reset and prepare TONGUE
+    table.reset();
+    assert(!table.ready);
+    allocator.preparePreparedNoteTable(pocketpan::dsp::getInstrumentModelConfig(InstrumentModel::Tongue), table);
+    assert(table.ready);
+    assert(table.find(60, pocketpan::midi::MidiMapping::noteToHz(60))->modeCount == 6);
+
+    // 5. Verify stack safety guard
     static_assert(sizeof(pocketpan::dsp::PreparedNoteTable) > 4096, "PreparedNoteTable must be large");
 }
 
@@ -346,6 +405,7 @@ int main() {
     testPolyPressure();
     testChannelPressure();
     testPanBellPan();
+    testPanBellTonguePan();
     std::cout << "PreparedNote cache PCM/FNV qualification passed.\n";
     return 0;
 }

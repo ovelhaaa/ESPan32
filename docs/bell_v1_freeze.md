@@ -4,9 +4,20 @@
 
 ```text
 Bell V1 parameters : FROZEN (baseline A retained, no change)
-Human listening    : DONE — A / B / C perceived as equivalent
-Performance tie-break: A (fewest modal safety-saturation events; no timing difference)
+Human listening    : COMPLETE
 Bell V1            : FROZEN
+
+Listening:
+A/B/C perceptually equivalent to user
+
+Tie-break:
+performance
+
+Selected:
+A
+
+Reason:
+Candidate A fires the expensive modal safety-saturation branch least often (A: 960 vs C: 971 vs B: 984 in sustained v127 cluster8) with no timing difference. Retained frozen baseline A.
 ```
 
 The M6.4 baseline was not changed. Human listening found no significant
