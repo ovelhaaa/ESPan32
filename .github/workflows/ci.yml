@@ -21,6 +21,12 @@ jobs:
         run: cmake --build build-host-c16 --config Release --parallel
       - name: Run M6.3.3 fast-path host tests
         run: ctest --test-dir build-host-c16 --output-on-failure
+      - name: Configure M7.0.2 Process6-off host tests (exact scalar fallback)
+        run: cmake -S tests -B build-host-p6off -DCMAKE_BUILD_TYPE=Release -DPOCKETPAN_PROCESS6_MICROKERNEL=0
+      - name: Build M7.0.2 Process6-off host tests
+        run: cmake --build build-host-p6off --config Release --parallel
+      - name: Run M7.0.2 Process6-off host tests
+        run: ctest --test-dir build-host-p6off --output-on-failure
       - name: Publish metrics summary
         run: |
           cat build-host/test_metrics.md >> "$GITHUB_STEP_SUMMARY"

@@ -13,6 +13,11 @@ add_executable(test_dsp test_dsp.cpp
 target_sources(test_dsp PRIVATE ${ROOT}/main/dsp/peak_limiter.cpp)
 target_include_directories(test_dsp PRIVATE ${ROOT}/main)
 set(POCKETPAN_DSP_CANDIDATE 25 CACHE STRING "DSP candidates: 0 scalar, 4 fixed, 5 IRAM, 9 D+E, 11 microkernel, 12 PreparedNote, 13 both, 14 +sustain, 15/16 +sustain, 17-19 tail IRAM, 20 tail IRAM, 21 +attack, 22 +coeff-cache, 23 +stable8, 24 +attack-voice, 25 combo, 26 +headroom-table, 27 +velocity-LUT, 28 +register-precompute, 29 trigger-combo")
+# M7.0.2 controlled A/B: 1 = production unrolled 6-mode microkernel, 0 = exact
+# scalar reference fallback for the Tongue bank.  The host oracles must be
+# bit-exact for both.
+set(POCKETPAN_PROCESS6_MICROKERNEL 1 CACHE STRING "M7.0.2: enable the unrolled 6-mode modal microkernel")
+add_compile_definitions(POCKETPAN_PROCESS6_MICROKERNEL=${POCKETPAN_PROCESS6_MICROKERNEL})
 target_compile_definitions(test_dsp PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
 add_test(NAME dsp COMMAND test_dsp)
 add_executable(test_prepared_note test_prepared_note.cpp

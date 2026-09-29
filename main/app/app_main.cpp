@@ -645,14 +645,21 @@ extern "C" void app_main(void) {
     ESP_LOGI(kTag, "===============================================");
 
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
-    ESP_LOGI(kTag, "[FORENSICS] candidate=%d profile=%d cpu_mhz=%d optimization_perf=%d",
+    ESP_LOGI(kTag, "[FORENSICS] candidate=%d profile=%d cpu_mhz=%d optimization_perf=%d process6=%d fine_bins=%d critical_only=%d",
              POCKETPAN_DSP_CANDIDATE,
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
              1,
 #else
              0,
 #endif
-             CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ, CONFIG_COMPILER_OPTIMIZATION_PERF);
+             CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ,
+#ifdef CONFIG_COMPILER_OPTIMIZATION_PERF
+             1,
+#else
+             0,
+#endif
+             POCKETPAN_PROCESS6_MICROKERNEL, POCKETPAN_FORENSICS_FINE_BINS,
+             POCKETPAN_FORENSICS_CRITICAL_ONLY);
 #endif
     // 1. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));

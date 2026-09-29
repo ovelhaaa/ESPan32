@@ -87,18 +87,22 @@ private:
 #if POCKETPAN_MODAL_MICROKERNEL
     enum class MicroKernel : uint8_t {
         Generic,
+#if POCKETPAN_PROCESS6_MICROKERNEL
         Process6Safety,
         Process6Normal,
+#endif
         Process8Safety,
         Process8Normal,
         Process10Safety,
         Process10Normal,
     };
     void refreshMicroKernel();
-    // The fixed 6/8/10-mode kernels must live in the same IRAM-resident
+    // The fixed 8/10-mode kernels must live in the same IRAM-resident
     // processSample body; out-of-line weak copies were measured in flash and
     // are the source of the candidate-11 regression.
+#if POCKETPAN_PROCESS6_MICROKERNEL
     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro6(float excitation);
+#endif
     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
     MicroKernel microKernel_ = MicroKernel::Generic;

@@ -248,10 +248,13 @@ void ModalResonatorBank::refreshMicroKernel() {
     microKernel_ = MicroKernel::Generic;
     if (activeModeCount_ != modeCount_) return;
 
+#if POCKETPAN_PROCESS6_MICROKERNEL
     if (modeCount_ == 6) {
         microKernel_ = config_.internalSafetySaturation
             ? MicroKernel::Process6Safety : MicroKernel::Process6Normal;
-    } else if (modeCount_ == 8) {
+    } else
+#endif
+    if (modeCount_ == 8) {
         microKernel_ = config_.internalSafetySaturation
             ? MicroKernel::Process8Safety : MicroKernel::Process8Normal;
     } else if (modeCount_ == 10) {
@@ -260,6 +263,7 @@ void ModalResonatorBank::refreshMicroKernel() {
     }
 }
 
+#if POCKETPAN_PROCESS6_MICROKERNEL
 template<bool Safety>
 __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
     ModalModeState* __restrict const hot = modes_;
@@ -272,6 +276,7 @@ __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMi
     outSample += processMicroMode<Safety>(hot[5], excitation, internalSaturationCount_);
     return outSample;
 }
+#endif
 
 template<bool Safety>
 __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
@@ -313,8 +318,10 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     // outside this recurrence.  Sparse and Nyquist-pruned banks are always
     // routed to the original indexed fallback below.
     switch (microKernel_) {
+#if POCKETPAN_PROCESS6_MICROKERNEL
         case MicroKernel::Process6Safety: return processSampleMicro6<true>(excitation);
         case MicroKernel::Process6Normal: return processSampleMicro6<false>(excitation);
+#endif
         case MicroKernel::Process8Safety: return processSampleMicro8<true>(excitation);
         case MicroKernel::Process8Normal: return processSampleMicro8<false>(excitation);
         case MicroKernel::Process10Safety: return processSampleMicro10<true>(excitation);

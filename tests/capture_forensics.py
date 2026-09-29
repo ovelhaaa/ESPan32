@@ -12,7 +12,13 @@ parser.add_argument("--seconds", type=float, default=420)
 parser.add_argument("--rows", type=int, default=32)
 parser.add_argument("--reset", action="store_true", help="Reset board via RTS on start")
 args = parser.parse_args()
+# Never let a completed hardware capture end with a traceback: the output
+# directory is created first, and an existing evidence file is refused cleanly
+# instead of raising FileNotFoundError / FileExistsError.
 args.output.parent.mkdir(parents=True, exist_ok=True)
+if args.output.exists():
+    print(f"Refusing to overwrite existing evidence: {args.output}", flush=True)
+    sys.exit(1)
 with args.output.open("xb") as report, serial.Serial(args.port, 115200, timeout=1) as port:
     if args.reset:
         port.setDTR(False)

@@ -82,6 +82,9 @@ set(POCKETPAN_ACTIVE_SOAK 0 CACHE STRING "M6.3.9.1 Phase E: automated realistic 
 # per-overrun musical-transition classification.  Diagnostic builds only.
 set(POCKETPAN_TRANSIENT_QUAL 0 CACHE STRING "M6.3.9.2: transient burst closure qualification instrumentation")
 set(POCKETPAN_FORENSICS_M7 0 CACHE STRING "M7 qualification fixtures: PAN cluster8, BELL cluster8, TONGUE chord4, TONGUE cluster8")
+# M7.0.2 controlled A/B: 1 keeps the unrolled 6-mode microkernel (production),
+# 0 routes the Tongue 6-mode bank through the exact scalar reference recurrence.
+set(POCKETPAN_PROCESS6_MICROKERNEL 1 CACHE STRING "M7.0.2: enable the unrolled 6-mode modal microkernel (0 = exact scalar fallback)")
 set(POCKETPAN_BUTTON_QUAL 0 CACHE STRING "M7 BOOT button automated cycle qualification")
 set(POCKETPAN_TONGUE_SMOKE 0 CACHE STRING "Boot directly into Tongue model for smoke qualification")
 
@@ -110,6 +113,7 @@ target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_TRANSIENT_QUAL=${POCKETPAN_TRANSIENT_QUAL}
     POCKETPAN_FORENSICS_M7=${POCKETPAN_FORENSICS_M7}
     POCKETPAN_BUTTON_QUAL=${POCKETPAN_BUTTON_QUAL}
-    POCKETPAN_TONGUE_SMOKE=${POCKETPAN_TONGUE_SMOKE})
+    POCKETPAN_TONGUE_SMOKE=${POCKETPAN_TONGUE_SMOKE}
+    POCKETPAN_PROCESS6_MICROKERNEL=${POCKETPAN_PROCESS6_MICROKERNEL})
 
 set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29)

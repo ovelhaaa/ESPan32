@@ -352,6 +352,11 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     const unsigned timingClass = classToIndex(currentClass);
 
     uint32_t elapsed = 0;
+#ifdef CONFIG_POCKETPAN_DSP_PROFILE
+    // Declared in function scope: the sparse-sampling decision is taken in the
+    // render branch below but consumed again after the transition/render join.
+    bool profiled = false;
+#endif
 
     if (isTransition) {
         const uint32_t start = esp_cpu_get_cycle_count();
@@ -388,7 +393,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         // Sample steady render blocks sparsely to limit probe perturbation, but
         // profile every event block: normally none of the 188-block event
         // cadence coincides with the old modulo-32 sampling point.
-        const bool profiled = event || block % 32 == 1;
+        profiled = event || block % 32 == 1;
         dsp::profile::enabled = profiled;
         std::fill(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), 0);
 #endif

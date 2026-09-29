@@ -16,6 +16,18 @@
     (POCKETPAN_DSP_CANDIDATE == 11 || POCKETPAN_DSP_CANDIDATE == 13 || \
      POCKETPAN_DSP_CANDIDATE == 14 || POCKETPAN_DSP_CANDIDATE == 15 || \
      POCKETPAN_DSP_CANDIDATE == 16 || POCKETPAN_TAIL_BASE)
+
+// M7.0.2 controlled A/B: the 6-mode unrolled microkernel is additive to the
+// existing 8/10-mode kernels, and proved bit-exact in M7.0.  This switch exists
+// only to test whether its inlined body perturbs the PAN/Bell hot-code layout.
+// When 0, refreshMicroKernel() never selects Process6, so the Tongue 6-mode
+// bank falls through to the shared scalar processSampleReference() recurrence
+// (the definition of correctness).  No DSP arithmetic changes, so output is
+// bit-exact either way.
+#ifndef POCKETPAN_PROCESS6_MICROKERNEL
+#define POCKETPAN_PROCESS6_MICROKERNEL 1
+#endif
+
 #define POCKETPAN_PREPARED_NOTE_CACHE \
     (POCKETPAN_DSP_CANDIDATE == 12 || POCKETPAN_DSP_CANDIDATE == 13 || \
      POCKETPAN_DSP_CANDIDATE == 14 || POCKETPAN_DSP_CANDIDATE == 15 || \
