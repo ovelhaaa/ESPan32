@@ -6,6 +6,15 @@
 **Date:** 2026-09-29  
 **Status:** M7.0 CLOSED / Tongue V1 = **CANDIDATE** (Bell V1 = **FROZEN**, Pan = **REFERENCE**)
 
+> **M7.0.2 correction (see [m702_regression_isolation.md](m702_regression_isolation.md)):**
+> the `1966/1968 µs` PAN/Bell figures in this document came from a qualification
+> firmware built as **DSP candidate 13** (a stale `build/` CMake cache), not
+> candidate 25 as the M6 baseline was. Candidate 13 lacks the tail-IRAM,
+> sustain, PAN stable-8 and attack-voice fast paths and is ~19% slower on every
+> model. A controlled A/B on the committed source with candidate 25 reproduces
+> the M6 frozen envelope (PAN 1668 µs, Bell 1654 µs) and proves the additive
+> 6-mode `Process6` microkernel is not responsible.
+
 ---
 
 ## 1. Executive Summary
@@ -17,7 +26,7 @@ All six milestone goals have been successfully fulfilled:
 2. **PAN Mode Count Correction:** Corrected historical documentation misstatement claiming PAN had 7 modes (56 resonators). PAN operates with 8 modes/voice (64 resonators total). Tongue's 6 modes/voice (48 resonators total) represents a **25.0% reduction** vs PAN and **40.0% reduction** vs Bell (10 modes/voice, 80 resonators total).
 3. **Exciter Impulse Duration Correction:** Removed non-existent struct member claims (`impulseWidthMin`/`impulseWidthMax`). Documented the generic exciter model where impulse duration is universally calculated as $\text{durationSamples} = 14.0f - 11.0f \cdot h$ (min 3 samples), and documented the real physical/DSP causes of Tongue's mellow, warm mallet strike.
 4. **Physical Hardware Forensics Qualification:** Qualified 8192-block hardware runs with 5 µs bins on ESP32-S3 COM10 across PAN cluster8, BELL cluster8, TONGUE chord4, and TONGUE cluster8. Tongue cluster8 callback average is **1566.84 µs** (vs PAN **1966.24 µs** and BELL **1968.58 µs**), achieving a **20.3% CPU headroom reduction** (~400 µs headroom gain) and **0 deadline misses**.
-5. **Physical BOOT Button Qualification:** Successfully verified 3 cycles of `PAN -> BELL -> TONGUE -> PAN` (6 transitions total), plus 3 short presses (UI navigation regression test) and an extended 2500 ms hold test. Exactly 1 transition per hold, 0 repeated cyclings while held, instant voice cutoff on model switch, and 0 crashes.
+5. **BOOT Button Qualification:** An automated, hardware-resident BOOT state-machine test (`POCKETPAN_BUTTON_QUAL=1`) verified 3 cycles of `PAN -> BELL -> TONGUE -> PAN` (6 transitions total), plus 3 short presses (UI navigation regression test) and an extended 2500 ms hold test: exactly 1 transition per hold, 0 repeated cyclings while held, instant voice cutoff on model switch, and 0 crashes. The **user separately confirmed the physical BOOT button works on real hardware** (`PAN -> BELL -> TONGUE -> PAN`).
 6. **Active Musical Smoke Soak:** Successfully executed 15,029 consecutive audio blocks of active musical soak on Tongue Drum (covering single strikes, velocity dynamic sweeps $30 \to 127$, restrikes, rolls, 4-voice chords, 8-voice clusters, PolyPressure, ChannelPressure, and idle decay) with **0 deadline misses**, **0 I2S underruns**, **0 MIDI drops**, and completely stable internal heap.
 
 ---
@@ -34,29 +43,41 @@ Prior documentation mistakenly stated PAN had 7 modes per voice (56 resonators).
 | **Bell V1** | **10** | **80** | Tongue is **40.0% smaller** (-32 resonators) |
 
 ### 2.2 Exciter Model & Attack Softness Mechanism
-The `ExciterConfig` struct defines:
+The compiled `main/dsp/dsp_config.h` defines the exciter config exactly as:
 ```cpp
 struct ExciterConfig {
-    float hammerHardnessMin;
-    float hammerHardnessMax;
-    float strikePosition;
+    float gain;
     float noiseAmount;
-    float brightnessBandwidthMin;
-    float brightnessBandwidthMax;
+    float brightnessMinHz;
+    float brightnessMaxHz;
     float velocityKnee;
-    float velocitySlopeAboveKnee;
+    float velocityKneeSlope;
 };
 ```
-There are no fields named `impulseWidthMin` or `impulseWidthMax`. In `main/dsp/modal_voice.cpp`, the contact duration is determined uniformly across all instrument models as:
-$$\text{durationSamples} = \max\left(3, \; \text{round}(14.0f - 11.0f \cdot h)\right)$$
-where $h \in [0, 1]$ is the effective strike hardness.
+There are **no** fields named `hammerHardnessMin`, `hammerHardnessMax`, `strikePosition`, `brightnessBandwidthMin`, `brightnessBandwidthMax`, `velocitySlopeAboveKnee`, `impulseWidthMin` or `impulseWidthMax`. In `main/dsp/exciter.cpp` the contact duration is computed uniformly across all instrument models from the effective strike hardness `h`:
+```cpp
+const float durationSamples = 14.0f - 11.0f * h;
+impulseSamples_ = std::max<uint32_t>(3U, static_cast<uint32_t>(durationSamples));
+```
+The conversion to `uint32_t` **truncates toward zero** for the positive `durationSamples` (there is no `round()`), and the minimum impulse length is clamped to **3 samples**.
+
+Verified exciter configurations (`main/dsp/dsp_config.h`, `main/dsp/instrument_model.cpp`, `main/dsp/pan_calibration.h`):
+
+| Field | Tongue | Bell | Pan |
+| :--- | ---: | ---: | ---: |
+| `gain` | 0.78 | 0.80 | 0.80 |
+| `noiseAmount` | 0.42 | 0.70 | 1.00 |
+| `brightnessMinHz` | 750 | 900 | 700 |
+| `brightnessMaxHz` | 8500 | 14000 | 12000 |
+| `velocityKnee` | 0.85 | 0.85 | 0.85 |
+| `velocityKneeSlope` | 0.38 | 0.35 | 0.35 |
 
 Tongue V1 achieves its signature mellow, woody mallet character through:
-- **Hardness Envelope:** $[0.25, 0.95]$ (strikes at low velocity produce duration $\approx 11\text{--}12$ samples).
-- **Subdued Noise Floor:** `noiseAmount = 0.42` (lower than Pan `0.65` and Bell `0.58`).
-- **Warm Brightness Bandwidth:** $[750.0\text{ Hz}, 8500.0\text{ Hz}]$ filtering transient spike energy.
-- **Velocity Compression Knee:** `velocityKnee = 0.85` and `velocitySlopeAboveKnee = 0.38`.
-- **Direct Modal Gain Profile:** Ratios $[1.000, 2.000, 3.000, 4.000, 5.250, 7.150]$ with steep higher-mode attenuation ($g_0 = 1.00$, $g_5 = 0.08$).
+- **Hardness Envelope:** `strikeHardnessMin = 0.25`, `strikeHardnessMax = 0.95` (soft strikes at low velocity produce a shorter contact window than Pan/Bell).
+- **Subdued Noise Floor:** `noiseAmount = 0.42` (lower than Bell `0.70` and Pan `1.00`).
+- **Warm Brightness Bandwidth:** `[750.0 Hz, 8500.0 Hz]`, filtering transient spike energy.
+- **Velocity Compression Knee:** `velocityKnee = 0.85` and `velocityKneeSlope = 0.38` (the actual `ExciterConfig` member is `velocityKneeSlope`).
+- **Direct Modal Gain Profile (`main/dsp/modal_preset.h`, `kPresetTongue`):** ratios $[1.0000, 2.0000, 2.9850, 4.0600, 5.3800, 6.7200]$ with gains $[1.00, 0.48, 0.26, 0.14, 0.07, 0.03]$.
 
 ---
 
@@ -82,9 +103,17 @@ Measurements captured live on `ESP32-S3 (QFN56 revision v0.2)` over serial COM10
 
 ---
 
-## 4. Physical BOOT Button Qualification
+## 4. BOOT Button Qualification
 
-Tested live on ESP32-S3 over COM10:
+This qualification was an **automated, hardware-resident BOOT state-machine test**
+(`POCKETPAN_BUTTON_QUAL=1`), not a capture of literal GPIO presses: on real
+ESP32-S3 silicon over COM10 the firmware drove the same button flag the GPIO path
+uses and logged the resulting transitions. Separately, the **user manually
+confirmed on physical hardware that the real BOOT button cycles
+`PAN -> BELL -> TONGUE -> PAN`**. The `m701_boot_cycle.log` artifact records the
+automated state-machine run only and does not record physical button presses.
+
+Automated state-machine results (ESP32-S3 over COM10):
 - **Short Press Test:** 3 short presses ($<800$ ms) executed sequentially. Result: UI screen mode advanced (`Status -> Presets -> Bluetooth -> Status`), active model remained `PAN`. Short-press regression: **PASS**.
 - **Model Cycling Test:** 6 long-press transitions executed ($\ge 800$ ms hold each):
   1. `PAN -> BELL` (preset label: `'BELL'`)
@@ -128,7 +157,7 @@ The following raw log artifacts are preserved in `docs/hardware/`:
 - [docs/hardware/m701_tongue_chord4.log](file:///c:/progs/ESPan/docs/hardware/m701_tongue_chord4.log): TONGUE chord4 forensics (8192 blocks, 5 µs bins).
 - [docs/hardware/m701_tongue_cluster8.log](file:///c:/progs/ESPan/docs/hardware/m701_tongue_cluster8.log): TONGUE cluster8 forensics (8192 blocks, 5 µs bins).
 - [docs/hardware/m701_forensics_all.log](file:///c:/progs/ESPan/docs/hardware/m701_forensics_all.log): Complete 4-fixture automated forensics execution log.
-- [docs/hardware/m701_boot_cycle.log](file:///c:/progs/ESPan/docs/hardware/m701_boot_cycle.log): Physical BOOT button cycle verification log.
+- [docs/hardware/m701_boot_cycle.log](file:///c:/progs/ESPan/docs/hardware/m701_boot_cycle.log): Automated BOOT state-machine cycle verification log (not a physical button capture; physical BOOT was confirmed manually by the user).
 - [docs/hardware/m701_tongue_smoke.log](file:///c:/progs/ESPan/docs/hardware/m701_tongue_smoke.log): Continuous musical smoke & soak log (15,029 blocks).
 
 ---

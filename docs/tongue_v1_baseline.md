@@ -98,8 +98,8 @@ Soft strikes ($v \le 0.15$) produce almost exclusively the fundamental with gent
 | `noiseAmount` | 0.42 | 0.70 | 1.00 |
 | `brightnessMinHz` | 750 Hz | 900 Hz | 700 Hz |
 | `brightnessMaxHz` | 8500 Hz | 14000 Hz | 12000 Hz |
-| `velocityKnee` | 0.85 | 0.85 | 1.00 |
-| `velocityKneeSlope` | 0.38 | 0.35 | 1.00 |
+| `velocityKnee` | 0.85 | 0.85 | 0.85 |
+| `velocityKneeSlope` | 0.38 | 0.35 | 0.35 |
 
 Note: `ExciterConfig` contains no model-specific `impulseWidthMin` or `impulseWidthMax` fields.
 
