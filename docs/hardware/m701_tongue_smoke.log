@@ -1,0 +1,36 @@
+[0;32mI (122) esp_image: segment 1: paddr=0002f55c vaddr=3fc9c4[0;32mI (5827) pocket_pan_main: [AUDIO] model=TONGUE blocks=1858 avg_us=917 p99_us=0 max_us=2082 cpu_load=34.4 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (5827) pocket_pan_main: [MIDI] push=33 pop=33 drop=0 hwm=4 last=(n=50 v=127 t=78 hex=90327F)[0m
+[0;32mI (5837) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-64 reconnects=0 last_disconnect=0[0m
+[0;32mI (5847) pocket_pan_main: [MEM] internal_free=138087 largest_internal=34816[0m
+[0;32mI (5857) pocket_pan_main: [UIREDRAW] urgent=25 telemetry=11 skip=114[0m
+[0;32mI (10847) pocket_pan_main: [AUDIO] model=TONGUE blocks=3739 avg_us=444 p99_us=1450 max_us=2082 cpu_load=16.6 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (10847) pocket_pan_main: [MIDI] push=57 pop=57 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+[0;32mI (10857) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+[0;32mI (10867) pocket_pan_main: [MEM] internal_free=138087 largest_internal=34816[0m
+[0;32mI (10877) pocket_pan_main: [UIREDRAW] urgent=47 telemetry=23 skip=246[0m
+[0;32mI (15857) pocket_pan_main: [AUDIO] model=TONGUE blocks=5620 avg_us=734 p99_us=1950 max_us=2655 cpu_load=27.5 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (15857) pocket_pan_main: [MIDI] push=80 pop=80 drop=0 hwm=4 last=(n=65 v=90 t=78 hex=90415A)[0m
+[0;32mI (15867) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+[0;32mI (15877) pocket_pan_main: [MEM] internal_free=138087 largest_internal=34816[0m
+[0;32mI (15887) pocket_pan_main: [UIREDRAW] urgent=66 telemetry=39 skip=377[0m
+[0;32mI (20877) pocket_pan_main: [AUDIO] model=TONGUE blocks=7502 avg_us=1051 p99_us=1525 max_us=2655 cpu_load=39.4 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (20877) pocket_pan_main: [MIDI] push=119 pop=119 drop=0 hwm=4 last=(n=65 v=0 t=78 hex=804100)[0m
+[0;32mI (20887) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-63 reconnects=0 last_disconnect=0[0m
+[0;32mI (20897) pocket_pan_main: [MEM] internal_free=138087 largest_internal=34816[0m
+[0;32mI (20907) pocket_pan_main: [UIREDRAW] urgent=91 telemetry=50 skip=507[0m
+[0;32mI (25897) pocket_pan_main: [AUDIO] model=TONGUE blocks=9384 avg_us=1513 p99_us=1375 max_us=2655 cpu_load=56.7 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (25897) pocket_pan_main: [MIDI] push=142 pop=142 drop=0 hwm=4 last=(n=72 v=127 t=78 hex=90487F)[0m
+[0;32mI (25907) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-65 reconnects=0 last_disconnect=0[0m
+[0;32mI (25917) pocket_pan_main: [MEM] internal_free=138087 largest_internal=34816[0m
+[0;32mI (25927) pocket_pan_main: [UIREDRAW] urgent=110 telemetry=64 skip=640[0m
+[0;32mI (30917) pocket_pan_main: [AUDIO] model=TONGUE blocks=11265 avg_us=908 p99_us=1925 max_us=2655 cpu_load=34.0 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (30917) pocket_pan_main: [MIDI] push=164 pop=164 drop=0 hwm=4 last=(n=62 v=110 t=78 hex=903E6E)[0m
+[0;32mI (30927) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-65 reconnects=0 last_disconnect=0[0m
+[0;32mI (30937) pocket_pan_main: [MEM] internal_free=138087 largest_internal=34816[0m
+[0;32mI (30947) pocket_pan_main: [UIREDRAW] urgent=129 telemetry=79 skip=772[0m
+[0;32mI (35927) pocket_pan_main: [AUDIO] model=TONGUE blocks=13146 avg_us=291 p99_us=1475 max_us=2655 cpu_load=10.9 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (35927) pocket_pan_main: [MIDI] push=197 pop=197 drop=0 hwm=4 last=(n=72 v=0 t=78 hex=804800)[0m
+[0;32mI (35937) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-67 reconnects=0 last_disconnect=0[0m
+[0;32mI (35947) pocket_pan_main: [MEM] internal_free=138087 largest_internal=34816[0m
+[0;32mI (35957) pocket_pan_main: [UIREDRAW] urgent=156 telemetry=91 skip=899[0m
+[0;32mI (40947) pocket_pan_main: [AUDIO] model=TONGUE blocks=15029 avg_us=450 p99_us=1950 max_us=2657 cpu_load=16.9 deadline=0 timeout=0 tx_error=0 short=0[0m

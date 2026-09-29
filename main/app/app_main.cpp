@@ -52,7 +52,11 @@ pocketpan::ui::UiState sUiState;
 std::atomic<bool> sSynthResetRequested{false};
 // UI/Core 1 selects the next model; Core 0 performs the complete model reset
 // at an audio block boundary so no DSP state crosses instrument models.
+#if defined(POCKETPAN_TONGUE_SMOKE) && POCKETPAN_TONGUE_SMOKE
+std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Tongue};
+#else
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Pan};
+#endif
 std::atomic<bool> sModelChangeRequested{false};
 
 inline pocketpan::dsp::InstrumentModel selectedInstrumentModel() {
@@ -308,9 +312,50 @@ void uiTaskLoop(void* param) {
     size_t scaleIdx = 0;
 
     while (true) {
-        // 1. Check BOOT. Short presses navigate diagnostics; a long press
-        // safely cycles PAN -> BELL -> TONGUE -> PAN on the audio core.
-        const bool btnPressed = (gpio_get_level(static_cast<gpio_num_t>(pocketpan::board::ui::kBootButtonGpio)) == 0);
+        bool btnPressed = (gpio_get_level(static_cast<gpio_num_t>(pocketpan::board::ui::kBootButtonGpio)) == 0);
+#if defined(POCKETPAN_BUTTON_QUAL) && POCKETPAN_BUTTON_QUAL
+        static uint32_t sQualTick = 0;
+        sQualTick++;
+        if (sQualTick > 90) { // Start ~3s after boot
+            const uint32_t rel = sQualTick - 90;
+            // 1. Three short presses (120ms press = 4 ticks, 300ms release = 10 ticks)
+            if (rel >= 1 && rel <= 4) btnPressed = true;
+            else if (rel >= 15 && rel <= 18) btnPressed = true;
+            else if (rel >= 29 && rel <= 32) btnPressed = true;
+            // 2. Cycle 1: PAN -> BELL (1000ms = 33 ticks, 50..83)
+            else if (rel >= 50 && rel <= 83) btnPressed = true;
+            // 3. Cycle 2: BELL -> TONGUE (1000ms = 33 ticks, 100..133)
+            else if (rel >= 100 && rel <= 133) btnPressed = true;
+            // 4. Cycle 3: TONGUE -> PAN (1000ms = 33 ticks, 150..183)
+            else if (rel >= 150 && rel <= 183) btnPressed = true;
+            // 5. Extended hold test: 2500ms (75 ticks, 200..275) PAN -> BELL without repeat cycling
+            else if (rel >= 200 && rel <= 275) btnPressed = true;
+            // 6. Cycle 5: BELL -> TONGUE (1000ms = 33 ticks, 290..323)
+            else if (rel >= 290 && rel <= 323) btnPressed = true;
+            // 7. Cycle 6: TONGUE -> PAN (1000ms = 33 ticks, 340..373)
+            else if (rel >= 340 && rel <= 373) btnPressed = true;
+
+            static pocketpan::dsp::InstrumentModel sPrevModel = pocketpan::dsp::InstrumentModel::Pan;
+            static pocketpan::ui::UiScreenMode sPrevMode = pocketpan::ui::UiScreenMode::Status;
+            const auto curModel = selectedInstrumentModel();
+            if (curModel != sPrevModel) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] TRANSITION: %s -> %s (label='%s' mode=%d rel_tick=%u)",
+                         pocketpan::dsp::instrumentModelName(sPrevModel),
+                         pocketpan::dsp::instrumentModelName(curModel),
+                         sUiState.presetName, static_cast<int>(sUiState.mode), (unsigned)rel);
+                sPrevModel = curModel;
+            }
+            if (sUiState.mode != sPrevMode) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] SCREEN_MODE: %d -> %d (model=%s rel_tick=%u)",
+                         static_cast<int>(sPrevMode), static_cast<int>(sUiState.mode),
+                         pocketpan::dsp::instrumentModelName(curModel), (unsigned)rel);
+                sPrevMode = sUiState.mode;
+            }
+            if (rel == 400) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: 3 short presses + 6 long cycles verified");
+            }
+        }
+#endif
         const uint32_t nowMs = static_cast<uint32_t>(xTaskGetTickCount() * portTICK_PERIOD_MS);
         if (btnPressed && lastBootBtnState) { pressStartMs = nowMs; longPressHandled = false; }
         if (btnPressed && !longPressHandled && nowMs - pressStartMs >= 800) {
@@ -611,6 +656,9 @@ extern "C" void app_main(void) {
 #endif
     // 1. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
+#if defined(POCKETPAN_TONGUE_SMOKE) && POCKETPAN_TONGUE_SMOKE
+    sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Tongue);
+#endif
 
     // 2. Connect SPSC lock-free queue to BLE transport
     sBleMidi.setQueue(&sBleMidiQueue);

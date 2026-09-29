@@ -1,0 +1,24 @@
+[005.5s] I (5798) pocket_pan_main: [AUDIO] model=PAN blocks=1845 avg_us=1990 p99_us=0 max_us=3140 cpu_load=74.6 deadline=9 timeout=0 tx_error=0 short=0
+[010.5s] I (10818) pocket_pan_main: [AUDIO] model=PAN blocks=3726 avg_us=1963 p99_us=2425 max_us=3471 cpu_load=73.6 deadline=20 timeout=0 tx_error=0 short=0
+[015.5s] I (15818) pocket_pan_main: [AUDIO] model=PAN blocks=5603 avg_us=1958 p99_us=2375 max_us=3471 cpu_load=73.4 deadline=30 timeout=0 tx_error=0 short=0
+[020.5s] I (20838) pocket_pan_main: [AUDIO] model=PAN blocks=7485 avg_us=1957 p99_us=2375 max_us=3471 cpu_load=73.4 deadline=40 timeout=0 tx_error=0 short=0
+[022.9s] I (23208) forensics: [CURVE] model=PAN fixture=0 voices=8 class=true_steady n=8103 avg_us=1940.40 p95_us=2030 p99_us=2210 p995_us=2245 p999_us=2360 max_us=2396 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[023.6s] I (23928) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=true_steady n=8102 avg_us=1966.24 p95_us=2080 p99_us=2310 p995_us=2360 p999_us=2450 max_us=2522 deadline=0 overhead_avg_us=25.84
+[024.5s] I (24858) forensics: [CURVE] model=PAN fixture=0 voices=8 class=attack_tail n=44 avg_us=2261.62 p95_us=2510 p99_us=2590 p995_us=2590 p999_us=2590 max_us=2587 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[024.7s] I (25038) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=attack_tail n=44 avg_us=2316.95 p95_us=2580 p99_us=2735 p995_us=2735 p999_us=2735 max_us=2730 deadline=1 overhead_avg_us=55.33
+[024.9s] I (25258) forensics: [CURVE] model=PAN fixture=0 voices=8 class=event n=44 avg_us=2880.38 p95_us=3015 p99_us=3205 p995_us=3205 p999_us=3205 max_us=3292 deadline=44 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[025.1s] I (25428) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=event n=44 avg_us=2966.95 p95_us=3130 p99_us=3205 p995_us=3205 p999_us=3205 max_us=3471 deadline=44 overhead_avg_us=86.58
+[025.3s] I (25628) forensics: [CURVE] model=PAN fixture=0 voices=8 class=fixture_transition n=1 avg_us=2080.12 p95_us=2085 p99_us=2085 p995_us=2085 p999_us=2085 max_us=2081 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[025.3s] I (25658) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=fixture_transition n=1 avg_us=2169.00 p95_us=2170 p99_us=2170 p995_us=2170 p999_us=2170 max_us=2169 deadline=0 overhead_avg_us=88.88
+[025.5s] I (25848) pocket_pan_main: [AUDIO] model=PAN blocks=9363 avg_us=2064 p99_us=0 max_us=3276 cpu_load=77.4 deadline=6 timeout=0 tx_error=0 short=0
+[030.5s] I (30868) pocket_pan_main: [AUDIO] model=PAN blocks=11247 avg_us=1947 p99_us=2325 max_us=3276 cpu_load=73.0 deadline=16 timeout=0 tx_error=0 short=0
+[035.6s] I (35888) pocket_pan_main: [AUDIO] model=PAN blocks=13129 avg_us=1941 p99_us=2325 max_us=3276 cpu_load=72.8 deadline=26 timeout=0 tx_error=0 short=0
+[040.6s] I (40908) pocket_pan_main: [AUDIO] model=PAN blocks=15012 avg_us=1965 p99_us=2300 max_us=3276 cpu_load=73.7 deadline=36 timeout=0 tx_error=0 short=0
+[047.0s] I (47378) pocket_pan_main: [AUDIO] model=PAN blocks=17438 avg_us=1062 p99_us=0 max_us=1913 cpu_load=39.8 deadline=0 timeout=0 tx_error=0 short=0
+[052.1s] I (52398) pocket_pan_main: [AUDIO] model=PAN blocks=19319 avg_us=952 p99_us=1300 max_us=1913 cpu_load=35.7 deadline=0 timeout=0 tx_error=0 short=0
+[057.1s] I (57408) pocket_pan_main: [AUDIO] model=PAN blocks=21199 avg_us=952 p99_us=1275 max_us=1913 cpu_load=35.7 deadline=0 timeout=0 tx_error=0 short=0
+[062.1s] I (62428) pocket_pan_main: [AUDIO] model=PAN blocks=23082 avg_us=946 p99_us=1275 max_us=1920 cpu_load=35.5 deadline=0 timeout=0 tx_error=0 short=0
+[069.0s] I (69298) pocket_pan_main: [AUDIO] model=PAN blocks=25657 avg_us=1685 p99_us=0 max_us=2879 cpu_load=63.2 deadline=4 timeout=0 tx_error=0 short=0
+[073.9s] I (74238) pocket_pan_main: [AUDIO] model=PAN blocks=27511 avg_us=1567 p99_us=1925 max_us=2879 cpu_load=58.8 deadline=8 timeout=0 tx_error=0 short=0
+[078.9s] I (79248) pocket_pan_main: [AUDIO] model=PAN blocks=29389 avg_us=1569 p99_us=1900 max_us=2879 cpu_load=58.8 deadline=10 timeout=0 tx_error=0 short=0
+[083.9s] I (84258) pocket_pan_main: [AUDIO] model=PAN blocks=31266 avg_us=1561 p99_us=1925 max_us=2996 cpu_load=58.5 deadline=15 timeout=0 tx_error=0 short=0

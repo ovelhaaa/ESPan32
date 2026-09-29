@@ -1,0 +1,106 @@
+Flashing forensics firmware to COM10...
+esptool.py v4.12.0
+Serial port COM10
+Connecting...
+Chip is ESP32-S3 (QFN56) (revision v0.2)
+Features: WiFi, BLE, Embedded Flash 4MB (XMC), Embedded PSRAM 2MB (AP_3v3)
+Crystal is 40MHz
+USB mode: USB-Serial/JTAG
+MAC: b4:3a:45:ae:6f:28
+Uploading stub...
+Running stub...
+Stub running...
+Changing baud rate to 460800
+Changed.
+Configuring flash size...
+Flash will be erased from 0x00010000 to 0x000affff...
+Compressed 653408 bytes to 406574...
+Writing at 0x00010000... (4 %)
+Writing at 0x0001d95f... (8 %)
+Writing at 0x00026f4b... (12 %)
+Writing at 0x0002bd80... (16 %)
+Writing at 0x00032438... (20 %)
+Writing at 0x00037d27... (24 %)
+Writing at 0x0003d3af... (28 %)
+Writing at 0x00042dbc... (32 %)
+Writing at 0x0004886e... (36 %)
+Writing at 0x0004e182... (40 %)
+Writing at 0x00053a8c... (44 %)
+Writing at 0x00059260... (48 %)
+Writing at 0x0005ed3f... (52 %)
+Writing at 0x00064918... (56 %)
+Writing at 0x0006a06b... (60 %)
+Writing at 0x0006f921... (64 %)
+Writing at 0x00074f2d... (68 %)
+Writing at 0x0007ad38... (72 %)
+Writing at 0x0008045b... (76 %)
+Writing at 0x00088e7e... (80 %)
+Writing at 0x00091782... (84 %)
+Writing at 0x00099680... (88 %)
+Writing at 0x0009f1d6... (92 %)
+Writing at 0x000a49e9... (96 %)
+Writing at 0x000aa7d5... (100 %)
+Wrote 653408 bytes (406574 compressed) at 0x00010000 in 5.8 seconds (effective 893.7 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...
+
+Flash succeeded. Opening serial port on COM10...
+Running 4 fixtures (8192 blocks each, ~88-100s total)...
+[005.5s] I (5798) pocket_pan_main: [AUDIO] model=PAN blocks=1845 avg_us=1990 p99_us=0 max_us=3140 cpu_load=74.6 deadline=9 timeout=0 tx_error=0 short=0
+[010.0s] still running... (121 lines read)
+[010.5s] I (10818) pocket_pan_main: [AUDIO] model=PAN blocks=3726 avg_us=1963 p99_us=2425 max_us=3471 cpu_load=73.6 deadline=20 timeout=0 tx_error=0 short=0
+[015.5s] I (15818) pocket_pan_main: [AUDIO] model=PAN blocks=5603 avg_us=1958 p99_us=2375 max_us=3471 cpu_load=73.4 deadline=30 timeout=0 tx_error=0 short=0
+[020.1s] still running... (151 lines read)
+[020.5s] I (20838) pocket_pan_main: [AUDIO] model=PAN blocks=7485 avg_us=1957 p99_us=2375 max_us=3471 cpu_load=73.4 deadline=40 timeout=0 tx_error=0 short=0
+[022.9s] I (23208) forensics: [CURVE] model=PAN fixture=0 voices=8 class=true_steady n=8103 avg_us=1940.40 p95_us=2030 p99_us=2210 p995_us=2245 p999_us=2360 max_us=2396 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[023.6s] I (23928) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=true_steady n=8102 avg_us=1966.24 p95_us=2080 p99_us=2310 p995_us=2360 p999_us=2450 max_us=2522 deadline=0 overhead_avg_us=25.84
+[024.5s] I (24858) forensics: [CURVE] model=PAN fixture=0 voices=8 class=attack_tail n=44 avg_us=2261.62 p95_us=2510 p99_us=2590 p995_us=2590 p999_us=2590 max_us=2587 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[024.7s] I (25038) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=attack_tail n=44 avg_us=2316.95 p95_us=2580 p99_us=2735 p995_us=2735 p999_us=2735 max_us=2730 deadline=1 overhead_avg_us=55.33
+[024.9s] I (25258) forensics: [CURVE] model=PAN fixture=0 voices=8 class=event n=44 avg_us=2880.38 p95_us=3015 p99_us=3205 p995_us=3205 p999_us=3205 max_us=3292 deadline=44 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[025.1s] I (25428) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=event n=44 avg_us=2966.95 p95_us=3130 p99_us=3205 p995_us=3205 p999_us=3205 max_us=3471 deadline=44 overhead_avg_us=86.58
+[025.3s] I (25628) forensics: [CURVE] model=PAN fixture=0 voices=8 class=fixture_transition n=1 avg_us=2080.12 p95_us=2085 p99_us=2085 p995_us=2085 p999_us=2085 max_us=2081 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[025.3s] I (25658) forensics: [CALLBACK_CURVE] model=PAN fixture=0 voices=8 class=fixture_transition n=1 avg_us=2169.00 p95_us=2170 p99_us=2170 p995_us=2170 p999_us=2170 max_us=2169 deadline=0 overhead_avg_us=88.88
+[025.5s] I (25848) pocket_pan_main: [AUDIO] model=PAN blocks=9363 avg_us=2064 p99_us=0 max_us=3276 cpu_load=77.4 deadline=6 timeout=0 tx_error=0 short=0
+[030.4s] still running... (489 lines read)
+[030.5s] I (30868) pocket_pan_main: [AUDIO] model=PAN blocks=11247 avg_us=1947 p99_us=2325 max_us=3276 cpu_load=73.0 deadline=16 timeout=0 tx_error=0 short=0
+[035.6s] I (35888) pocket_pan_main: [AUDIO] model=PAN blocks=13129 avg_us=1941 p99_us=2325 max_us=3276 cpu_load=72.8 deadline=26 timeout=0 tx_error=0 short=0
+[040.4s] still running... (519 lines read)
+[040.6s] I (40908) pocket_pan_main: [AUDIO] model=PAN blocks=15012 avg_us=1965 p99_us=2300 max_us=3276 cpu_load=73.7 deadline=36 timeout=0 tx_error=0 short=0
+[044.7s] I (45048) forensics: [CURVE] model=BELL fixture=1 voices=8 class=true_steady n=8103 avg_us=1946.00 p95_us=2065 p99_us=2190 p995_us=2215 p999_us=2310 max_us=2484 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[045.4s] I (45688) forensics: [CALLBACK_CURVE] model=BELL fixture=1 voices=8 class=true_steady n=8103 avg_us=1968.58 p95_us=2100 p99_us=2265 p995_us=2315 p999_us=2390 max_us=2566 deadline=0 overhead_avg_us=22.57
+[046.2s] I (46568) forensics: [CURVE] model=BELL fixture=1 voices=8 class=attack_tail n=44 avg_us=2211.41 p95_us=2440 p99_us=2465 p995_us=2465 p999_us=2465 max_us=2460 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[046.4s] I (46708) forensics: [CALLBACK_CURVE] model=BELL fixture=1 voices=8 class=attack_tail n=44 avg_us=2260.93 p95_us=2520 p99_us=2575 p995_us=2575 p999_us=2575 max_us=2571 deadline=0 overhead_avg_us=49.52
+[046.6s] I (46898) forensics: [CURVE] model=BELL fixture=1 voices=8 class=event n=44 avg_us=2928.42 p95_us=3120 p99_us=3180 p995_us=3180 p999_us=3180 max_us=3177 deadline=44 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[046.8s] I (47078) forensics: [CALLBACK_CURVE] model=BELL fixture=1 voices=8 class=event n=44 avg_us=3016.61 p95_us=3205 p99_us=3205 p995_us=3205 p999_us=3205 max_us=3276 deadline=44 overhead_avg_us=88.19
+[046.9s] I (47268) forensics: [CURVE] model=BELL fixture=1 voices=8 class=fixture_transition n=1 avg_us=1190.74 p95_us=1195 p99_us=1195 p995_us=1195 p999_us=1195 max_us=1191 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[047.0s] I (47298) forensics: [CALLBACK_CURVE] model=BELL fixture=1 voices=8 class=fixture_transition n=1 avg_us=1232.00 p95_us=1235 p99_us=1235 p995_us=1235 p999_us=1235 max_us=1232 deadline=0 overhead_avg_us=41.26
+[047.0s] I (47378) pocket_pan_main: [AUDIO] model=PAN blocks=17438 avg_us=1062 p99_us=0 max_us=1913 cpu_load=39.8 deadline=0 timeout=0 tx_error=0 short=0
+[052.1s] I (52398) pocket_pan_main: [AUDIO] model=PAN blocks=19319 avg_us=952 p99_us=1300 max_us=1913 cpu_load=35.7 deadline=0 timeout=0 tx_error=0 short=0
+[052.1s] still running... (821 lines read)
+[057.1s] I (57408) pocket_pan_main: [AUDIO] model=PAN blocks=21199 avg_us=952 p99_us=1275 max_us=1913 cpu_load=35.7 deadline=0 timeout=0 tx_error=0 short=0
+[062.1s] I (62428) pocket_pan_main: [AUDIO] model=PAN blocks=23082 avg_us=946 p99_us=1275 max_us=1920 cpu_load=35.5 deadline=0 timeout=0 tx_error=0 short=0
+[062.1s] still running... (831 lines read)
+[066.5s] I (66878) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=true_steady n=8103 avg_us=931.33 p95_us=1040 p99_us=1145 p995_us=1180 p999_us=1260 max_us=1459 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[067.2s] I (67488) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=true_steady n=8103 avg_us=953.46 p95_us=1080 p99_us=1245 p995_us=1290 p999_us=1375 max_us=1934 deadline=0 overhead_avg_us=22.13
+[068.0s] I (68318) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=attack_tail n=44 avg_us=1133.20 p95_us=1245 p99_us=1270 p995_us=1270 p999_us=1270 max_us=1265 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[068.2s] I (68498) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=attack_tail n=44 avg_us=1181.95 p95_us=1310 p99_us=1320 p995_us=1320 p999_us=1320 max_us=1316 deadline=0 overhead_avg_us=48.76
+[068.4s] I (68728) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=event n=44 avg_us=1585.35 p95_us=1765 p99_us=1805 p995_us=1805 p999_us=1805 max_us=1803 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[068.6s] I (68898) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=event n=44 avg_us=1672.84 p95_us=1875 p99_us=1925 p995_us=1925 p999_us=1925 max_us=1920 deadline=0 overhead_avg_us=87.49
+[068.8s] I (69128) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=fixture_transition n=1 avg_us=1176.72 p95_us=1180 p99_us=1180 p995_us=1180 p999_us=1180 max_us=1177 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[068.8s] I (69158) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=fixture_transition n=1 avg_us=1211.00 p95_us=1215 p99_us=1215 p995_us=1215 p999_us=1215 max_us=1211 deadline=0 overhead_avg_us=34.28
+[069.0s] I (69298) pocket_pan_main: [AUDIO] model=PAN blocks=25657 avg_us=1685 p99_us=0 max_us=2879 cpu_load=63.2 deadline=4 timeout=0 tx_error=0 short=0
+[073.1s] still running... (1134 lines read)
+[073.9s] I (74238) pocket_pan_main: [AUDIO] model=PAN blocks=27511 avg_us=1567 p99_us=1925 max_us=2879 cpu_load=58.8 deadline=8 timeout=0 tx_error=0 short=0
+[078.9s] I (79248) pocket_pan_main: [AUDIO] model=PAN blocks=29389 avg_us=1569 p99_us=1900 max_us=2879 cpu_load=58.8 deadline=10 timeout=0 tx_error=0 short=0
+[083.6s] still running... (1151 lines read)
+[083.9s] I (84258) pocket_pan_main: [AUDIO] model=PAN blocks=31266 avg_us=1561 p99_us=1925 max_us=2996 cpu_load=58.5 deadline=15 timeout=0 tx_error=0 short=0
+[088.4s] I (88738) forensics: [CURVE] model=TONGUE fixture=3 voices=8 class=true_steady n=8103 avg_us=1544.83 p95_us=1660 p99_us=1775 p995_us=1810 p999_us=1910 max_us=2034 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[089.1s] I (89388) forensics: [CALLBACK_CURVE] model=TONGUE fixture=3 voices=8 class=true_steady n=8103 avg_us=1566.84 p95_us=1695 p99_us=1855 p995_us=1910 p999_us=2010 max_us=2164 deadline=0 overhead_avg_us=22.01
+All 4 fixtures completed! Waiting 3s to flush...
+Traceback (most recent call last):
+  File "C:\Users\devx\.gemini\antigravity\brain\c2dae248-3cae-41f4-b6c8-b36a08eb5220\scratch\run_forensics_capture.py", line 44, in <module>
+    with open('scratch/raw_forensics_all.log', 'w', encoding='utf-8') as f:
+         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'scratch/raw_forensics_all.log'

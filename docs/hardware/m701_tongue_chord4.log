@@ -1,0 +1,8 @@
+[066.5s] I (66878) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=true_steady n=8103 avg_us=931.33 p95_us=1040 p99_us=1145 p995_us=1180 p999_us=1260 max_us=1459 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[067.2s] I (67488) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=true_steady n=8103 avg_us=953.46 p95_us=1080 p99_us=1245 p995_us=1290 p999_us=1375 max_us=1934 deadline=0 overhead_avg_us=22.13
+[068.0s] I (68318) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=attack_tail n=44 avg_us=1133.20 p95_us=1245 p99_us=1270 p995_us=1270 p999_us=1270 max_us=1265 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[068.2s] I (68498) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=attack_tail n=44 avg_us=1181.95 p95_us=1310 p99_us=1320 p995_us=1320 p999_us=1320 max_us=1316 deadline=0 overhead_avg_us=48.76
+[068.4s] I (68728) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=event n=44 avg_us=1585.35 p95_us=1765 p99_us=1805 p995_us=1805 p999_us=1805 max_us=1803 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[068.6s] I (68898) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=event n=44 avg_us=1672.84 p95_us=1875 p99_us=1925 p995_us=1925 p999_us=1925 max_us=1920 deadline=0 overhead_avg_us=87.49
+[068.8s] I (69128) forensics: [CURVE] model=TONGUE fixture=2 voices=4 class=fixture_transition n=1 avg_us=1176.72 p95_us=1180 p99_us=1180 p995_us=1180 p999_us=1180 max_us=1177 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[068.8s] I (69158) forensics: [CALLBACK_CURVE] model=TONGUE fixture=2 voices=4 class=fixture_transition n=1 avg_us=1211.00 p95_us=1215 p99_us=1215 p995_us=1215 p999_us=1215 max_us=1211 deadline=0 overhead_avg_us=34.28

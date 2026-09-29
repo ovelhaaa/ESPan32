@@ -1,0 +1,2 @@
+[088.4s] I (88738) forensics: [CURVE] model=TONGUE fixture=3 voices=8 class=true_steady n=8103 avg_us=1544.83 p95_us=1660 p99_us=1775 p995_us=1810 p999_us=1910 max_us=2034 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5
+[089.1s] I (89388) forensics: [CALLBACK_CURVE] model=TONGUE fixture=3 voices=8 class=true_steady n=8103 avg_us=1566.84 p95_us=1695 p99_us=1855 p995_us=1910 p999_us=2010 max_us=2164 deadline=0 overhead_avg_us=22.01

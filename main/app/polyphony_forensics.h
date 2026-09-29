@@ -232,7 +232,9 @@ inline CallbackBlockContext sCurrentBlockContext;
 inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
-#ifdef CONFIG_POCKETPAN_DSP_PROFILE
+#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+inline constexpr unsigned fixtureCount = 4;
+#elif defined(CONFIG_POCKETPAN_DSP_PROFILE)
 inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_CRITICAL_ONLY ? 3 : 19;
 #else
 inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_CRITICAL_ONLY ? 3 : 16;
@@ -241,11 +243,43 @@ inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_CRITICAL_ONLY ? 3 :
 inline Result results[fixtureCount]{};
 inline CallbackOverheadStats gCallbackOverhead[fixtureCount]{};
 
-inline unsigned kindOf(unsigned id) { return id >= 16 ? 5 : id % 8; }
-inline bool isPan(unsigned id) { return id < 8 || id == 16; }
+inline dsp::InstrumentModel modelOf(unsigned id) {
+#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+    switch (id) {
+        case 0: return dsp::InstrumentModel::Pan;
+        case 1: return dsp::InstrumentModel::Bell;
+        case 2: return dsp::InstrumentModel::Tongue;
+        case 3: return dsp::InstrumentModel::Tongue;
+        default: return dsp::InstrumentModel::Pan;
+    }
+#else
+    return (id < 8 || id == 16) ? dsp::InstrumentModel::Pan : dsp::InstrumentModel::Bell;
+#endif
+}
+
+inline unsigned kindOf(unsigned id) {
+#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+    switch (id) {
+        case 0: return 5; // cluster8
+        case 1: return 5; // cluster8
+        case 2: return 6; // chord4
+        case 3: return 5; // cluster8
+        default: return 5;
+    }
+#else
+    return id >= 16 ? 5 : id % 8;
+#endif
+}
+
+inline bool isPan(unsigned id) { return modelOf(id) == dsp::InstrumentModel::Pan; }
+
 inline unsigned fixtureId(unsigned index) {
+#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+    return index;
+#else
     constexpr unsigned critical[] = {5, 14, 13};
     return POCKETPAN_FORENSICS_CRITICAL_ONLY ? critical[index] : index;
+#endif
 }
 inline constexpr unsigned counts[8] = {0, 1, 2, 4, 6, 8, 4, 1};
 inline constexpr uint8_t cluster[8] = {50, 52, 54, 56, 57, 59, 61, 62};
@@ -321,7 +355,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 
     if (isTransition) {
         const uint32_t start = esp_cpu_get_cycle_count();
-        synth.setInstrumentModel(isPan(id) ? dsp::InstrumentModel::Pan : dsp::InstrumentModel::Bell);
+        synth.setInstrumentModel(modelOf(id));
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
         if (id == 16) synth.setBodyEnabled(false); // Diagnostic PAN isolation only.
         if (id >= 17) {
@@ -379,7 +413,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     sCurrentBlockContext.internalRenderUs = (elapsed + 239) / 240;
     sCurrentBlockContext.blockClass = currentClass;
     sCurrentBlockContext.fixtureId = static_cast<uint8_t>(id);
-    sCurrentBlockContext.model = isPan(id) ? 0 : 1;
+    sCurrentBlockContext.model = static_cast<uint8_t>(modelOf(id));
     sCurrentBlockContext.activeVoices = static_cast<uint8_t>(synth.getVoiceAllocator().getActiveVoiceCount());
     sCurrentBlockContext.exciterActive = synth.hasActiveExciter();
 
@@ -433,7 +467,7 @@ inline void logCompleted() {
         for (unsigned c = 0; c < kClassCount; ++c) {
             const auto& t = r.timing(c);
             ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u bin_us=%u",
-                isPan(id) ? "PAN" : "BELL", id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)t.count,
+                dsp::instrumentModelName(modelOf(id)), id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)t.count,
                 t.count ? double(t.sum) / t.count / 240.0 : 0.0, (unsigned)t.p95(), (unsigned)t.p99(),
                 (unsigned)t.p995(), (unsigned)t.p999(), (unsigned)t.maximum, (unsigned)t.deadline,
                 (unsigned)r.badVoices, (unsigned)r.bleLost, (unsigned)r.hardClamp, (unsigned)r.modalSat,
@@ -447,7 +481,7 @@ inline void logCompleted() {
             const double cbAvg = cb.count ? double(cb.sum) / cb.count / 240.0 : 0.0;
             const double overhead = cbAvg - innerAvg;
             ESP_LOGI("forensics", "[CALLBACK_CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u overhead_avg_us=%.2f",
-                isPan(id) ? "PAN" : "BELL", id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)cb.count,
+                dsp::instrumentModelName(modelOf(id)), id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)cb.count,
                 cbAvg, (unsigned)cb.p95(), (unsigned)cb.p99(),
                 (unsigned)cb.p995(), (unsigned)cb.p999(), (unsigned)cb.maximum, (unsigned)cb.deadline,
                 overhead);

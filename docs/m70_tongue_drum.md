@@ -6,7 +6,7 @@ Milestone M7.0 introduces the **Tongue Drum V1** (`InstrumentModel::Tongue`) ins
 
 The implementation maintains ESPan32's hard real-time guarantees:
 - **8 active polyphonic voices** across all 3 models.
-- **Strictly lower or comparable DSP load**: Tongue executes 6 modes/voice (48 modes total) vs Pan (56 modes) and Bell (80 modes).
+- **Lower resonator count**: Tongue executes 6 modes/voice (48 modes total) vs Pan (8 modes/voice, 64 modes total) and Bell (10 modes/voice, 80 modes total).
 - **Zero transport regressions**: I2S timeout=0, short=0, tx_error=0, deadline misses=0, BLE reconnects=0.
 - **Bit-identical PAN regression**: PAN FNV fingerprint fully preserved.
 - **Physical ESP32-S3 hardware qualification**: Verified live on ESP32-S3 @ 240 MHz (COM10).
@@ -74,14 +74,17 @@ Modeled after hand-tuned steel tongue drums (tank drums) struck with rubber mall
 All detuning is zero; body and sympathetic resonators are disabled (pure tank drum modal cell behavior).
 
 ### 2.2 Exciter & Dynamic Voicing
-- **Soft Mallet Exciter:**
+- **Mallet Exciter Parameters:**
   - Gain: 0.78
   - Noise Amount: 0.42 (significantly lower noise than PAN 1.00 and Bell 0.70)
   - Bandwidth: 750 Hz – 8,500 Hz (rounded, avoids glass-like or clangy highs)
-  - Impulse Width: 0.85 ms (soft) to 0.38 ms (hard)
+  - Velocity Knee: 0.85 (slope 0.38)
+- **Impulse Duration Mechanism:**
+  - Calculated generically from hardness $h$: $\text{durationSamples} = 14 - 11 \cdot h$ (minimum 3 samples).
+  - Hardness is mapped via `kTongueVoicing` from $h_{\min} = 0.25$ to $h_{\max} = 0.95$.
 - **Dynamic Coupling:**
-  - Soft strike ($v \le 0.25$): Fundamental and octave dominate ($g_0 = 1.0, g_1 = 0.40$), upper modes essentially silent.
-  - Hard strike ($v \ge 0.90$): Progressive emergence of higher modes ($g_2 = 0.35, g_3 = 0.22, g_4 = 0.12, g_5 = 0.06$).
+  - Soft strike ($v \le 0.15$): Fundamental and octave dominate ($g_0 = 1.0, g_1 = 0.35$), upper modes quiet ($g_2 = 0.15, g_3 = 0.05, g_4 = 0.02, g_5 = 0.00$).
+  - Hard strike ($v \ge 0.90$): Progressive emergence of higher modes ($g_1 = 0.80, g_2 = 0.65, g_3 = 0.45, g_4 = 0.30, g_5 = 0.18$).
 
 ---
 
@@ -95,18 +98,15 @@ To guarantee optimal instruction pipelining on the ESP32-S3 Xtensa LX7 core:
 
 ---
 
-## 4. Performance & Memory Comparison
+## 4. Topology & Resource Footprint Comparison
 
 | Metric | PAN (M6 Baseline) | BELL (M6.4 Frozen) | TONGUE (M7.0 V1) | Target / Gate |
 |---|:---:|:---:|:---:|:---:|
-| **Modes / Voice** | 7 | 10 | 6 | $\le 7$ |
-| **Total Modes (8 voices)** | 56 | 80 | 48 | $\le 56$ |
-| **DSP block time (avg)** | ~330 µs | ~410 µs | ~245 µs | $< 2666$ µs |
-| **DSP CPU load** | ~12.4% | ~15.4% | ~9.2% | $< 35.0\%$ |
+| **Modes / Voice** | 8 | 10 | 6 | $\le 7$ |
+| **Total Modes (8 voices)** | 64 | 80 | 48 | $\le 64$ |
+| **Resonator Count vs Tongue** | +33.3% (64 vs 48) | +66.7% (80 vs 48) | **Baseline (48)** | 25% fewer than PAN, 40% fewer than Bell |
 | **Internal DRAM Free** | ~138 KB | ~138 KB | ~138 KB | $> 70$ KB |
-| **Prepared Note Memory** | 128 notes $\times$ 7 modes | 128 notes $\times$ 10 modes | 128 notes $\times$ 6 modes | Static heap safe |
-
-Tongue Drum DSP processing is ~25% lighter than PAN and ~40% lighter than BELL.
+| **Prepared Note Memory** | 128 notes $\times$ 8 modes | 128 notes $\times$ 10 modes | 128 notes $\times$ 6 modes | Static heap safe |
 
 ---
 
