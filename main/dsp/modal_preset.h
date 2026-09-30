@@ -122,4 +122,30 @@ inline constexpr ModalPreset kPresetKalimba = {
     }
 };
 
+// Glass / Crystal percussion acoustic model:
+// 6 modes:
+// Mode 0: Fundamental (1.0000) - clean transparent pitch center
+// Mode 1: First glass partial (2.3200) - characteristic transverse glass mode
+// Mode 2: Bright partial (3.8500) - clear crystalline resonance
+// Mode 3: High partial (5.5500) - high glass chime overtone
+// Mode 4: Crystalline colour (7.7500) - fragile upper sheen
+// Mode 5: Short shimmer (10.4000) - transient crystalline air
+inline constexpr ModalPreset kPresetGlass = {
+    "GLASS",
+    6,
+    {
+        // ratio,   gain,  t60(s), detune
+        { 1.0000f, 1.00f, 4.80f, 0.0000f }, // Mode 0: Fundamental
+        { 2.3200f, 0.42f, 3.80f, 0.0000f }, // Mode 1: First glass partial
+        { 3.8500f, 0.30f, 2.80f, 0.0000f }, // Mode 2: Bright partial
+        { 5.5500f, 0.18f, 2.00f, 0.0000f }, // Mode 3: High partial
+        { 7.7500f, 0.09f, 1.20f, 0.0000f }, // Mode 4: Crystalline colour
+        { 10.4000f, 0.04f, 0.70f, 0.0000f }, // Mode 5: Short shimmer
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f }
+    }
+};
+
 } // namespace pocketpan::dsp

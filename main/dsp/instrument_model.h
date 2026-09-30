@@ -15,7 +15,8 @@ enum class InstrumentModel : uint8_t {
     Tongue = 2,
     Bowl = 3,
     Kalimba = 4,
-    Count = 5
+    Glass = 5,
+    Count = 6
 };
 
 inline constexpr const char* instrumentModelName(InstrumentModel model) {
@@ -24,6 +25,7 @@ inline constexpr const char* instrumentModelName(InstrumentModel model) {
         case InstrumentModel::Tongue: return "TONGUE";
         case InstrumentModel::Bowl: return "BOWL";
         case InstrumentModel::Kalimba: return "KALIMBA";
+        case InstrumentModel::Glass: return "GLASS";
         case InstrumentModel::Pan:
         default: return "PAN";
     }
@@ -35,7 +37,8 @@ inline constexpr InstrumentModel nextInstrumentModel(InstrumentModel model) {
         case InstrumentModel::Bell: return InstrumentModel::Tongue;
         case InstrumentModel::Tongue: return InstrumentModel::Bowl;
         case InstrumentModel::Bowl: return InstrumentModel::Kalimba;
-        case InstrumentModel::Kalimba: return InstrumentModel::Pan;
+        case InstrumentModel::Kalimba: return InstrumentModel::Glass;
+        case InstrumentModel::Glass: return InstrumentModel::Pan;
         default: return InstrumentModel::Pan;
     }
 }

@@ -1,8 +1,8 @@
 # Kalimba / Thumb Piano V1 Baseline
 
-Status: **CANDIDATE**  
-Human listening: PENDING  
-User verdict: unreviewed  
+Status: **FROZEN**  
+Human listening: COMPLETE  
+User verdict: accepted  
 
 This document records the **M7.2 Kalimba / Thumb Piano V1** (`InstrumentModel::Kalimba`) specification and baseline configuration, verified directly against source, host test suite, and hardware execution.
 
@@ -103,8 +103,18 @@ enum class ExciterShape : uint8_t {
 ```
 
 ### 5.1 Pluck Dynamics
-- **Displacement Release Pulse:** Asymmetric waveform with fast attack (0.15 ms / ~7 samples) and exponential release toward zero (1.0 ms / ~48 samples).
-- **Filtered Noise Transient:** Short click component bandpass-filtered with velocity-dependent brightness ($f_c \in [1200, 11000]\text{ Hz}$), decaying within 1.0–2.5 ms.
+- **Displacement Release Pulse:** 3–8 sample asymmetric quadratic-decay displacement pulse ($N = \max(3, \lfloor 8.0 - 5.0h \rfloor)$).
+  The per-sample pulse shape is:
+  ```cpp
+  p = 1.0f - i / N;
+  output += strikeAmplitude * (p * p) * impulseNorm;
+  ```
+  *(Note: There is no separate 0.15 ms attack phase nor 48-sample exponential release).*
+- **Filtered Noise Transient:** Short click component (~1.0–2.5 ms duration based on hardness: $t = 0.0010 + 0.0015(1-h)\text{ s}$), filtered via a one-pole low-pass filter ($f_c \in [1200, 11000]\text{ Hz}$):
+  ```cpp
+  filterState += filterCoeff * (rawNoise - filterState);
+  ```
+  *(Note: There is no high-pass or band-pass noise filter).*
 - **Exciter Config (`kKalimbaModelConfig`):**
   - `shape`: `ExciterShape::Pluck`
   - `gain`: 0.80

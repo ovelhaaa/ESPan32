@@ -9,7 +9,7 @@
 - Bell V1: **FROZEN**
 - Tongue V1: **FROZEN** (Human listening: COMPLETE, User verdict: accepted)
 - Bowl V1: **FROZEN** (Human listening: COMPLETE, User verdict: accepted)
-- Kalimba V1: **CANDIDATE** (Ready for human listening)
+- Kalimba V1: **FROZEN** (Human listening: COMPLETE, User verdict: accepted)
 
 ---
 
@@ -24,7 +24,7 @@ Milestone M7.2 adds `InstrumentModel::Kalimba` as the fifth instrument in ESPan3
    - Long-press BOOT cycling extended: `PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN`.
 2. **Pluck Exciter Architecture:**
    - Added `ExciterShape` enum with `Strike` and `Pluck` modes.
-   - Implemented `ExciterShape::Pluck` using an asymmetric displacement pulse release combined with a highpass/bandpass noise click.
+   - Implemented `ExciterShape::Pluck` using a 3–8 sample asymmetric quadratic-decay displacement pulse ($p = 1.0 - i/N$, output $+=\text{amp}\cdot p^2 \cdot \text{norm}$) combined with a short 1.0–2.5 ms one-pole low-pass filtered noise click ($\text{state} += c \cdot (\text{raw} - \text{state})$).
    - Strict bit-exact arithmetic maintained: historical `Strike` calculation for PAN, Bell, Tongue, and Bowl is 100% bit-identical.
 3. **Modal Topology:**
    - 5 modes per voice (40 resonators across 8 voices).

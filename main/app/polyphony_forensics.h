@@ -247,8 +247,8 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 #if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     switch (id) {
         case 0: return dsp::InstrumentModel::Pan;
-        case 1: return dsp::InstrumentModel::Bowl;
-        case 2: return dsp::InstrumentModel::Kalimba;
+        case 1: return dsp::InstrumentModel::Glass;
+        case 2: return dsp::InstrumentModel::Glass;
         case 3: return dsp::InstrumentModel::Kalimba;
         default: return dsp::InstrumentModel::Pan;
     }
@@ -261,8 +261,8 @@ inline unsigned kindOf(unsigned id) {
 #if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     switch (id) {
         case 0: return 5; // cluster8
-        case 1: return 5; // cluster8
-        case 2: return 6; // chord4
+        case 1: return 6; // chord4
+        case 2: return 5; // cluster8
         case 3: return 5; // cluster8
         default: return 5;
     }

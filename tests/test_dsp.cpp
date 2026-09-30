@@ -1851,7 +1851,8 @@ void testM7TongueModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
 
     // 2. PolyPressure and ChannelPressure support for Tongue
     for (bool poly : {true, false}) {
@@ -2097,7 +2098,8 @@ void testM71BowlModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
 
     // 2. Beating Doublet Verification (Phase S)
     std::cout << "  Verifying Singing Bowl beating doublet mechanism...\n";
@@ -2175,8 +2177,8 @@ void testM71BowlModel() {
         }
     }
 
-    // 4. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN
-    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN...\n";
+    // 4. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> PAN
+    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> PAN...\n";
     dsp::SynthEngine swEngine;
     swEngine.init(48000.0f);
     int32_t swBlock[256]{};
@@ -2202,6 +2204,11 @@ void testM71BowlModel() {
         swEngine.renderBlock(swBlock, 128);
         for (auto sample : swBlock) assert(sample == 0);
         swEngine.handleMidiEvent(note(62, 95));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Glass);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(65, 90));
         swEngine.renderBlock(swBlock, 128);
         swEngine.setInstrumentModel(dsp::InstrumentModel::Pan);
         swEngine.renderBlock(swBlock, 128);
@@ -2450,7 +2457,8 @@ void testM72KalimbaModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Kalimba);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
 
     // 2. PolyPressure and ChannelPressure support for Kalimba
     for (bool poly : {true, false}) {
@@ -2471,8 +2479,8 @@ void testM72KalimbaModel() {
         }
     }
 
-    // 3. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN
-    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN...\n";
+    // 3. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> PAN
+    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> PAN...\n";
     dsp::SynthEngine swEngine;
     swEngine.init(48000.0f);
     int32_t swBlock[256]{};
@@ -2498,6 +2506,11 @@ void testM72KalimbaModel() {
         swEngine.renderBlock(swBlock, 128);
         for (auto sample : swBlock) assert(sample == 0);
         swEngine.handleMidiEvent(note(62, 95));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Glass);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(65, 90));
         swEngine.renderBlock(swBlock, 128);
         swEngine.setInstrumentModel(dsp::InstrumentModel::Pan);
         swEngine.renderBlock(swBlock, 128);
@@ -2671,6 +2684,294 @@ void testM72KalimbaModel() {
     std::cout << "  -> PASSED: M7.2 Kalimba V1 fixtures, pluck exciter, and objective tests verified.\n";
 }
 
+struct GlassQualificationRender {
+    M5cResult rendered;
+    size_t maxActiveVoices = 0;
+    size_t maxStealTails = 0;
+    float maxSampleDelta = 0.0f;
+    size_t finalActiveVoices = 0;
+    uint32_t voiceStealCount = 0;
+    float bodyEnergy = 0.0f;
+    float bodyPeak = 0.0f;
+};
+
+GlassQualificationRender renderGlassQualification(const std::vector<ScheduledEvent>& events,
+                                                  size_t totalFrames) {
+    constexpr size_t kBlock = 128;
+    GlassQualificationRender result;
+    result.rendered.audio.resize(totalFrames * 2);
+    dsp::SynthEngine engine;
+    engine.init(48000.0f);
+    engine.setInstrumentModel(dsp::InstrumentModel::Glass);
+    size_t eventIndex = 0;
+    int32_t previous = 0;
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) {
+            engine.handleMidiEvent(events[eventIndex++].event);
+        }
+        result.maxStealTails = std::max(result.maxStealTails, engine.getVoiceAllocator().getActiveStealTailCount());
+        const size_t count = std::min(kBlock, totalFrames - frame);
+        engine.renderBlock(result.rendered.audio.data() + frame * 2, count);
+        result.maxActiveVoices = std::max(result.maxActiveVoices, engine.getVoiceAllocator().getActiveVoiceCount());
+        for (size_t i = 0; i < count * 2; ++i) {
+            const int32_t current = result.rendered.audio[frame * 2 + i];
+            result.maxSampleDelta = std::max(result.maxSampleDelta, static_cast<float>(std::abs(current - previous)));
+            previous = current;
+        }
+    }
+    result.finalActiveVoices = engine.getVoiceAllocator().getActiveVoiceCount();
+    result.voiceStealCount = engine.getVoiceAllocator().getVoiceStealCount();
+    result.bodyEnergy = engine.getBodyEnergy();
+    result.bodyPeak = engine.getBodyPeak();
+    result.rendered.metrics = computeMetrics(result.rendered.audio, engine.getSoftClipCount());
+    result.rendered.hardClampCount = engine.getHardClampCount();
+    result.rendered.modalSat = engine.getModalInternalSaturationCount();
+    result.rendered.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    result.rendered.metrics.averageGainReductionDb = engine.getAverageGainReductionDb();
+    return result;
+}
+
+void testM73GlassModel() {
+    std::cout << "[Test 26] M7.3 Glass V1 model, fixtures, strike exciter, and 6-model cycling...\n";
+    auto allFinite = [](const std::vector<int32_t>& audio) {
+        for (int32_t s : audio) { if (!std::isfinite(static_cast<float>(s))) return false; }
+        return true;
+    };
+    auto note = [](uint8_t n, uint8_t v) {
+        midi::MidiEvent e{};
+        e.type = midi::MidiEventType::NoteOn;
+        e.data1 = n;
+        e.data2 = v;
+        return e;
+    };
+
+    // 1. Model Registry and Config validation
+    const auto& glassConfig = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Glass);
+    assert(glassConfig.id == dsp::InstrumentModel::Glass);
+    assert(glassConfig.modalPreset != nullptr);
+    assert(glassConfig.modalPreset->modeCount == 6);
+    assert(dsp::kPresetGlass.modeCount == 6);
+    assert(glassConfig.body.enabled == false);
+    assert(glassConfig.sympathetic.enabled == false);
+    assert(glassConfig.exciter.shape == dsp::ExciterShape::Strike);
+    assert(glassConfig.exciter.gain == 0.72f);
+    assert(glassConfig.exciter.noiseAmount == 0.08f);
+    assert(glassConfig.exciter.brightnessMinHz == 2400.0f);
+    assert(glassConfig.exciter.brightnessMaxHz == 16000.0f);
+    assert(glassConfig.exciter.velocityKnee == 0.85f);
+    assert(glassConfig.exciter.velocityKneeSlope == 0.40f);
+    assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Glass)) == "GLASS");
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Kalimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
+
+    // 2. PolyPressure and ChannelPressure support for Glass
+    for (bool poly : {true, false}) {
+        for (uint8_t pressure : {0, 32, 64, 96, 127}) {
+            dsp::SynthEngine pressureEngine;
+            pressureEngine.init(48000.0f);
+            pressureEngine.setInstrumentModel(dsp::InstrumentModel::Glass);
+            pressureEngine.handleMidiEvent(note(62, 90));
+            int32_t pressureBlock[256]{};
+            pressureEngine.renderBlock(pressureBlock, 128);
+            midi::MidiEvent event{};
+            event.type = poly ? midi::MidiEventType::PolyPressure : midi::MidiEventType::ChannelPressure;
+            event.data1 = poly ? 62 : pressure;
+            event.data2 = poly ? pressure : 0;
+            pressureEngine.handleMidiEvent(event);
+            pressureEngine.renderBlock(pressureBlock, 128);
+            for (auto sample : pressureBlock) assert(std::isfinite(static_cast<float>(sample)));
+        }
+    }
+
+    // 3. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> PAN
+    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> PAN...\n";
+    dsp::SynthEngine swEngine;
+    swEngine.init(48000.0f);
+    int32_t swBlock[256]{};
+    for (int iter = 0; iter < 100; ++iter) {
+        swEngine.handleMidiEvent(note(50, 70));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Bell);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(62, 90));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Tongue);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(58, 80));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Bowl);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(60, 85));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Kalimba);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(62, 95));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Glass);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(65, 90));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Pan);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+    }
+    // Verify direct PAN matches PAN after 100 switches
+    swEngine.handleMidiEvent(note(50, 70));
+    std::vector<int32_t> swPan(96000 * 2);
+    for (size_t frame = 0; frame < 96000; frame += 128) {
+        swEngine.renderBlock(swPan.data() + frame * 2, std::min<size_t>(128, 96000 - frame));
+    }
+    const auto directPan = renderModel({{0, note(50, 70)}}, 96000, dsp::InstrumentModel::Pan);
+    assert(fnv1a64(swPan) == fnv1a64(directPan.audio));
+    std::cout << "  -> 100 cycles verified bit-identical direct PAN recovery!\n";
+
+    // 4. Host listening fixtures & metrics collection
+    std::ofstream report("glass_m73_metrics.md");
+    report << "# Glass / Crystal M7.3 host qualification\n\n"
+           << "**InstrumentModel::Glass (Glass Percussion V1 Candidate)**\n\n"
+           << "## 1. Model topology\n\n"
+           << "| Mode | Ratio | Gain | T60 (s) | Detune | Role |\n"
+           << "|---:|------:|-----:|--------:|-------:|------|\n";
+
+    constexpr const char* glassRoles[] = {
+        "Fundamental (clear crystal pitch)",
+        "First glass partial (transverse mode)",
+        "Bright partial (resonant clarity)",
+        "High partial (glass chime overtone)",
+        "Crystalline colour (fragile sheen)",
+        "Short shimmer (crystalline air)"
+    };
+    for (size_t i = 0; i < dsp::kPresetGlass.modeCount; ++i) {
+        const auto& m = dsp::kPresetGlass.modes[i];
+        report << "| " << i << " | " << std::fixed << std::setprecision(4) << m.ratio << " | "
+               << std::setprecision(2) << m.gain << " | " << m.t60 << " | "
+               << m.detune << " | " << glassRoles[i] << " |\n";
+    }
+
+    report << "\n## 2. Velocity scaling and monotonicity (Note D4 = 62)\n\n"
+           << "| Velocity | RMS (dBFS) | Peak (dBFS) | Modal Sat | Clamps | Max GR (dB) |\n"
+           << "|---------:|-----------:|------------:|:---------:|:------:|------------:|\n";
+
+    float previousRms = 0.0f;
+    for (uint8_t vel : {20, 40, 60, 80, 100, 120, 127}) {
+        const auto q = renderGlassQualification({{0, note(62, vel)}}, 96000); // 2 seconds
+        assert(allFinite(q.rendered.audio));
+        assert(q.rendered.hardClampCount == 0);
+        assert(q.rendered.modalSat == 0);
+        assert(q.rendered.metrics.rms > previousRms);
+        previousRms = q.rendered.metrics.rms;
+
+        report << "| " << static_cast<int>(vel) << " | " << std::fixed << std::setprecision(2)
+               << q.rendered.metrics.rms << " | " << q.rendered.metrics.peak << " | "
+               << q.rendered.modalSat << " | " << q.rendered.hardClampCount << " | "
+               << q.rendered.metrics.maxGainReductionDb << " |\n";
+    }
+
+    // Generate the 13 required host listening fixtures:
+    std::cout << "  Rendering 13 Glass host listening fixtures...\n";
+    report << "\n## 3. Host listening fixtures (13 WAVs)\n\n"
+           << "| Fixture | Description | Peak | RMS | Modal Sat | Clamps | Max GR (dB) |\n"
+           << "|:---|:---|---:|---:|:---:|:---:|---:|\n";
+
+    auto recordFixture = [&](const char* filename, const char* desc, const GlassQualificationRender& q) {
+        writeWavFile(filename, q.rendered.audio.data(), q.rendered.audio.size() / 2, 48000);
+        assert(allFinite(q.rendered.audio));
+        assert(q.rendered.hardClampCount == 0);
+        report << "| `" << filename << "` | " << desc << " | "
+               << std::fixed << std::setprecision(2) << q.rendered.metrics.peak << " | "
+               << q.rendered.metrics.rms << " | " << q.rendered.modalSat << " | "
+               << q.rendered.hardClampCount << " | " << q.rendered.metrics.maxGainReductionDb << " |\n";
+    };
+
+    // 1 & 2: D3 (low register) at v30 and v90
+    recordFixture("glass_D3_v30.wav", "D3 note (50) soft velocity 30",
+                  renderGlassQualification({{0, note(50, 30)}}, 96000));
+    recordFixture("glass_D3_v90.wav", "D3 note (50) firm velocity 90",
+                  renderGlassQualification({{0, note(50, 90)}}, 96000));
+
+    // 3, 4, 5, 6: D4 at v30, v60, v90, v127
+    recordFixture("glass_D4_v30.wav", "D4 note (62) soft velocity 30",
+                  renderGlassQualification({{0, note(62, 30)}}, 96000));
+    recordFixture("glass_D4_v60.wav", "D4 note (62) medium velocity 60",
+                  renderGlassQualification({{0, note(62, 60)}}, 96000));
+    recordFixture("glass_D4_v90.wav", "D4 note (62) firm velocity 90",
+                  renderGlassQualification({{0, note(62, 90)}}, 96000));
+    const auto qD4_v127 = renderGlassQualification({{0, note(62, 127)}}, 96000);
+    assert(qD4_v127.rendered.modalSat == 0);
+    recordFixture("glass_D4_v127.wav", "D4 note (62) maximum velocity 127", qD4_v127);
+
+    // 7: A4 (high register) at v90
+    recordFixture("glass_A4_v90.wav", "A4 note (69) firm velocity 90",
+                  renderGlassQualification({{0, note(69, 90)}}, 96000));
+
+    // 8: 2-note interval (D4 + A4)
+    recordFixture("glass_interval2.wav", "2-note fifth interval (D4 62 + A4 69, v80)",
+                  renderGlassQualification({{0, note(62, 80)}, {0, note(69, 80)}}, 96000));
+
+    // 9: 4-note chord (D3, A3, D4, A4) at v110
+    const auto qChord110 = renderGlassQualification({{0, note(50, 110)}, {0, note(57, 110)}, {0, note(62, 110)}, {0, note(69, 110)}}, 96000);
+    assert(qChord110.rendered.modalSat == 0);
+    recordFixture("glass_chord4.wav", "4-note resonant chord (50, 57, 62, 69, v110)", qChord110);
+
+    // 10: 8-note cluster at v100
+    const auto qCluster100 = renderGlassQualification({
+        {0, note(50, 100)}, {0, note(52, 100)}, {0, note(54, 100)}, {0, note(56, 100)},
+        {0, note(57, 100)}, {0, note(59, 100)}, {0, note(61, 100)}, {0, note(62, 100)}
+    }, 96000);
+    assert(qCluster100.rendered.modalSat == 0);
+    recordFixture("glass_cluster8.wav", "8-note dense cluster (50..62, v100)", qCluster100);
+
+    // 11: Restrike (soft then hard)
+    recordFixture("glass_restrike.wav", "Soft strike (v30) restruck by hard strike (v110) at 100ms",
+                  renderGlassQualification({{0, note(62, 30)}, {4800, note(62, 110)}}, 96000));
+
+    // 12: Rapid roll
+    std::vector<ScheduledEvent> rollEvents;
+    for (size_t i = 0; i < 8; ++i) {
+        rollEvents.push_back({static_cast<uint32_t>(i * 2400), note(62, static_cast<uint8_t>(60 + i * 8))});
+    }
+    recordFixture("glass_roll.wav", "8-strike accelerating dynamic roll on D4",
+                  renderGlassQualification(rollEvents, 96000));
+
+    // 13: Register sweep
+    std::vector<ScheduledEvent> sweepEvents;
+    const uint8_t scaleNotes[] = {50, 54, 57, 62, 66, 69, 74, 78, 81, 86};
+    for (size_t i = 0; i < 10; ++i) {
+        sweepEvents.push_back({static_cast<uint32_t>(i * 16000), note(scaleNotes[i], 85)});
+    }
+    recordFixture("glass_register_sweep.wav", "10-note ascending chromatic/modal sweep (D3 to D6)",
+                  renderGlassQualification(sweepEvents, 192000));
+
+    // Voice lifecycle termination:
+    // Single strike with 8 seconds of render (384,000 frames) - must naturally terminate to 0 active voices
+    {
+        const auto qLong = renderGlassQualification({{0, note(62, 70)}}, 384000);
+        assert(qLong.finalActiveVoices == 0);
+    }
+
+    report << "\n## 4. Qualification summary\n\n"
+           << "- Modal saturation count: 0 across single v127, chord4 v110, cluster8 v100\n"
+           << "- Hard clamp count: 0 across all fixtures\n"
+           << "- All samples finite: YES (no NaN, no Inf)\n"
+           << "- Voice lifecycle: terminates naturally to 0 active voices\n"
+           << "- PolyPressure & ChannelPressure: functional and stable\n"
+           << "- 100 model switch cycles: bit-identical PAN recovery\n"
+           << "- Doublet: OFF (clean crystal ring, 0 beating)\n"
+           << "- Body: OFF (pure crystal resonator bank identity)\n"
+           << "- Sympathetic: OFF\n";
+    report.close();
+    std::cout << "  -> PASSED: M7.3 Glass V1 fixtures, strike exciter, and objective tests verified.\n";
+}
+
 int main() {
     std::cout << "=======================================================\n";
     std::cout << "  Pocket Pan / Metal Modal Synth - Comprehensive DSP  \n";
@@ -2707,6 +3008,7 @@ int main() {
     testM7TongueModel();
     testM71BowlModel();
     testM72KalimbaModel();
+    testM73GlassModel();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";
