@@ -36,7 +36,7 @@ void checkVelocityTables() {
         }
     }
 
-    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue};
+    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl};
     for (InstrumentModel model : models) {
         const ExciterConfig cfg = getInstrumentModelConfig(model).exciter;
         for (int i = 0; i < kMidiVelocityCount; ++i) {
@@ -66,13 +66,13 @@ void checkVelocityTables() {
             }
         }
     }
-    std::fprintf(stderr, "velocity LUT: pow115 + exciter strike exact for 128 velocities x 2 models\n");
+    std::fprintf(stderr, "velocity LUT: pow115 + exciter strike exact for 128 velocities x models\n");
 #endif
 }
 
 void checkRegisterLogCache() {
 #ifdef POCKETPAN_TRIGGER_DIFFERENTIAL_TEST
-    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue};
+    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl};
     for (InstrumentModel model : models) {
         const InstrumentModelConfig cfg = getInstrumentModelConfig(model);
         const auto& v = cfg.voicing;

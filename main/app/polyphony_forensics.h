@@ -247,9 +247,9 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 #if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     switch (id) {
         case 0: return dsp::InstrumentModel::Pan;
-        case 1: return dsp::InstrumentModel::Bell;
-        case 2: return dsp::InstrumentModel::Tongue;
-        case 3: return dsp::InstrumentModel::Tongue;
+        case 1: return dsp::InstrumentModel::Tongue;
+        case 2: return dsp::InstrumentModel::Bowl;
+        case 3: return dsp::InstrumentModel::Bowl;
         default: return dsp::InstrumentModel::Pan;
     }
 #else
@@ -453,7 +453,7 @@ inline void logOverruns() {
             ESP_LOGW("forensics", "[OVERRUN] seq=%u callback_us=%u inner_us=%u class=%s fixture=%u model=%s voices=%u exciter=%d midi_depth=%u midi_consumed=%u telem=%d model_req=%d reset_req=%d",
                 (unsigned)rec.blockSequence, (unsigned)rec.fullCallbackUs, (unsigned)rec.internalRenderUs,
                 classToName(static_cast<ForensicsBlockClass>(rec.blockClass)),
-                (unsigned)rec.fixtureId, (rec.model == 0 ? "PAN" : (rec.model == 1 ? "BELL" : "TONGUE")),
+                (unsigned)rec.fixtureId, dsp::instrumentModelName(static_cast<dsp::InstrumentModel>(rec.model)),
                 (unsigned)rec.activeVoices, rec.exciterActive ? 1 : 0,
                 (unsigned)rec.midiQueueDepth, (unsigned)rec.midiEventsConsumed,
                 rec.telemetryPublished ? 1 : 0, rec.modelChangeRequested ? 1 : 0, rec.synthResetRequested ? 1 : 0);

@@ -70,4 +70,31 @@ inline constexpr ModalPreset kPresetTongue = {
     }
 };
 
+// Singing Bowl (Tibetan Bowl) acoustic model:
+// 7 modes:
+// Mode 0: Fundamental / Prime (1.0000) - deep stable pitch center and long sustain
+// Mode 1: Prime split doublet (1.0000) - slow acoustic beating doublet (~0.7 Hz)
+// Mode 2: Low inharmonic partial (2.3200) - warm lower metallic resonance
+// Mode 3: Mid partial (2.9600) - singing body resonance
+// Mode 4: Metallic partial (4.1500) - overtone shimmer
+// Mode 5: Upper partial (5.4500) - gentle high metallic colour
+// Mode 6: Upper colour shimmer (6.8000) - transient attack sheen
+inline constexpr ModalPreset kPresetBowl = {
+    "BOWL",
+    7,
+    {
+        // ratio,   gain,  t60(s), detune
+        { 1.0000f, 1.00f, 6.00f, 0.0000f }, // Mode 0: Prime fundamental
+        { 1.0000f, 0.48f, 5.20f, 0.0032f }, // Mode 1: Prime doublet (beating)
+        { 2.3200f, 0.38f, 4.20f, 0.0000f }, // Mode 2: Low inharmonic partial
+        { 2.9600f, 0.26f, 3.20f, 0.0000f }, // Mode 3: Mid partial
+        { 4.1500f, 0.16f, 2.20f, 0.0000f }, // Mode 4: Metallic partial
+        { 5.4500f, 0.08f, 1.40f, 0.0000f }, // Mode 5: Upper partial
+        { 6.8000f, 0.04f, 0.80f, 0.0000f }, // Mode 6: High shimmer
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f }
+    }
+};
+
 } // namespace pocketpan::dsp

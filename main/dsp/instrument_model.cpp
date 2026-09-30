@@ -40,12 +40,28 @@ constexpr InstrumentModelConfig kTongueModelConfig{
     {false, 0.0f, 0.0f, 1500.0f, 0.0f},
     BodyExcitationStrategy::StrikeBus, 0.0f,
 };
+
+constexpr ModalVoicingConfig kBowlVoicing{
+    0.20f, 0.90f, 1.05f, 0.92f, 1.00f, 0.80f, 0.15f, 0.90f,
+    1.15f, 0.85f, 0.70f, 146.83f, 440.0f, true,
+    {1.00f, 0.30f, 0.22f, 0.08f, 0.03f, 0.01f, 0.00f, 0.0f, 0.0f, 0.0f},
+    {1.00f, 0.70f, 0.65f, 0.50f, 0.35f, 0.20f, 0.10f, 0.0f, 0.0f, 0.0f}, 1.0e-8f};
+
+constexpr InstrumentModelConfig kBowlModelConfig{
+    InstrumentModel::Bowl, &kPresetBowl,
+    {0.76f, 0.30f, 600.0f, 9000.0f, 0.85f, 0.36f},
+    {1.0f, 0.95f, true}, kBowlVoicing,
+    {{}, 0, 0.0f, 0.0f, 1000.0f, false},
+    {false, 0.0f, 0.0f, 1500.0f, 0.0f},
+    BodyExcitationStrategy::StrikeBus, 0.0f,
+};
 }
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
     switch (model) {
         case InstrumentModel::Bell: return kBellModelConfig;
         case InstrumentModel::Tongue: return kTongueModelConfig;
+        case InstrumentModel::Bowl: return kBowlModelConfig;
         case InstrumentModel::Pan:
         default: return kPanModelConfig;
     }

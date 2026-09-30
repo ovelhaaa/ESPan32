@@ -54,6 +54,8 @@ std::atomic<bool> sSynthResetRequested{false};
 // at an audio block boundary so no DSP state crosses instrument models.
 #if defined(POCKETPAN_TONGUE_SMOKE) && POCKETPAN_TONGUE_SMOKE
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Tongue};
+#elif defined(POCKETPAN_BOWL_SMOKE) && POCKETPAN_BOWL_SMOKE
+std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Bowl};
 #else
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Pan};
 #endif
@@ -326,14 +328,18 @@ void uiTaskLoop(void* param) {
             else if (rel >= 50 && rel <= 83) btnPressed = true;
             // 3. Cycle 2: BELL -> TONGUE (1000ms = 33 ticks, 100..133)
             else if (rel >= 100 && rel <= 133) btnPressed = true;
-            // 4. Cycle 3: TONGUE -> PAN (1000ms = 33 ticks, 150..183)
+            // 4. Cycle 3: TONGUE -> BOWL (1000ms = 33 ticks, 150..183)
             else if (rel >= 150 && rel <= 183) btnPressed = true;
-            // 5. Extended hold test: 2500ms (75 ticks, 200..275) PAN -> BELL without repeat cycling
-            else if (rel >= 200 && rel <= 275) btnPressed = true;
-            // 6. Cycle 5: BELL -> TONGUE (1000ms = 33 ticks, 290..323)
-            else if (rel >= 290 && rel <= 323) btnPressed = true;
-            // 7. Cycle 6: TONGUE -> PAN (1000ms = 33 ticks, 340..373)
+            // 5. Cycle 4: BOWL -> PAN (1000ms = 33 ticks, 200..233)
+            else if (rel >= 200 && rel <= 233) btnPressed = true;
+            // 6. Extended hold test: 2500ms (75 ticks, 250..325) PAN -> BELL without repeat cycling
+            else if (rel >= 250 && rel <= 325) btnPressed = true;
+            // 7. Cycle 6: BELL -> TONGUE (1000ms = 33 ticks, 340..373)
             else if (rel >= 340 && rel <= 373) btnPressed = true;
+            // 8. Cycle 7: TONGUE -> BOWL (1000ms = 33 ticks, 390..423)
+            else if (rel >= 390 && rel <= 423) btnPressed = true;
+            // 9. Cycle 8: BOWL -> PAN (1000ms = 33 ticks, 440..473)
+            else if (rel >= 440 && rel <= 473) btnPressed = true;
 
             static pocketpan::dsp::InstrumentModel sPrevModel = pocketpan::dsp::InstrumentModel::Pan;
             static pocketpan::ui::UiScreenMode sPrevMode = pocketpan::ui::UiScreenMode::Status;
@@ -351,8 +357,8 @@ void uiTaskLoop(void* param) {
                          pocketpan::dsp::instrumentModelName(curModel), (unsigned)rel);
                 sPrevMode = sUiState.mode;
             }
-            if (rel == 400) {
-                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: 3 short presses + 6 long cycles verified");
+            if (rel == 500) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: 3 short presses + 7 long cycles verified");
             }
         }
 #endif
@@ -605,7 +611,7 @@ void uiTaskLoop(void* param) {
                 for (size_t i = 0; i < nStalls; ++i) {
                     ESP_LOGI(kTag, "[RARESTALL] block=%u dur=%uus voices=%u model=%s uiDraw=%d lcdDma=%d ble=%u telem=%d midiAge=%ums",
                              (unsigned)stalls[i].audioBlockSequence, (unsigned)stalls[i].renderDurationUs,
-                             stalls[i].activeVoices, stalls[i].model == 0 ? "PAN" : (stalls[i].model == 1 ? "BELL" : "TONGUE"),
+                             stalls[i].activeVoices, pocketpan::dsp::instrumentModelName(static_cast<pocketpan::dsp::InstrumentModel>(stalls[i].model)),
                              stalls[i].uiDrawing, stalls[i].lcdTransferActive,
                              stalls[i].bleState, stalls[i].telemetryPublish,
                              (unsigned)stalls[i].lastMidiAgeMs);
@@ -665,6 +671,8 @@ extern "C" void app_main(void) {
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
 #if defined(POCKETPAN_TONGUE_SMOKE) && POCKETPAN_TONGUE_SMOKE
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Tongue);
+#elif defined(POCKETPAN_BOWL_SMOKE) && POCKETPAN_BOWL_SMOKE
+    sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Bowl);
 #endif
 
     // 2. Connect SPSC lock-free queue to BLE transport

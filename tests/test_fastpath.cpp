@@ -113,6 +113,9 @@ int main() {
     compare("TONGUE single", true, InstrumentModel::Tongue, chord(0, single, 1, 90), total);
     compare("TONGUE chord4", true, InstrumentModel::Tongue, chord(0, four, 4, 90), total);
     compare("TONGUE cluster8", true, InstrumentModel::Tongue, chord(0, cluster, 8, 100), total);
+    compare("BOWL single", true, InstrumentModel::Bowl, chord(0, single, 1, 90), total);
+    compare("BOWL chord4", true, InstrumentModel::Bowl, chord(0, four, 4, 90), total);
+    compare("BOWL cluster8", true, InstrumentModel::Bowl, chord(0, cluster, 8, 100), total);
 
     {
         auto events = chord(0, four, 4, 90);
@@ -130,6 +133,11 @@ int main() {
         auto events = chord(0, four, 4, 90);
         events.push_back({48000, midi::MidiEventType::PolyPressure, 62, 90});
         compare("TONGUE polypressure", true, InstrumentModel::Tongue, events, total);
+    }
+    {
+        auto events = chord(0, four, 4, 90);
+        events.push_back({48000, midi::MidiEventType::PolyPressure, 62, 90});
+        compare("BOWL polypressure", true, InstrumentModel::Bowl, events, total);
     }
     {
         // A model switch resets every voice, so strike again after the switch
@@ -154,7 +162,13 @@ int main() {
     {
         auto events = chord(0, cluster, 8, 100);
         for (auto e : chord(49152, cluster, 8, 100)) events.push_back(e);
-        compare("TONGUE to PAN switch", true, InstrumentModel::Tongue, events,
+        compare("TONGUE to BOWL switch", true, InstrumentModel::Tongue, events,
+                total, 48000, InstrumentModel::Bowl);
+    }
+    {
+        auto events = chord(0, cluster, 8, 100);
+        for (auto e : chord(49152, cluster, 8, 100)) events.push_back(e);
+        compare("BOWL to PAN switch", true, InstrumentModel::Bowl, events,
                 total, 48000, InstrumentModel::Pan);
     }
 #else

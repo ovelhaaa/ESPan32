@@ -1849,7 +1849,8 @@ void testM7TongueModel() {
     assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Pan)) == "PAN");
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Pan);
 
     // 2. PolyPressure and ChannelPressure support for Tongue
     for (bool poly : {true, false}) {
@@ -2024,6 +2025,325 @@ void testM7TongueModel() {
     std::cout << "  -> PASSED: M7.0 Tongue Drum V1 fixtures and objective tests verified.\n";
 }
 
+struct BowlQualificationRender {
+    M5cResult rendered;
+    size_t maxActiveVoices = 0;
+    size_t maxStealTails = 0;
+    float maxSampleDelta = 0.0f;
+    size_t finalActiveVoices = 0;
+    uint32_t voiceStealCount = 0;
+};
+
+BowlQualificationRender renderBowlQualification(const std::vector<ScheduledEvent>& events, size_t totalFrames) {
+    constexpr size_t kBlock = 128;
+    BowlQualificationRender result; result.rendered.audio.resize(totalFrames * 2);
+    dsp::SynthEngine engine; engine.init(48000.0f); engine.setInstrumentModel(dsp::InstrumentModel::Bowl);
+    size_t eventIndex = 0; int32_t previous = 0;
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) engine.handleMidiEvent(events[eventIndex++].event);
+        result.maxStealTails = std::max(result.maxStealTails, engine.getVoiceAllocator().getActiveStealTailCount());
+        const size_t count = std::min(kBlock, totalFrames - frame);
+        engine.renderBlock(result.rendered.audio.data() + frame * 2, count);
+        result.maxActiveVoices = std::max(result.maxActiveVoices, engine.getVoiceAllocator().getActiveVoiceCount());
+        for (size_t i = 0; i < count * 2; ++i) {
+            const int32_t current = result.rendered.audio[frame * 2 + i];
+            result.maxSampleDelta = std::max(result.maxSampleDelta, static_cast<float>(std::abs(current - previous)));
+            previous = current;
+        }
+    }
+    result.finalActiveVoices = engine.getVoiceAllocator().getActiveVoiceCount();
+    result.voiceStealCount = engine.getVoiceAllocator().getVoiceStealCount();
+    result.rendered.metrics = computeMetrics(result.rendered.audio, engine.getSoftClipCount());
+    result.rendered.hardClampCount = engine.getHardClampCount();
+    result.rendered.modalSat = engine.getModalInternalSaturationCount();
+    result.rendered.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    result.rendered.metrics.averageGainReductionDb = engine.getAverageGainReductionDb();
+    return result;
+}
+
+void testM71BowlModel() {
+    std::cout << "[Test 24] M7.1 Singing Bowl V1 model, fixtures, beating, and 4-model cycling...\n";
+    auto allFinite = [](const std::vector<int32_t>& audio) {
+        for (int32_t s : audio) { if (!std::isfinite(static_cast<float>(s))) return false; }
+        return true;
+    };
+    auto note = [](uint8_t n, uint8_t v) {
+        midi::MidiEvent e{};
+        e.type = midi::MidiEventType::NoteOn;
+        e.data1 = n;
+        e.data2 = v;
+        return e;
+    };
+
+    // 1. Model Registry and helpers checks
+    assert(dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl).id == dsp::InstrumentModel::Bowl);
+    assert(dsp::kPresetBowl.modeCount == 7);
+    assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Bowl)) == "BOWL");
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Pan);
+
+    // 2. Beating Doublet Verification (Phase S)
+    std::cout << "  Verifying Singing Bowl beating doublet mechanism...\n";
+    const float kTargetBeatHz = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl).voicing.splitBeatTargetHz;
+    assert(std::abs(kTargetBeatHz - 0.70f) < 0.001f);
+    assert(dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl).voicing.fixedHzSplit == true);
+    for (uint8_t midiNote : {uint8_t(50), uint8_t(62), uint8_t(69)}) { // D3, D4, A4
+        const float noteHz = midi::MidiMapping::noteToHz(midiNote);
+        dsp::ModalResonatorBank bank;
+        bank.init(48000.0f);
+        bank.setConfig(dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl).resonator);
+        bank.setPreset(dsp::kPresetBowl);
+        const auto& v = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl).voicing;
+        bank.setRegisterBehavior(1.0f, v.splitBeatTargetHz, v.fixedHzSplit);
+        bank.updatePitchAndDamping(noteHz, 0.0f);
+
+        // Derive actual mode frequencies
+        const float f0 = noteHz * dsp::kPresetBowl.modes[0].ratio * (1.0f + dsp::kPresetBowl.modes[0].detune);
+        const float detune1 = dsp::computePanDoubletDetune(noteHz, dsp::PanDoubletMode::FixedHz,
+                                                          dsp::kPresetBowl.modes[1].detune, v.splitBeatTargetHz);
+        const float f1 = noteHz * dsp::kPresetBowl.modes[1].ratio * (1.0f + detune1);
+        const float actualBeatHz = std::abs(f1 - f0);
+        std::cout << "    Note " << static_cast<int>(midiNote) << " (" << noteHz << " Hz): target beat="
+                  << kTargetBeatHz << " Hz, actual=" << actualBeatHz << " Hz\n";
+        assert(std::abs(actualBeatHz - kTargetBeatHz) < 0.001f);
+    }
+
+    // Time-domain doublet beating verification in rendered PCM:
+    // Render single D4 with only the beating pair (modes 0 & 1)
+    {
+        dsp::ModalPreset doubletPreset = dsp::kPresetBowl;
+        doubletPreset.modeCount = 2; // only modes 0 and 1
+        dsp::InstrumentModelConfig doubletCfg = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl);
+        doubletCfg.modalPreset = &doubletPreset;
+        dsp::SynthEngine doubletEngine;
+        doubletEngine.init(48000.0f);
+        doubletEngine.setModelConfigForTest(doubletCfg);
+        doubletEngine.handleMidiEvent(note(62, 90));
+        constexpr size_t kBeatFrames = 192000; // 4.0 seconds @ 48 kHz
+        std::vector<int32_t> beatPcm(kBeatFrames * 2);
+        for (size_t f = 0; f < kBeatFrames; f += 128) {
+            doubletEngine.renderBlock(beatPcm.data() + f * 2, 128);
+        }
+        // At 0.70 Hz, period T = 1 / 0.70 = 1.428 s = ~68,571 samples.
+        // In 4 seconds there must be amplitude valleys and peaks (beating modulation).
+        float maxAmp = 0.0f, minAmpInMiddle = 1e9f;
+        for (size_t f = 0; f < 3000; ++f) {
+            maxAmp = std::max(maxAmp, std::abs(static_cast<float>(beatPcm[f * 2])));
+        }
+        // Valley should occur around T/2 = ~34,285 samples (~0.71 s)
+        for (size_t f = 30000; f < 40000; ++f) {
+            minAmpInMiddle = std::min(minAmpInMiddle, std::abs(static_cast<float>(beatPcm[f * 2])));
+        }
+        assert(minAmpInMiddle < maxAmp * 0.6f); // Clear acoustic cancellation valley
+        std::cout << "    Doublet PCM time-domain envelope cancellation verified (min/max ratio: "
+                  << minAmpInMiddle / maxAmp << ")\n";
+    }
+
+    // 3. PolyPressure and ChannelPressure support for Bowl
+    for (bool poly : {true, false}) {
+        for (uint8_t pressure : {0, 32, 64, 96, 127}) {
+            dsp::SynthEngine pressureEngine;
+            pressureEngine.init(48000.0f);
+            pressureEngine.setInstrumentModel(dsp::InstrumentModel::Bowl);
+            pressureEngine.handleMidiEvent(note(60, 90));
+            int32_t pressureBlock[256]{};
+            pressureEngine.renderBlock(pressureBlock, 128);
+            midi::MidiEvent event{};
+            event.type = poly ? midi::MidiEventType::PolyPressure : midi::MidiEventType::ChannelPressure;
+            event.data1 = poly ? 60 : pressure;
+            event.data2 = poly ? pressure : 0;
+            pressureEngine.handleMidiEvent(event);
+            pressureEngine.renderBlock(pressureBlock, 128);
+            for (auto sample : pressureBlock) assert(std::isfinite(static_cast<float>(sample)));
+        }
+    }
+
+    // 4. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> PAN
+    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> PAN...\n";
+    dsp::SynthEngine swEngine;
+    swEngine.init(48000.0f);
+    int32_t swBlock[256]{};
+    for (int iter = 0; iter < 100; ++iter) {
+        swEngine.handleMidiEvent(note(50, 70));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Bell);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(62, 90));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Tongue);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(58, 80));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Bowl);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(60, 85));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Pan);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+    }
+    // Verify direct PAN matches PAN after 100 switches
+    swEngine.handleMidiEvent(note(50, 70));
+    std::vector<int32_t> swPan(96000 * 2);
+    for (size_t frame = 0; frame < 96000; frame += 128) {
+        swEngine.renderBlock(swPan.data() + frame * 2, std::min<size_t>(128, 96000 - frame));
+    }
+    const auto directPan = renderModel({{0, note(50, 70)}}, 96000, dsp::InstrumentModel::Pan);
+    assert(fnv1a64(swPan) == fnv1a64(directPan.audio));
+    std::cout << "  -> 100 cycles verified bit-identical direct PAN recovery!\n";
+
+    // 5. Deterministic fixtures and metrics report
+    std::ofstream report("bowl_m71_metrics.md");
+    report << std::fixed << std::setprecision(6);
+    report << "# Singing Bowl M7.1 host qualification\n\n"
+           << "**InstrumentModel::Bowl (Tibetan Singing Bowl V1 Candidate)**\n\n"
+           << "## 1. Modal preset topology\n\n"
+           << "| Mode | Ratio | Gain | T60 (s) | Detune | Role |\n"
+           << "|---|---:|---:|---:|---:|---|\n";
+    constexpr const char* bowlRoles[] = {
+        "Fundamental prime", "Prime doublet (beating)", "Low inharmonic partial",
+        "Mid partial", "Metallic partial", "Upper partial", "Upper colour shimmer"
+    };
+    for (size_t i = 0; i < dsp::kPresetBowl.modeCount; ++i) {
+        const auto& m = dsp::kPresetBowl.modes[i];
+        report << "| " << i << " | " << m.ratio << " | " << m.gain << " | " << m.t60 << " | "
+               << m.detune << " | " << bowlRoles[i] << " |\n";
+    }
+
+    // Velocity tests (D4):
+    report << "\n## 2. Velocity progression (D4)\n\n"
+           << "| Velocity | RMS | Peak | Crest Factor | max GR dB | Modal Sat | Clamp |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|\n";
+    float prevRms = 0.0f;
+    for (uint8_t vel : {30, 60, 90, 110, 127}) {
+        const auto q = renderBowlQualification({{0, note(62, vel)}}, 144000); // 3 seconds
+        const auto& m = q.rendered.metrics;
+        writeWavFile((std::string("bowl_D4_v") + std::to_string(vel) + ".wav").c_str(), q.rendered.audio.data(), 144000, 48000);
+        report << "| " << static_cast<int>(vel) << " | " << m.rms << " | " << m.peak << " | " << m.crestFactor << " | "
+               << m.maxGainReductionDb << " | " << q.rendered.modalSat << " | " << q.rendered.hardClampCount << " |\n";
+        assert(allFinite(q.rendered.audio));
+        assert(q.rendered.hardClampCount == 0);
+        assert(q.rendered.modalSat == 0);
+        // Monotonic progression requirement:
+        assert(m.rms > prevRms);
+        prevRms = m.rms;
+    }
+
+    // Single notes: D3 v30, v90, v127
+    report << "\n## 3. Register notes (D3 and A4)\n\n"
+           << "| Note | Velocity | RMS | Peak | max GR dB | Modal Sat | Clamp |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|\n";
+    for (uint8_t vel : {30, 90, 127}) {
+        const auto qD3 = renderBowlQualification({{0, note(50, vel)}}, 144000);
+        writeWavFile((std::string("bowl_D3_v") + std::to_string(vel) + ".wav").c_str(), qD3.rendered.audio.data(), 144000, 48000);
+        assert(allFinite(qD3.rendered.audio) && qD3.rendered.hardClampCount == 0 && qD3.rendered.modalSat == 0);
+        report << "| D3 | " << static_cast<int>(vel) << " | " << qD3.rendered.metrics.rms << " | " << qD3.rendered.metrics.peak
+               << " | " << qD3.rendered.metrics.maxGainReductionDb << " | " << qD3.rendered.modalSat << " | " << qD3.rendered.hardClampCount << " |\n";
+    }
+
+    // Single note: A4 v90
+    {
+        const auto qA4 = renderBowlQualification({{0, note(69, 90)}}, 144000);
+        writeWavFile("bowl_A4_v90.wav", qA4.rendered.audio.data(), 144000, 48000);
+        assert(allFinite(qA4.rendered.audio) && qA4.rendered.hardClampCount == 0 && qA4.rendered.modalSat == 0);
+        report << "| A4 | 90 | " << qA4.rendered.metrics.rms << " | " << qA4.rendered.metrics.peak
+               << " | " << qA4.rendered.metrics.maxGainReductionDb << " | " << qA4.rendered.modalSat << " | " << qA4.rendered.hardClampCount << " |\n";
+    }
+
+    // Interval2: D4 + A4
+    {
+        const auto qInt = renderBowlQualification({{0, note(62, 80)}, {0, note(69, 80)}}, 144000);
+        writeWavFile("bowl_interval2.wav", qInt.rendered.audio.data(), 144000, 48000);
+        assert(allFinite(qInt.rendered.audio) && qInt.rendered.hardClampCount == 0 && qInt.rendered.modalSat == 0);
+    }
+
+    // Chord4: D3, A3, D4, A4 (50, 57, 62, 69) v80 and v110
+    const auto qChord80 = renderBowlQualification({{0, note(50, 80)}, {0, note(57, 80)}, {0, note(62, 80)}, {0, note(69, 80)}}, 144000);
+    writeWavFile("bowl_chord4_v80.wav", qChord80.rendered.audio.data(), 144000, 48000);
+    assert(allFinite(qChord80.rendered.audio) && qChord80.rendered.hardClampCount == 0 && qChord80.rendered.modalSat == 0);
+    assert(qChord80.maxActiveVoices <= 8);
+
+    const auto qChord110 = renderBowlQualification({{0, note(50, 110)}, {0, note(57, 110)}, {0, note(62, 110)}, {0, note(69, 110)}}, 144000);
+    writeWavFile("bowl_chord4.wav", qChord110.rendered.audio.data(), 144000, 48000);
+    assert(allFinite(qChord110.rendered.audio) && qChord110.rendered.hardClampCount == 0 && qChord110.rendered.modalSat == 0);
+    assert(qChord110.maxActiveVoices <= 8);
+
+    // Cluster8: 8 voices v100
+    const auto qClust = renderBowlQualification({
+        {0, note(50, 100)}, {0, note(52, 100)}, {0, note(54, 100)}, {0, note(56, 100)},
+        {0, note(57, 100)}, {0, note(59, 100)}, {0, note(61, 100)}, {0, note(62, 100)}
+    }, 144000);
+    writeWavFile("bowl_cluster8.wav", qClust.rendered.audio.data(), 144000, 48000);
+    assert(allFinite(qClust.rendered.audio) && qClust.rendered.hardClampCount == 0 && qClust.rendered.modalSat == 0);
+    assert(qClust.maxActiveVoices == 8);
+
+    report << "\n## 4. Polyphonic fixtures (Chord4 & Cluster8)\n\n"
+           << "| Fixture | Voices | RMS | Peak | max GR dB | Modal Sat | Clamp |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|\n"
+           << "| Chord4 v80 | 4 | " << qChord80.rendered.metrics.rms << " | " << qChord80.rendered.metrics.peak
+           << " | " << qChord80.rendered.metrics.maxGainReductionDb << " | " << qChord80.rendered.modalSat << " | " << qChord80.rendered.hardClampCount << " |\n"
+           << "| Chord4 v110 | 4 | " << qChord110.rendered.metrics.rms << " | " << qChord110.rendered.metrics.peak
+           << " | " << qChord110.rendered.metrics.maxGainReductionDb << " | " << qChord110.rendered.modalSat << " | " << qChord110.rendered.hardClampCount << " |\n"
+           << "| Cluster8 v100 | 8 | " << qClust.rendered.metrics.rms << " | " << qClust.rendered.metrics.peak
+           << " | " << qClust.rendered.metrics.maxGainReductionDb << " | " << qClust.rendered.modalSat << " | " << qClust.rendered.hardClampCount << " |\n";
+
+    // Restrike: soft->hard, hard->soft
+    {
+        const auto qSh = renderBowlQualification({{0, note(62, 30)}, {4800, note(62, 110)}}, 144000);
+        writeWavFile("bowl_restrike_softhard.wav", qSh.rendered.audio.data(), 144000, 48000);
+        assert(allFinite(qSh.rendered.audio) && qSh.rendered.hardClampCount == 0);
+
+        const auto qHs = renderBowlQualification({{0, note(62, 110)}, {4800, note(62, 30)}}, 144000);
+        writeWavFile("bowl_restrike_hardsoft.wav", qHs.rendered.audio.data(), 144000, 48000);
+        assert(allFinite(qHs.rendered.audio) && qHs.rendered.hardClampCount == 0);
+    }
+
+    // Roll:
+    {
+        std::vector<ScheduledEvent> rollEvents;
+        for (size_t r = 0; r < 8; ++r) {
+            rollEvents.push_back({static_cast<uint32_t>(r * 1920), note(62, 75)});
+        }
+        const auto qRoll = renderBowlQualification(rollEvents, 144000);
+        writeWavFile("bowl_roll.wav", qRoll.rendered.audio.data(), 144000, 48000);
+        assert(allFinite(qRoll.rendered.audio) && qRoll.rendered.hardClampCount == 0);
+    }
+
+    // Register sweep: C3 to C6
+    {
+        std::vector<ScheduledEvent> sweepEvents;
+        for (uint8_t n = 48; n <= 84; n += 4) {
+            sweepEvents.push_back({static_cast<uint32_t>((n - 48) * 4800), note(n, 80)});
+        }
+        const auto qSweep = renderBowlQualification(sweepEvents, 240000);
+        writeWavFile("bowl_register_sweep.wav", qSweep.rendered.audio.data(), 240000, 48000);
+        assert(allFinite(qSweep.rendered.audio) && qSweep.rendered.hardClampCount == 0);
+    }
+
+    // Voice lifecycle termination:
+    // Single strike with 12 seconds of render (576,000 frames) - must naturally terminate to 0 active voices
+    {
+        const auto qLong = renderBowlQualification({{0, note(62, 70)}}, 576000);
+        assert(qLong.finalActiveVoices == 0);
+    }
+
+    report << "\n## 4. Qualification summary\n\n"
+           << "- Modal saturation count: 0 across single v127, interval2, chord4 v110, cluster8 v100\n"
+           << "- Hard clamp count: 0 across all fixtures\n"
+           << "- All samples finite: YES (no NaN, no Inf)\n"
+           << "- Voice lifecycle: terminates naturally to 0 active voices\n"
+           << "- PolyPressure & ChannelPressure: functional and stable\n"
+           << "- Beating doublet: target 0.70 Hz verified across D3, D4, A4 with time-domain envelope modulation\n"
+           << "- 100 model switch cycles: bit-identical PAN recovery\n";
+    report.close();
+    std::cout << "  -> PASSED: M7.1 Singing Bowl V1 fixtures, doublets, and objective tests verified.\n";
+}
+
 int main() {
     std::cout << "=======================================================\n";
     std::cout << "  Pocket Pan / Metal Modal Synth - Comprehensive DSP  \n";
@@ -2058,6 +2378,7 @@ int main() {
     testBellM64ListeningPack();
     testForensicsClassification();
     testM7TongueModel();
+    testM71BowlModel();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

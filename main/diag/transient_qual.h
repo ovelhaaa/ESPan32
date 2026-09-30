@@ -74,7 +74,7 @@ inline constexpr const char* kTransitionNames[static_cast<size_t>(Transition::Co
 // Written by the audio render callback (Core 0), read by the audio task loop
 // (Core 0) in the same iteration.  No cross-core access.
 struct BlockContext {
-    uint8_t model = 0;            // 0=PAN, 1=BELL, 2=TONGUE
+    uint8_t model = 0;            // 0=PAN, 1=BELL, 2=TONGUE, 3=BOWL
     uint8_t voicesBefore = 0;
     uint8_t voicesAfter = 0;
     uint8_t noteOns = 0;
@@ -338,7 +338,7 @@ inline void logNewOverruns() {
                 "v=%u->%u on=%u off=%u poly=%u ch=%u streak=%u debt_before=%d debt_after=%d occ_milliblocks=%d telem=%d exc=%d transition=%s",
                 (unsigned)r.blockSeq, (unsigned)r.callbackUs, (unsigned)r.prevCallbackUs,
                 (unsigned)r.nextCallbackUs, (unsigned)r.renderUs, (unsigned)r.midiDispatchUs,
-                (r.model == 0 ? "PAN" : (r.model == 1 ? "BELL" : "TONGUE")), (unsigned)r.voicesBefore, (unsigned)r.voicesAfter,
+                (r.model == 0 ? "PAN" : (r.model == 1 ? "BELL" : (r.model == 2 ? "TONGUE" : "BOWL"))), (unsigned)r.voicesBefore, (unsigned)r.voicesAfter,
                 (unsigned)r.noteOns, (unsigned)r.noteOffs, (unsigned)r.polyPressure,
                 (unsigned)r.channelPressure, (unsigned)r.streak,
                 (int)r.debtBeforeUs, (int)r.debtAfterUs, (int)r.occupancyMilliBlocks,
