@@ -12,7 +12,7 @@ void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Model changes are applied by the audio callback.  Build all seven fixed
+    // Model changes are applied by the audio callback.  Build all eight fixed
     // tables now, before the callback/I2S transport exists, so no coefficient
     // table generation or heap work can occur at a realtime boundary.
     assert(verifyPreparedNoteCanaries());
@@ -29,8 +29,16 @@ void SynthEngine::init(float sampleRate) {
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Glass), glassPreparedNotes_);
     assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Marimba), marimbaPreparedNotes_);
+    allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Vibraphone), vibraphonePreparedNotes_);
     assert(verifyPreparedNoteCanaries());
 #endif
+    for (unsigned m = 0; m < unsigned(InstrumentModel::Count); ++m) {
+        preparedBodies_[m].init(sampleRate_);
+        preparedBodies_[m].setConfig(getInstrumentModelConfig(static_cast<InstrumentModel>(m)).body);
+    }
+    for (unsigned i = 0; i <= 256; ++i)
+        motorTable_[i] = .5f + .5f * std::cos(6.283185307179586f * float(i) / 256.0f);
+    setVibraphoneMotor(true);
     model_ = InstrumentModel::Pan;
     modelConfig_ = getInstrumentModelConfig(model_);
     allocator_.setModelConfig(modelConfig_);
@@ -60,6 +68,8 @@ void SynthEngine::init(float sampleRate) {
 }
 
 void SynthEngine::reset() {
+    motorPhase_ = 0;
+    nonfiniteCount_ = 0;
     allocator_.reset();
     limiter_.reset();
     polyHeadroomGain_ = 1.0f;
@@ -71,12 +81,9 @@ void SynthEngine::reset() {
 }
 
 void SynthEngine::setInstrumentModel(InstrumentModel model) {
-    // Reinitialize the small, fixed DSP state exactly as boot does. This is
-    // intentionally stronger than killing voices: no exciter, modal, body,
-    // sympathetic, or limiter state crosses a model boundary.
-    model_ = model;
+    // Fixed sample-rate infrastructure is retained; only model state changes.
+    model_ = unsigned(model) < unsigned(InstrumentModel::Count) ? model : InstrumentModel::Pan;
     modelConfig_ = getInstrumentModelConfig(model_);
-    allocator_.init(sampleRate_);
     allocator_.setModelConfig(modelConfig_);
 #if POCKETPAN_SYMPATHETIC_COEFF_CACHE
     allocator_.setSympatheticConfig(modelConfig_.sympathetic);
@@ -96,17 +103,26 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
         table = &glassPreparedNotes_;
     } else if (model_ == InstrumentModel::Marimba) {
         table = &marimbaPreparedNotes_;
+    } else if (model_ == InstrumentModel::Vibraphone) {
+        table = &vibraphonePreparedNotes_;
     }
     allocator_.setPreparedNoteTable(table);
 #endif
-    body_.init(sampleRate_);
-    body_.setConfig(modelConfig_.body);
-    limiter_.init(sampleRate_);
+    body_ = preparedBodies_[static_cast<size_t>(model_)];
+    setVibraphoneMotor(true);
     bodyStrategy_ = modelConfig_.bodyStrategy;
     reset();
 }
 
+void SynthEngine::setVibraphoneMotor(bool enabled, float rateHz, float depth) {
+    motorEnabled_ = enabled;
+    motorDepth_ = std::isfinite(depth) ? std::clamp(depth, 0.0f, .8f) : .32f;
+    const float rate = std::isfinite(rateHz) ? std::clamp(rateHz, 2.0f, 8.0f) : 4.5f;
+    motorIncrement_ = static_cast<uint32_t>(double(rate) * 4294967296.0 / sampleRate_);
+}
+
 void SynthEngine::resetDiagnostics() {
+    nonfiniteCount_ = 0;
     limiter_.resetDiagnostics();
     preLimiterPeak_ = postLimiterPeak_ = 0.0f;
     hardClampCount_ = 0;
@@ -214,11 +230,23 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
         { DSP_PROFILE_SCOPE(Body); bodySample=body_.processSample(bodyExcitation); }
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
         sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
+        if (model_ == InstrumentModel::Vibraphone) {
+            // Model resonator radiation as attenuation of the coherent mix.
+            // Never boost; no pitch modulation, note-local phase or coefficients.
+            if (motorEnabled_) {
+                const unsigned index = motorPhase_ >> 24;
+                const float fraction = float(motorPhase_ & 0x00ffffffU) * (1.0f / 16777216.0f);
+                const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
+                sample *= 1.0f - motorDepth_ * shutter;
+            }
+            motorPhase_ += motorIncrement_;
+        }
 
         }
         { DSP_PROFILE_SCOPE(Limiter);
         // NaN / Inf safety guard
         if (std::isnan(sample) || std::isinf(sample)) {
+            ++nonfiniteCount_;
             sample = 0.0f;
         }
 

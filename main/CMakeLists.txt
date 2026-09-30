@@ -90,6 +90,9 @@ set(POCKETPAN_TONGUE_SMOKE 0 CACHE STRING "Boot directly into Tongue model for s
 set(POCKETPAN_BOWL_SMOKE 0 CACHE STRING "Boot directly into Bowl model for smoke qualification")
 set(POCKETPAN_KALIMBA_SMOKE 0 CACHE STRING "Boot directly into Kalimba model for smoke qualification")
 set(POCKETPAN_MARIMBA_SMOKE 0 CACHE STRING "Boot directly into Marimba model")
+set(POCKETPAN_FORENSICS_M75_BATCH 0 CACHE STRING "M75 batch: 0 single/chord/cluster/roll, 1 phrase/switch/motor single")
+set(POCKETPAN_FORENSICS_M75 0 CACHE STRING "Vibraphone six-fixture hardware qualification")
+set(POCKETPAN_VIBRAPHONE_SMOKE 0 CACHE STRING "Boot directly into Vibraphone")
 set(POCKETPAN_FORENSICS_M74 0 CACHE STRING "Marimba single/chord/cluster/roll hardware qualification")
 set(POCKETPAN_GLASS_SMOKE 0 CACHE STRING "Boot directly into Glass model for smoke qualification")
 
@@ -123,6 +126,9 @@ target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_KALIMBA_SMOKE=${POCKETPAN_KALIMBA_SMOKE}
     POCKETPAN_GLASS_SMOKE=${POCKETPAN_GLASS_SMOKE}
     POCKETPAN_MARIMBA_SMOKE=${POCKETPAN_MARIMBA_SMOKE}
+    POCKETPAN_FORENSICS_M75_BATCH=${POCKETPAN_FORENSICS_M75_BATCH}
+    POCKETPAN_FORENSICS_M75=${POCKETPAN_FORENSICS_M75}
+    POCKETPAN_VIBRAPHONE_SMOKE=${POCKETPAN_VIBRAPHONE_SMOKE}
     POCKETPAN_FORENSICS_M74=${POCKETPAN_FORENSICS_M74}
     POCKETPAN_PROCESS6_MICROKERNEL=${POCKETPAN_PROCESS6_MICROKERNEL})
 

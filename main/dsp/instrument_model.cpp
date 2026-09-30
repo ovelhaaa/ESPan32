@@ -100,6 +100,20 @@ constexpr InstrumentModelConfig kMarimbaModelConfig{
     {false, 0.0f, 0.0f, 1500.0f, 0.0f},
     BodyExcitationStrategy::StrikeBus, 0.0f,
 };
+constexpr ModalVoicingConfig kVibraphoneVoicing{
+    .10f, .62f, 1.02f, .94f, 1.0f, .85f, .20f, .90f,
+    1.20f, .80f, 0.0f, 146.83f, 587.33f, false,
+    {1.0f, .55f, .24f, .08f, .025f, .008f},
+    {1.0f, .95f, .72f, .40f, .20f, .08f}, 1.0e-8f};
+// Bar-only default is provisional; motor is an output radiation approximation.
+constexpr InstrumentModelConfig kVibraphoneModelConfig{
+    InstrumentModel::Vibraphone, &kPresetVibraphone,
+    {.16f, .075f, 800.0f, 9500.0f, .85f, .38f, ExciterShape::Strike},
+    {1.0f, .95f, true}, kVibraphoneVoicing,
+    {{}, 0, 0.0f, 0.0f, 1000.0f, false},
+    {false, 0.0f, 0.0f, 1500.0f, 0.0f},
+    BodyExcitationStrategy::StrikeBus, 0.0f,
+};
 }
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
@@ -110,6 +124,7 @@ const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
         case InstrumentModel::Kalimba: return kKalimbaModelConfig;
         case InstrumentModel::Glass: return kGlassModelConfig;
         case InstrumentModel::Marimba: return kMarimbaModelConfig;
+        case InstrumentModel::Vibraphone: return kVibraphoneModelConfig;
         case InstrumentModel::Pan:
         default: return kPanModelConfig;
     }

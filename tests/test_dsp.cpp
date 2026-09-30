@@ -1853,7 +1853,7 @@ void testM7TongueModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Vibraphone);
 
     // 2. PolyPressure and ChannelPressure support for Tongue
     for (bool poly : {true, false}) {
@@ -2101,7 +2101,7 @@ void testM71BowlModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Vibraphone);
 
     // 2. Beating Doublet Verification (Phase S)
     std::cout << "  Verifying Singing Bowl beating doublet mechanism...\n";
@@ -2461,7 +2461,7 @@ void testM72KalimbaModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Vibraphone);
 
     // 2. PolyPressure and ChannelPressure support for Kalimba
     for (bool poly : {true, false}) {
@@ -2735,14 +2735,16 @@ GlassQualificationRender renderGlassQualification(const std::vector<ScheduledEve
 }
 
 GlassQualificationRender renderMarimbaQualification(const std::vector<ScheduledEvent>& events,
-                                                  size_t totalFrames, const dsp::InstrumentModelConfig& config) {
+                                                  size_t totalFrames, const dsp::InstrumentModelConfig& config,
+                                                  bool motor = false, float rate = 4.5f, float depth = .32f) {
     constexpr size_t kBlock = 128;
     GlassQualificationRender result;
     result.rendered.audio.resize(totalFrames * 2);
     dsp::SynthEngine engine;
     engine.init(48000.0f);
-    engine.setInstrumentModel(dsp::InstrumentModel::Marimba);
+    engine.setInstrumentModel(config.id);
     engine.setModelConfigForTest(config);
+    engine.setVibraphoneMotor(motor, rate, depth);
     size_t eventIndex = 0;
     int32_t previous = 0;
     size_t count = 0;
@@ -2777,6 +2779,7 @@ GlassQualificationRender renderMarimbaQualification(const std::vector<ScheduledE
     result.rendered.metrics.preLimiterPeak = engine.getPreLimiterPeak();
     result.rendered.grOver0p1DbSamples = engine.getGainReductionOver0p1DbSamples();
     result.rendered.grOver1DbSamples = engine.getGainReductionOver1DbSamples();
+    assert(engine.getNonfiniteCount() == 0);
     assert(std::isfinite(engine.getPreLimiterPeak()) && std::isfinite(engine.getBodyEnergy()));
     return result;
 }
@@ -2855,6 +2858,96 @@ void testM74MarimbaModel() {
     }
 }
 
+
+void testM75VibraphoneModel() {
+    auto note=[](uint8_t n,uint8_t v) { midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    const auto& base=dsp::getInstrumentModelConfig(dsp::InstrumentModel::Vibraphone);
+    assert(base.modalPreset->modeCount==6);
+    assert(std::string(dsp::instrumentModelName(base.id))=="VIBRAPHONE");
+    assert(dsp::nextInstrumentModel(base.id)==dsp::InstrumentModel::Pan);
+    auto balanced=*base.modalPreset, projecting=balanced;
+    for (unsigned i=1;i<6;++i) { balanced.modes[i].gain*=(i==1?1.35f:1.6f); projecting.modes[i].gain*=(i==1?1.7f:2.4f); }
+    auto b=base,c=base;
+    b.modalPreset=&balanced;
+    b.body={{{146.83f,.32f,.25f},{293.66f,.18f,.15f}},2,.08f,.12f,1100.0f,true};
+    b.strikeBusGain=16.0f; b.exciter.brightnessMaxHz=11500.0f;
+    c=b; c.modalPreset=&projecting; c.body.outputGain=.065f;
+    c.exciter.brightnessMaxHz=13500.0f; c.exciter.noiseAmount=.10f;
+    std::array<dsp::InstrumentModelConfig,3> configs{base,b,c};
+    std::ofstream report("vibraphone_m75_metrics.md");
+    report<<std::fixed<<std::setprecision(7)
+          <<"# M7.5 host qualification\n\nA: warm bar only. B: 4x gain x1.35, higher gains x1.6 plus restrained body, 11.5kHz exciter. C: 4x gain x1.7, higher gains x2.4, 13.5kHz, noise .10, reduced body. All A/B/C comparisons motor OFF. No winner selected.\n\n"
+          <<"| Fixture | Peak | RMS | Attack RMS | Tail RMS | Crest | Pre peak | Max GR | Avg GR | >0.1 | >1 | Clamps | Sat | Voices | Steals | Tails | Nonfinite observations |\n"
+          <<"|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    struct Fixture {std::string name; std::vector<ScheduledEvent> events;};
+    std::vector<Fixture> fixtures;
+    const uint8_t notes[]={50,57,62,69,74}; const char* names[]={"D3","A3","D4","A4","D5"};
+    for (unsigned n=0;n<5;++n) for(uint8_t v:{30,70,110,127})
+        fixtures.push_back({std::string(names[n])+"_v"+std::to_string(v),{{0,note(notes[n],v)}}});
+    fixtures.push_back({"chord",{{0,note(50,110)},{0,note(57,110)},{0,note(62,110)},{0,note(65,110)}}});
+    Fixture cluster{"cluster8",{}};
+    for(uint8_t n:{50,52,54,56,57,59,61,62}) cluster.events.push_back({0,note(n,110)});
+    fixtures.push_back(cluster);
+    fixtures.push_back({"restrike100",{{0,note(62,70)},{4800,note(62,110)}}});
+    fixtures.push_back({"restrike250",{{0,note(62,110)},{12000,note(62,30)}}});
+    for(bool varying:{false,true}) {
+        Fixture roll{varying?"roll":"roll_steady",{}}; size_t frame=0;
+        for(unsigned i=0;i<24;++i) {roll.events.push_back({frame,note(62,varying?uint8_t(40+(i%4)*25):90)}); frame+=(i%3==0?3840:i%3==1?4800:6720);}
+        fixtures.push_back(roll);
+    }
+    Fixture phrase{"phrase",{}};
+    const uint8_t melody[]={50,57,62,65,69,62,57,74};
+    for(unsigned i=0;i<8;++i) phrase.events.push_back({i*28800,note(melody[i],uint8_t(65+(i%3)*15))});
+    fixtures.push_back(phrase);
+    Fixture steal{"steal_burst",{}};
+    for(unsigned i=0;i<12;++i) steal.events.push_back({i*384,note(uint8_t(50+i),90)});
+    fixtures.push_back(steal);
+    constexpr size_t frames=384000;
+    auto record=[&](const std::string& filename,const GlassQualificationRender& q) {
+        const auto& m=q.rendered.metrics;
+        assert(q.rendered.hardClampCount==0 && q.rendered.modalSat==0);
+        assert(m.rms>0 && std::isfinite(m.rms) && std::abs(m.maxGainReductionDb)<.1f);
+        writeWavFile(filename.c_str(),q.rendered.audio.data(),frames,48000);
+        report<<"| "<<filename<<" | "<<m.peak<<" | "<<m.rms<<" | "<<m.attackRms<<" | "<<m.tailRms<<" | "<<m.crestFactor<<" | "<<m.preLimiterPeak<<" | "<<m.maxGainReductionDb<<" | "<<m.averageGainReductionDb<<" | "<<q.rendered.grOver0p1DbSamples<<" | "<<q.rendered.grOver1DbSamples<<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" | "<<q.maxActiveVoices<<" | "<<q.voiceStealCount<<" | "<<q.maxStealTails<<" | 0 |\n";
+    };
+    float previous[3][5]{};
+    for(unsigned f=0;f<fixtures.size();++f) {
+        std::array<GlassQualificationRender,3> results;
+        for(unsigned i=0;i<3;++i) {
+            results[i]=renderMarimbaQualification(fixtures[f].events,frames,configs[i]);
+            record("vibraphone_"+fixtures[f].name+"_"+char('A'+i)+".wav",results[i]);
+            if(f<20) {assert(results[i].rendered.metrics.rms>previous[i][f/4]); previous[i][f/4]=results[i].rendered.metrics.rms;}
+        }
+        const float target=std::min({results[0].rendered.metrics.rms,results[1].rendered.metrics.rms,results[2].rendered.metrics.rms});
+        for(unsigned i=0;i<3;++i) writeRmsMatchedWav(("vibraphone_"+fixtures[f].name+"_"+char('A'+i)+"_matched.wav").c_str(),results[i].rendered.audio,target);
+    }
+    // Compact motor pack: three representative rate/depth combinations, not 3x3.
+    for(const auto& f:fixtures) if(f.name=="D3_v70" || f.name=="D4_v70" || f.name=="D4_v110" || f.name=="chord" || f.name=="roll" || f.name=="phrase") {
+        std::array<GlassQualificationRender,4> results;
+        const char* labels[]={"motor_off","motor_on_slow_subtle","motor_on_medium","motor_on_fast_strong"};
+        const float rates[]={4.5f,2.5f,4.5f,7.0f}, depths[]={0.0f,.15f,.32f,.55f};
+        float target=1.0f;
+        for(unsigned i=0;i<4;++i) {
+            results[i]=renderMarimbaQualification(f.events,frames,base,i>0,rates[i],depths[i]);
+            record("vibraphone_"+f.name+"_"+labels[i]+".wav",results[i]);
+            target=std::min(target,results[i].rendered.metrics.rms);
+        }
+        for(unsigned i=0;i<4;++i) writeRmsMatchedWav(("vibraphone_"+f.name+"_"+labels[i]+"_matched.wav").c_str(),results[i].rendered.audio,target);
+    }
+    // Phase advances through silence and MIDI strikes never reset the motor.
+    dsp::SynthEngine engine; engine.init(48000); engine.setInstrumentModel(base.id);
+    int32_t buffer[256]{}; engine.renderBlock(buffer,128);
+    const auto phase=engine.getMotorPhaseForTest(); assert(phase!=0);
+    engine.handleMidiEvent(note(62,70)); assert(engine.getMotorPhaseForTest()==phase);
+    engine.handleMidiEvent(note(65,90)); assert(engine.getMotorPhaseForTest()==phase);
+    engine.setInstrumentModel(base.id); assert(engine.getMotorPhaseForTest()==0);
+    for(uint8_t n:{50,57,62,69,74,96,108,127}) {
+        dsp::ModalResonatorBank bank; bank.init(48000); bank.setConfig(base.resonator); bank.setPreset(*base.modalPreset);
+        bank.updatePitchAndDamping(midi::MidiMapping::noteToHz(n),0.0f);
+        for(unsigned i=0;i<48000;++i) assert(std::isfinite(bank.processSample(i==0?.01f:0.0f)));
+    }
+}
+
 void testM73GlassModel() {
     std::cout << "[Test 26] M7.3 Glass V1 model, fixtures, strike exciter, and 6-model cycling...\n";
     auto allFinite = [](const std::vector<int32_t>& audio) {
@@ -2891,7 +2984,7 @@ void testM73GlassModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Vibraphone);
 
     // 2. PolyPressure and ChannelPressure support for Glass
     for (bool poly : {true, false}) {
@@ -3135,6 +3228,7 @@ int main() {
     testM72KalimbaModel();
     testM73GlassModel();
     testM74MarimbaModel();
+    testM75VibraphoneModel();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

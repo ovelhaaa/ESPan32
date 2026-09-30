@@ -39,6 +39,10 @@ public:
     const VoiceAllocator& getVoiceAllocator() const { return allocator_; }
 
     void setMasterVolume(float vol);
+    // Qualification controls; one phase shared by the entire instrument.
+    void setVibraphoneMotor(bool enabled, float rateHz = 4.5f, float depth = .32f);
+    uint32_t getMotorPhaseForTest() const { return motorPhase_; }
+    uint32_t getNonfiniteCount() const { return nonfiniteCount_; }
     // Compatibility names retained for host reports; this is limiter activity,
     // not nonlinear clipping. Resetting diagnostics must not flush lookahead.
     uint32_t getSoftClipCount() const { return limiter_.getActiveSampleCount(); }
@@ -71,6 +75,7 @@ public:
         allocator_.setPreparedNoteTable(nullptr);
 #endif
         body_.setConfig(modelConfig_.body);
+        bodyStrategy_ = config.bodyStrategy;
     }
 #if POCKETPAN_PREPARED_NOTE_CACHE
     void setPreparedNoteCacheEnabledForTest(bool enabled) {
@@ -131,6 +136,12 @@ private:
     PeakLimiter limiter_;
 
     VoiceAllocator allocator_;
+    uint32_t motorPhase_ = 0, motorIncrement_ = 0;
+    bool motorEnabled_ = true;
+    float motorDepth_ = .32f;
+    float motorTable_[257]{};
+    uint32_t nonfiniteCount_ = 0;
+    BodyResonator preparedBodies_[static_cast<size_t>(InstrumentModel::Count)]{};
     BodyResonator body_; InstrumentModelConfig modelConfig_{};
     BodyExcitationStrategy bodyStrategy_ = BodyExcitationStrategy::StrikeBus;
     float bodyTransientState_ = 0.0f;
@@ -139,7 +150,7 @@ private:
     InstrumentModel model_ = InstrumentModel::Pan;
 
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Exactly seven shared tables (not one per voice), prepared before I2S is
+    // Exactly eight shared tables (not one per voice), prepared before I2S is
     // started.  Model selection in the audio callback only swaps a pointer.
     // Phase P diagnostic canaries:
     static constexpr uint32_t kCanaryMagic = 0x50414E32; // "PAN2"
@@ -158,6 +169,8 @@ private:
     uint32_t canaryMid6_ = kCanaryMagic;
     PreparedNoteTable marimbaPreparedNotes_{};
     uint32_t canaryPostMarimba_ = kCanaryMagic;
+    PreparedNoteTable vibraphonePreparedNotes_{};
+    uint32_t canaryPostVibraphone_ = kCanaryMagic;
 public:
     bool verifyPreparedNoteCanaries() const {
         return canaryPrePan_ == kCanaryMagic &&
@@ -167,7 +180,8 @@ public:
                canaryMid4_ == kCanaryMagic &&
                canaryMid5_ == kCanaryMagic &&
                canaryMid6_ == kCanaryMagic &&
-               canaryPostMarimba_ == kCanaryMagic;
+               canaryPostMarimba_ == kCanaryMagic &&
+               canaryPostVibraphone_ == kCanaryMagic;
     }
 private:
 #endif

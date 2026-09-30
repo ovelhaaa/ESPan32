@@ -77,3 +77,14 @@ foreach(target test_ble_midi_parser test_dsp test_prepared_note test_telemetry t
 endforeach()
 
 set_property(CACHE POCKETPAN_DSP_CANDIDATE PROPERTY STRINGS 0 4 5 9 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29)
+
+add_executable(test_vibraphone_runtime test_vibraphone_runtime.cpp
+ ${ROOT}/main/dsp/modal_resonator.cpp ${ROOT}/main/dsp/body_resonator.cpp
+ ${ROOT}/main/dsp/exciter.cpp ${ROOT}/main/dsp/modal_voice.cpp
+ ${ROOT}/main/dsp/voice_allocator.cpp ${ROOT}/main/dsp/synth_engine.cpp
+ ${ROOT}/main/dsp/instrument_model.cpp ${ROOT}/main/dsp/peak_limiter.cpp
+ ${ROOT}/main/midi/midi_mapping.cpp)
+target_include_directories(test_vibraphone_runtime PRIVATE ${ROOT}/main)
+target_compile_definitions(test_vibraphone_runtime PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
+target_compile_options(test_vibraphone_runtime PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
+add_test(NAME vibraphone_runtime COMMAND test_vibraphone_runtime)

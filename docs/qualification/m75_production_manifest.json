@@ -1,0 +1,17 @@
+{
+  "log": "m75_production_smoke.log",
+  "sha256": "55b0944198114bf077f4c475989b341b5e4c0900649fd26efe05cab783831ec0",
+  "normal_boot_model": "PAN",
+  "synth_bytes": 87860,
+  "table_bytes": 9348,
+  "cache_bytes": 74784,
+  "startup_internal_free": 79203,
+  "steady_internal_free": 83343,
+  "largest_internal": 31744,
+  "ble_ready": true,
+  "ble_interval_ms": 11.25,
+  "deadline_misses": 0,
+  "final_restore_log": "m75_production_final_smoke.log",
+  "final_restore_sha256": "0969e1c2e7b6721e2813ba93414db78b8a61cdadc28c6364d748da5a379e0434",
+  "restored_normal_firmware": true
+}

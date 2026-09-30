@@ -1,0 +1,1514 @@
+[
+  {
+    "file": "vibraphone_A3_v110_A.wav",
+    "bytes": 1536044,
+    "sha256": "3cbdeee29924c316247734752a005b6a0c1362dae36a0bcad01d4d3bfd346906",
+    "rms": 0.017103205975408278,
+    "peak": 0.15252685546875
+  },
+  {
+    "file": "vibraphone_A3_v110_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "af58e372e071baa0bb3d7a03aa9965294892a4635a72f1afef5ecf1cf3d84b4b",
+    "rms": 0.015093701922229237,
+    "peak": 0.134613037109375
+  },
+  {
+    "file": "vibraphone_A3_v110_B.wav",
+    "bytes": 1536044,
+    "sha256": "2e04f3ff3c7643b61ae31b67cdb59dfbdeaab9876115624e040713a876052b9a",
+    "rms": 0.016119755951138584,
+    "peak": 0.165252685546875
+  },
+  {
+    "file": "vibraphone_A3_v110_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "00d7f84a4dc296abc47add0b23e6830569b42b34b631c06d8acc9a4070a15513",
+    "rms": 0.015093704536239346,
+    "peak": 0.15472412109375
+  },
+  {
+    "file": "vibraphone_A3_v110_C.wav",
+    "bytes": 1536044,
+    "sha256": "aea19bf574f45f5ccb18ac3ac3a568234a352738a368aba443d4ddadcfd44178",
+    "rms": 0.015093716772091993,
+    "peak": 0.16375732421875
+  },
+  {
+    "file": "vibraphone_A3_v110_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "aea19bf574f45f5ccb18ac3ac3a568234a352738a368aba443d4ddadcfd44178",
+    "rms": 0.015093716772091993,
+    "peak": 0.16375732421875
+  },
+  {
+    "file": "vibraphone_A3_v127_A.wav",
+    "bytes": 1536044,
+    "sha256": "c825941c960499c650ba3a3977dca9c76110dead2a7321f6c0d4c382ddaa1ce2",
+    "rms": 0.018267493627325257,
+    "peak": 0.164337158203125
+  },
+  {
+    "file": "vibraphone_A3_v127_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "b9522d4ced6217c3eafe493b32d5c6a19fab7753cc3703ca49e4453575106eba",
+    "rms": 0.01620828659318738,
+    "peak": 0.14581298828125
+  },
+  {
+    "file": "vibraphone_A3_v127_B.wav",
+    "bytes": 1536044,
+    "sha256": "e3a82ba8f86d3989d41eec747c26406948dbd24daad908e0e1747eba6d616f5d",
+    "rms": 0.01726190928440908,
+    "peak": 0.178863525390625
+  },
+  {
+    "file": "vibraphone_A3_v127_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "5cc7d86ed23236cbe0b6377713599873fa0d908c6c5d97e6993af0689c99477a",
+    "rms": 0.016208264409106252,
+    "peak": 0.16796875
+  },
+  {
+    "file": "vibraphone_A3_v127_C.wav",
+    "bytes": 1536044,
+    "sha256": "6cd9c4d647a069615eec0e80deb3da9a1c57c7118b27bd15a077fe66ed5a7bbf",
+    "rms": 0.016208272541601936,
+    "peak": 0.17828369140625
+  },
+  {
+    "file": "vibraphone_A3_v127_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "6cd9c4d647a069615eec0e80deb3da9a1c57c7118b27bd15a077fe66ed5a7bbf",
+    "rms": 0.016208272541601936,
+    "peak": 0.17828369140625
+  },
+  {
+    "file": "vibraphone_A3_v30_A.wav",
+    "bytes": 1536044,
+    "sha256": "e44a89873996564470f14a01d22f246f37d8eebfc2129f6703b6a12704e8f9f3",
+    "rms": 0.005511841965486843,
+    "peak": 0.042266845703125
+  },
+  {
+    "file": "vibraphone_A3_v30_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "bba7d9be72a3cbc797bb927778f613917113ecd32fbbf9b73ab34ebae1a07ee1",
+    "rms": 0.004513313981219657,
+    "peak": 0.03460693359375
+  },
+  {
+    "file": "vibraphone_A3_v30_B.wav",
+    "bytes": 1536044,
+    "sha256": "7ece6829c002a5b29ccb9dca2f74f75af6c3a0a84f1c16c5dec4c3c0dbce5f4b",
+    "rms": 0.0050133665364164096,
+    "peak": 0.0438232421875
+  },
+  {
+    "file": "vibraphone_A3_v30_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "57c2eec9280ec8a6d0a2d6cb5a4af9db3c179841ef9b672c5b80475fd2a57ae6",
+    "rms": 0.0045132852871864505,
+    "peak": 0.039459228515625
+  },
+  {
+    "file": "vibraphone_A3_v30_C.wav",
+    "bytes": 1536044,
+    "sha256": "1bdb93dc1208a205a77c09aa0d6777c94c816665b9c9c4f5cac574668faef5e2",
+    "rms": 0.004513323266425075,
+    "peak": 0.041229248046875
+  },
+  {
+    "file": "vibraphone_A3_v30_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "1bdb93dc1208a205a77c09aa0d6777c94c816665b9c9c4f5cac574668faef5e2",
+    "rms": 0.004513323266425075,
+    "peak": 0.041229248046875
+  },
+  {
+    "file": "vibraphone_A3_v70_A.wav",
+    "bytes": 1536044,
+    "sha256": "1bc4f649ee811767088ce8fc36f161a94091781e5fdd077be955f82ebd310d28",
+    "rms": 0.010796525006136775,
+    "peak": 0.08935546875
+  },
+  {
+    "file": "vibraphone_A3_v70_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "74bd83f0107497a660cc6b67af0f29b2c02856c9ed991c191110473d91a50485",
+    "rms": 0.009152402128072251,
+    "peak": 0.07574462890625
+  },
+  {
+    "file": "vibraphone_A3_v70_B.wav",
+    "bytes": 1536044,
+    "sha256": "50cd7a14a846294a59781515430690db5cea5a46a71a024e588a0d6a53a02eda",
+    "rms": 0.009980773387173703,
+    "peak": 0.09490966796875
+  },
+  {
+    "file": "vibraphone_A3_v70_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "ccc2ca67dc5225d975ac26f17a76cb07a12367f6798edc7de2211a0d8182cc3a",
+    "rms": 0.00915236939055793,
+    "peak": 0.0870361328125
+  },
+  {
+    "file": "vibraphone_A3_v70_C.wav",
+    "bytes": 1536044,
+    "sha256": "48e908b283b3f1a47dee289321e5e51012feabbb4d443fdbeba68533db517b62",
+    "rms": 0.009152387887754174,
+    "peak": 0.091888427734375
+  },
+  {
+    "file": "vibraphone_A3_v70_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "48e908b283b3f1a47dee289321e5e51012feabbb4d443fdbeba68533db517b62",
+    "rms": 0.009152387887754174,
+    "peak": 0.091888427734375
+  },
+  {
+    "file": "vibraphone_A4_v110_A.wav",
+    "bytes": 1536044,
+    "sha256": "3c702475821be6deaf2b6153104c10040cacd9a4e296c64a282a441732b2f53c",
+    "rms": 0.014728878616631955,
+    "peak": 0.138580322265625
+  },
+  {
+    "file": "vibraphone_A4_v110_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "74f11b95453b4f4d42d8f4dc1f899fcee8ca5709eaca7ff6f01e7af3b539114f",
+    "rms": 0.012755635578850334,
+    "peak": 0.1199951171875
+  },
+  {
+    "file": "vibraphone_A4_v110_B.wav",
+    "bytes": 1536044,
+    "sha256": "bc3698bde2ec0cf7e359125a6560a4c9273384485b4ded62baac6cd26c165a38",
+    "rms": 0.013755238963573852,
+    "peak": 0.14697265625
+  },
+  {
+    "file": "vibraphone_A4_v110_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "1c3672fa8116e1beab109ca2e241199f521a415cb5294808a39a87f997c44f69",
+    "rms": 0.012755649174879652,
+    "peak": 0.13629150390625
+  },
+  {
+    "file": "vibraphone_A4_v110_C.wav",
+    "bytes": 1536044,
+    "sha256": "d351395353f2fc448ab88a87b02408c01d982f5917894b1bdf4115a4f83b0843",
+    "rms": 0.01275565931430447,
+    "peak": 0.14361572265625
+  },
+  {
+    "file": "vibraphone_A4_v110_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "d351395353f2fc448ab88a87b02408c01d982f5917894b1bdf4115a4f83b0843",
+    "rms": 0.01275565931430447,
+    "peak": 0.14361572265625
+  },
+  {
+    "file": "vibraphone_A4_v127_A.wav",
+    "bytes": 1536044,
+    "sha256": "a863b4e0da29c85bd044d71340b57a4afe1d81c48c9c8e4a21caaeb0690244a4",
+    "rms": 0.015740584421616584,
+    "peak": 0.150115966796875
+  },
+  {
+    "file": "vibraphone_A4_v127_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "55226dd16791782864700916421da66807850418af96e1947380e118cbc0b898",
+    "rms": 0.013727329165527392,
+    "peak": 0.13092041015625
+  },
+  {
+    "file": "vibraphone_A4_v127_B.wav",
+    "bytes": 1536044,
+    "sha256": "30aabf116da46e6642d22535eb8bd140945afcde01674d7e9ea58482c5186dcb",
+    "rms": 0.014754458376906131,
+    "peak": 0.16064453125
+  },
+  {
+    "file": "vibraphone_A4_v127_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "5cd851c79d5a31900affa4398dce614f286669e6e1790abfb07c618a87376f64",
+    "rms": 0.013727331377714404,
+    "peak": 0.14947509765625
+  },
+  {
+    "file": "vibraphone_A4_v127_C.wav",
+    "bytes": 1536044,
+    "sha256": "3ade18f7ef295a26c474bd8582b2dffa2f871fd13bd7440a03d4488ac8b6516e",
+    "rms": 0.013727310113778568,
+    "peak": 0.158538818359375
+  },
+  {
+    "file": "vibraphone_A4_v127_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "3ade18f7ef295a26c474bd8582b2dffa2f871fd13bd7440a03d4488ac8b6516e",
+    "rms": 0.013727310113778568,
+    "peak": 0.158538818359375
+  },
+  {
+    "file": "vibraphone_A4_v30_A.wav",
+    "bytes": 1536044,
+    "sha256": "b9e28e3848027df726cc027e52d52c7708e7f21c70a9969b1012828c00912411",
+    "rms": 0.004781103442972876,
+    "peak": 0.038848876953125
+  },
+  {
+    "file": "vibraphone_A4_v30_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "2727f2b0c0b81dc335945b230be97f9c956fcb359579056ad0797f6dbc09fd96",
+    "rms": 0.003874401281637657,
+    "peak": 0.031463623046875
+  },
+  {
+    "file": "vibraphone_A4_v30_B.wav",
+    "bytes": 1536044,
+    "sha256": "33956f0cdda85580a236d97086d9b4e11f2752d17dfcde5e38d106c4c9160789",
+    "rms": 0.00432362429994044,
+    "peak": 0.039215087890625
+  },
+  {
+    "file": "vibraphone_A4_v30_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "3d9e30acbe7b7eef5564ca5f51dde25dc74ae08f70027c570dda68dde3ac13a1",
+    "rms": 0.003874435669688068,
+    "peak": 0.03515625
+  },
+  {
+    "file": "vibraphone_A4_v30_C.wav",
+    "bytes": 1536044,
+    "sha256": "4311a1ae986c588d831d079d954e0174a8cebf217fc6713501b15ef2b213e1d7",
+    "rms": 0.003874417454253497,
+    "peak": 0.036407470703125
+  },
+  {
+    "file": "vibraphone_A4_v30_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "4311a1ae986c588d831d079d954e0174a8cebf217fc6713501b15ef2b213e1d7",
+    "rms": 0.003874417454253497,
+    "peak": 0.036407470703125
+  },
+  {
+    "file": "vibraphone_A4_v70_A.wav",
+    "bytes": 1536044,
+    "sha256": "e11079f943a366b27f9851930bd10239ad374e8b80be5e19f2a7be854ba55685",
+    "rms": 0.009318305869310498,
+    "peak": 0.080963134765625
+  },
+  {
+    "file": "vibraphone_A4_v70_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "2482c36bdab88ae9da1c98828a584420f70f696faae1c11a2ba903190bb4f2a6",
+    "rms": 0.007772240203450513,
+    "peak": 0.067535400390625
+  },
+  {
+    "file": "vibraphone_A4_v70_B.wav",
+    "bytes": 1536044,
+    "sha256": "9de4285a0b5faafca88525de761f0371d9567ee8d30458854e7b707f520df415",
+    "rms": 0.008541108577507237,
+    "peak": 0.08367919921875
+  },
+  {
+    "file": "vibraphone_A4_v70_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "a2a15325343cc2af797c2f717de8714be745ef53c4ed8b97bae7eb52f35951f7",
+    "rms": 0.007772247110650411,
+    "peak": 0.076141357421875
+  },
+  {
+    "file": "vibraphone_A4_v70_C.wav",
+    "bytes": 1536044,
+    "sha256": "cddfc19f3b4f22924deae51938ec8b3b20e476712d8f758dce1455f9b4443b51",
+    "rms": 0.00777224738681346,
+    "peak": 0.079681396484375
+  },
+  {
+    "file": "vibraphone_A4_v70_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "cddfc19f3b4f22924deae51938ec8b3b20e476712d8f758dce1455f9b4443b51",
+    "rms": 0.00777224738681346,
+    "peak": 0.079681396484375
+  },
+  {
+    "file": "vibraphone_chord_A.wav",
+    "bytes": 1536044,
+    "sha256": "0875d684813189105fd06a8881c89d213aef3476af8f31a1952435864efba388",
+    "rms": 0.023961667234635164,
+    "peak": 0.341064453125
+  },
+  {
+    "file": "vibraphone_chord_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "76b5a3d744a08ae9fc984a630a16ca73c1ff54a8434128d6f40a18cc92c40eeb",
+    "rms": 0.02115278372275549,
+    "peak": 0.30108642578125
+  },
+  {
+    "file": "vibraphone_chord_B.wav",
+    "bytes": 1536044,
+    "sha256": "ff86fa99d4059a84a08736fd55fac85de9fb01df245cf3db3f7b6ab76e388a77",
+    "rms": 0.022697846856832953,
+    "peak": 0.33966064453125
+  },
+  {
+    "file": "vibraphone_chord_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "ae4ee2a4da2dc8511c63b6bbe2a5c8cbf4535c781ff10df5e1bfb8552f9db02a",
+    "rms": 0.021152799145979378,
+    "peak": 0.3165283203125
+  },
+  {
+    "file": "vibraphone_chord_C.wav",
+    "bytes": 1536044,
+    "sha256": "f64ec8767cc2ab79f7d9f89abd50978df5865f30d77c7f2dfefa045e29877089",
+    "rms": 0.02115279755482502,
+    "peak": 0.3348388671875
+  },
+  {
+    "file": "vibraphone_chord_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "f64ec8767cc2ab79f7d9f89abd50978df5865f30d77c7f2dfefa045e29877089",
+    "rms": 0.02115279755482502,
+    "peak": 0.3348388671875
+  },
+  {
+    "file": "vibraphone_chord_motor_off.wav",
+    "bytes": 1536044,
+    "sha256": "0875d684813189105fd06a8881c89d213aef3476af8f31a1952435864efba388",
+    "rms": 0.023961667234635164,
+    "peak": 0.341064453125
+  },
+  {
+    "file": "vibraphone_chord_motor_off_matched.wav",
+    "bytes": 1536044,
+    "sha256": "f169220bcd0af1d3672d8022c95dc305e67dbbf6b60133d9dd3b82e1f3778234",
+    "rms": 0.017896132073528675,
+    "peak": 0.254730224609375
+  },
+  {
+    "file": "vibraphone_chord_motor_on_fast_strong.wav",
+    "bytes": 1536044,
+    "sha256": "5bf98af57b2b60d2bb5016daa28dbcd48c4a63907d71f3c2c38371bd73d21d36",
+    "rms": 0.017896171358393054,
+    "peak": 0.248443603515625
+  },
+  {
+    "file": "vibraphone_chord_motor_on_fast_strong_matched.wav",
+    "bytes": 1536044,
+    "sha256": "5bf98af57b2b60d2bb5016daa28dbcd48c4a63907d71f3c2c38371bd73d21d36",
+    "rms": 0.017896171358393054,
+    "peak": 0.248443603515625
+  },
+  {
+    "file": "vibraphone_chord_motor_on_medium.wav",
+    "bytes": 1536044,
+    "sha256": "ac78e90ecc9201ffcf4a540632c22ce00396003183b5d65c347850152ad92468",
+    "rms": 0.020232511438132105,
+    "peak": 0.261260986328125
+  },
+  {
+    "file": "vibraphone_chord_motor_on_medium_matched.wav",
+    "bytes": 1536044,
+    "sha256": "747cc94294b510cecf4d769680dc316988ce8d86e8bb35e4047a01eac8b8a06d",
+    "rms": 0.017896145822499033,
+    "peak": 0.231109619140625
+  },
+  {
+    "file": "vibraphone_chord_motor_on_slow_subtle.wav",
+    "bytes": 1536044,
+    "sha256": "1ae4a535f8d6eeac8620b9eff06a17901f277970d045cfe270c815ce56317e17",
+    "rms": 0.022127529097715013,
+    "peak": 0.2899169921875
+  },
+  {
+    "file": "vibraphone_chord_motor_on_slow_subtle_matched.wav",
+    "bytes": 1536044,
+    "sha256": "d82fbe5c50fb85489e7bcfa44ee004395b3c8d4f7c7fc3ddd6cd6e84ffe8a030",
+    "rms": 0.017896135180979583,
+    "peak": 0.234466552734375
+  },
+  {
+    "file": "vibraphone_cluster8_A.wav",
+    "bytes": 1536044,
+    "sha256": "57229066fda3454844e722cbfee7dd3b29f183b96024acb468acc15dee5e1fb4",
+    "rms": 0.029722877869726803,
+    "peak": 0.6439208984375
+  },
+  {
+    "file": "vibraphone_cluster8_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "bd6f9c1ec67e1f261a89ec867a0c233c09f2e3a04ebe964e0316c9c4b8d3039f",
+    "rms": 0.02630115869976753,
+    "peak": 0.569793701171875
+  },
+  {
+    "file": "vibraphone_cluster8_B.wav",
+    "bytes": 1536044,
+    "sha256": "64a0c718fa9cf0efcbe63b213764b8d4a0eaf17e442bd01cbcccf4b5b18d61be",
+    "rms": 0.02823654303237801,
+    "peak": 0.6756591796875
+  },
+  {
+    "file": "vibraphone_cluster8_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "e5847b56bef0df73956540d6a48747e33fdce49b2bd4375aa3e5157da0a8e287",
+    "rms": 0.02630114910302528,
+    "peak": 0.629364013671875
+  },
+  {
+    "file": "vibraphone_cluster8_C.wav",
+    "bytes": 1536044,
+    "sha256": "52425e6fe725f309b6e135ef529ee1a900c4d1ec3f3a2ead32d1e13a203286cc",
+    "rms": 0.02630116358984355,
+    "peak": 0.6796875
+  },
+  {
+    "file": "vibraphone_cluster8_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "52425e6fe725f309b6e135ef529ee1a900c4d1ec3f3a2ead32d1e13a203286cc",
+    "rms": 0.02630116358984355,
+    "peak": 0.6796875
+  },
+  {
+    "file": "vibraphone_D3_v110_A.wav",
+    "bytes": 1536044,
+    "sha256": "3a0e31dd649965fb90e09b9ceb3572e31d74a7e99ba5b26ed0bea8430c9b30fd",
+    "rms": 0.018441911507998746,
+    "peak": 0.1568603515625
+  },
+  {
+    "file": "vibraphone_D3_v110_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "fbca19039052511ffb40ac0c77f78dc1421a3fad47dac309330c85ca46ffd65f",
+    "rms": 0.016255852982650646,
+    "peak": 0.13824462890625
+  },
+  {
+    "file": "vibraphone_D3_v110_B.wav",
+    "bytes": 1536044,
+    "sha256": "4359ad19c04af0daff8c234871841cd620282f0414c7946a182914e6644e6aa3",
+    "rms": 0.017427779209055586,
+    "peak": 0.166839599609375
+  },
+  {
+    "file": "vibraphone_D3_v110_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "53ac8fc11ba612b27bfdc2be0c024272943b697308ccc956068b29beaa4d54e2",
+    "rms": 0.016255844918792187,
+    "peak": 0.1556396484375
+  },
+  {
+    "file": "vibraphone_D3_v110_C.wav",
+    "bytes": 1536044,
+    "sha256": "53736ff500b3d6105854ccd2670cbada6aab96ef2053a390e26ee4611e771570",
+    "rms": 0.016255874303885812,
+    "peak": 0.1676025390625
+  },
+  {
+    "file": "vibraphone_D3_v110_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "53736ff500b3d6105854ccd2670cbada6aab96ef2053a390e26ee4611e771570",
+    "rms": 0.016255874303885812,
+    "peak": 0.1676025390625
+  },
+  {
+    "file": "vibraphone_D3_v127_A.wav",
+    "bytes": 1536044,
+    "sha256": "7742dd2e0fb6fbbb45cd79549731a1ad92e438e56f2aa9e1f28d06339d768417",
+    "rms": 0.01965968352063337,
+    "peak": 0.16876220703125
+  },
+  {
+    "file": "vibraphone_D3_v127_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "a352b381d9a5d83769b6ffa2b72d881c9af9c5cb6ddb53dae597290af0607d99",
+    "rms": 0.01741292340381702,
+    "peak": 0.14947509765625
+  },
+  {
+    "file": "vibraphone_D3_v127_B.wav",
+    "bytes": 1536044,
+    "sha256": "d5dbff3d4b465e2f2cdfc847ad5b7908a7c8aeab1f3e30b07ac29a43bfe0b204",
+    "rms": 0.018629998982165365,
+    "peak": 0.180023193359375
+  },
+  {
+    "file": "vibraphone_D3_v127_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "3efd003270e43a118aa610c93e0b85bf95b37074956b73e109835248b95a235c",
+    "rms": 0.01741289884359151,
+    "peak": 0.16827392578125
+  },
+  {
+    "file": "vibraphone_D3_v127_C.wav",
+    "bytes": 1536044,
+    "sha256": "eaca5eac234ba37c5ca939e96427012d08a97d14f4c905115cb2bd2eb1341905",
+    "rms": 0.017412921673577438,
+    "peak": 0.181549072265625
+  },
+  {
+    "file": "vibraphone_D3_v127_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "eaca5eac234ba37c5ca939e96427012d08a97d14f4c905115cb2bd2eb1341905",
+    "rms": 0.017412921673577438,
+    "peak": 0.181549072265625
+  },
+  {
+    "file": "vibraphone_D3_v30_A.wav",
+    "bytes": 1536044,
+    "sha256": "6cdcc303fb28dbf96b60948d7ad928429b0cc7eb18308db4ad910870a5b86a71",
+    "rms": 0.005984431354083103,
+    "peak": 0.043487548828125
+  },
+  {
+    "file": "vibraphone_D3_v30_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "2895e9e219d5165c767f5c34d61bd408d35de5c68c85a7a6f3d609c2ef02a2e6",
+    "rms": 0.0049130494556393605,
+    "peak": 0.03570556640625
+  },
+  {
+    "file": "vibraphone_D3_v30_B.wav",
+    "bytes": 1536044,
+    "sha256": "61ddc3705bc710b2c5bd6ad851469259f32584b75da9418b04a9d5cff773b498",
+    "rms": 0.005464880841086909,
+    "peak": 0.043975830078125
+  },
+  {
+    "file": "vibraphone_D3_v30_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "342239fc61da309a3177680f9cad8cc96bf4bd9fcc8c32830c8fbbbef0626659",
+    "rms": 0.004913095408664187,
+    "peak": 0.03955078125
+  },
+  {
+    "file": "vibraphone_D3_v30_C.wav",
+    "bytes": 1536044,
+    "sha256": "7fc9e9aeb4f847b49f8dc64e378a55e04439f099274c2b4c36b5732ecf971c18",
+    "rms": 0.004913073287200527,
+    "peak": 0.04193115234375
+  },
+  {
+    "file": "vibraphone_D3_v30_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "7fc9e9aeb4f847b49f8dc64e378a55e04439f099274c2b4c36b5732ecf971c18",
+    "rms": 0.004913073287200527,
+    "peak": 0.04193115234375
+  },
+  {
+    "file": "vibraphone_D3_v70_A.wav",
+    "bytes": 1536044,
+    "sha256": "18afbfdbbb6fb9b1a02b5bdc8334fbd30b61cab71f00c74519e67ae7db23e0d4",
+    "rms": 0.01168164822216642,
+    "peak": 0.09210205078125
+  },
+  {
+    "file": "vibraphone_D3_v70_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "f06fa644745723250420643cf194a6b4a75efd0bd169c4674fcfeb371227dd8c",
+    "rms": 0.009916225253259076,
+    "peak": 0.07818603515625
+  },
+  {
+    "file": "vibraphone_D3_v70_B.wav",
+    "bytes": 1536044,
+    "sha256": "22084d9d910c24dd4a82d6ea7c2201c57a0364fc6c598056fcc2df40630c1956",
+    "rms": 0.010835329627253934,
+    "peak": 0.09576416015625
+  },
+  {
+    "file": "vibraphone_D3_v70_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "2e23170b68b624bea884e4e5aabbfdcceb682c341e03f48fd8c18cf23762720b",
+    "rms": 0.00991619671918841,
+    "peak": 0.087646484375
+  },
+  {
+    "file": "vibraphone_D3_v70_C.wav",
+    "bytes": 1536044,
+    "sha256": "d5fb04c22c707ab459ae7650a07aaf9472ea6f0441e759f860fe134960808a43",
+    "rms": 0.009916202829079339,
+    "peak": 0.0941162109375
+  },
+  {
+    "file": "vibraphone_D3_v70_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "d5fb04c22c707ab459ae7650a07aaf9472ea6f0441e759f860fe134960808a43",
+    "rms": 0.009916202829079339,
+    "peak": 0.0941162109375
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_off.wav",
+    "bytes": 1536044,
+    "sha256": "18afbfdbbb6fb9b1a02b5bdc8334fbd30b61cab71f00c74519e67ae7db23e0d4",
+    "rms": 0.01168164822216642,
+    "peak": 0.09210205078125
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_off_matched.wav",
+    "bytes": 1536044,
+    "sha256": "287cc9ba429f6eee7b3aa9cba35133c8d24fe732e792ef4a375cff7b223fd2a1",
+    "rms": 0.008760489769297572,
+    "peak": 0.069061279296875
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_on_fast_strong.wav",
+    "bytes": 1536044,
+    "sha256": "647f111ce64bd1e9743a548aded6f9e7127cb50fb035953cddaf030fdc660e66",
+    "rms": 0.008760507684907924,
+    "peak": 0.083343505859375
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_on_fast_strong_matched.wav",
+    "bytes": 1536044,
+    "sha256": "647f111ce64bd1e9743a548aded6f9e7127cb50fb035953cddaf030fdc660e66",
+    "rms": 0.008760507684907924,
+    "peak": 0.083343505859375
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_on_medium.wav",
+    "bytes": 1536044,
+    "sha256": "81a57c537ab36f01d03cf0d227af63576348588a6e72e9eb9df3c9ffe7ced703",
+    "rms": 0.009889006582436063,
+    "peak": 0.079376220703125
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_on_medium_matched.wav",
+    "bytes": 1536044,
+    "sha256": "2d64631efb4d00a35296db7f387b65d8080a4201164272618d45a1f498c916f4",
+    "rms": 0.008760539403058926,
+    "peak": 0.0703125
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_on_slow_subtle.wav",
+    "bytes": 1536044,
+    "sha256": "0ef9301fa78816c9a9ec39bc673a7667c9f81a2f5896b71b36ddb2eb16ee1873",
+    "rms": 0.010804507972026436,
+    "peak": 0.078277587890625
+  },
+  {
+    "file": "vibraphone_D3_v70_motor_on_slow_subtle_matched.wav",
+    "bytes": 1536044,
+    "sha256": "fb6ac983577995420dcfb7acc2d005ea4bb689ce070567e6a0d9b024b387b0ee",
+    "rms": 0.00876050227282663,
+    "peak": 0.0634765625
+  },
+  {
+    "file": "vibraphone_D4_v110_A.wav",
+    "bytes": 1536044,
+    "sha256": "4946b0f144e4c863652740d55b3873e4e6945ee63e5f5b27e5edd58f79e26dd4",
+    "rms": 0.016093001247802816,
+    "peak": 0.147979736328125
+  },
+  {
+    "file": "vibraphone_D4_v110_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "bb7f8ef74a4c29ed1eccc054cbb850b5df0d2e710da4695c43a55bb400fdc2c5",
+    "rms": 0.014196621083735974,
+    "peak": 0.130523681640625
+  },
+  {
+    "file": "vibraphone_D4_v110_B.wav",
+    "bytes": 1536044,
+    "sha256": "672ed0475fa56bae7a470cb93cce5cb632c38e64c8f1267d80eac605ec72bd51",
+    "rms": 0.015174669803731066,
+    "peak": 0.160003662109375
+  },
+  {
+    "file": "vibraphone_D4_v110_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "ada21555ea6907fd8c2d3c78c5ccd6addd755b80fa6c18e7cd6a8ae0e43f95c4",
+    "rms": 0.014196573592120884,
+    "peak": 0.149688720703125
+  },
+  {
+    "file": "vibraphone_D4_v110_C.wav",
+    "bytes": 1536044,
+    "sha256": "6704431d45000d9dd3dcf91493d4dd288da6c8a48f5b660a8204046f4c8b9684",
+    "rms": 0.014196575364654072,
+    "peak": 0.158355712890625
+  },
+  {
+    "file": "vibraphone_D4_v110_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "6704431d45000d9dd3dcf91493d4dd288da6c8a48f5b660a8204046f4c8b9684",
+    "rms": 0.014196575364654072,
+    "peak": 0.158355712890625
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_off.wav",
+    "bytes": 1536044,
+    "sha256": "4946b0f144e4c863652740d55b3873e4e6945ee63e5f5b27e5edd58f79e26dd4",
+    "rms": 0.016093001247802816,
+    "peak": 0.147979736328125
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_off_matched.wav",
+    "bytes": 1536044,
+    "sha256": "4731e7dd8b0f20fc91fc6bd180e481a6d53ddf99cb9f0d7ebf74a592d75410d4",
+    "rms": 0.012061211056767164,
+    "peak": 0.11090087890625
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_on_fast_strong.wav",
+    "bytes": 1536044,
+    "sha256": "855b6ebb3cc67a20f65d927edd22d6199d7a963cd535b58e079054acfbc37737",
+    "rms": 0.012061182841702526,
+    "peak": 0.13037109375
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_on_fast_strong_matched.wav",
+    "bytes": 1536044,
+    "sha256": "855b6ebb3cc67a20f65d927edd22d6199d7a963cd535b58e079054acfbc37737",
+    "rms": 0.012061182841702526,
+    "peak": 0.13037109375
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_on_medium.wav",
+    "bytes": 1536044,
+    "sha256": "b2f99911820cc66db3136b086a44cd9a96652ddcd2dcdbbef23655e3ced222be",
+    "rms": 0.013613108094733322,
+    "peak": 0.12255859375
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_on_medium_matched.wav",
+    "bytes": 1536044,
+    "sha256": "d9f70c1a2fb0bda789c020db8afbb20ed6cd40424b19c893d3f4a02820195ce4",
+    "rms": 0.01206121865010705,
+    "peak": 0.10858154296875
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_on_slow_subtle.wav",
+    "bytes": 1536044,
+    "sha256": "f6d298bf23b0fd7ac6224e7e2c45a438efd54ce92242e8ada3e972f6aa6585ac",
+    "rms": 0.014869959528925634,
+    "peak": 0.12579345703125
+  },
+  {
+    "file": "vibraphone_D4_v110_motor_on_slow_subtle_matched.wav",
+    "bytes": 1536044,
+    "sha256": "bcd0ec570aac0dd174cacf8a321921defa4b636f432e4235e5ad8c61f2192a7a",
+    "rms": 0.012061182318681238,
+    "peak": 0.102020263671875
+  },
+  {
+    "file": "vibraphone_D4_v127_A.wav",
+    "bytes": 1536044,
+    "sha256": "1df275b07238cf2786551cb361030dc7c696d9c2099a6715c1bf5a8147ee3db2",
+    "rms": 0.01721426357176928,
+    "peak": 0.160247802734375
+  },
+  {
+    "file": "vibraphone_D4_v127_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "9657d33c9494082aa82a37478639535af9896e1e8c9951dfb47bd3867c3a4aed",
+    "rms": 0.015272511481663475,
+    "peak": 0.142181396484375
+  },
+  {
+    "file": "vibraphone_D4_v127_B.wav",
+    "bytes": 1536044,
+    "sha256": "7ef99120e4e880e86f91ddcb5305509aa4ccb95acf5948926b6545c192627e54",
+    "rms": 0.016275286043304762,
+    "peak": 0.17388916015625
+  },
+  {
+    "file": "vibraphone_D4_v127_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "85c5e569558b5a98744f70b77fdfa17d9775add577bae382debdbee05da769fd",
+    "rms": 0.015272529387554043,
+    "peak": 0.163177490234375
+  },
+  {
+    "file": "vibraphone_D4_v127_C.wav",
+    "bytes": 1536044,
+    "sha256": "7f0529db050dbaf57f68a22500340317d74c92d3b930bcd6c481112f76fee6fe",
+    "rms": 0.015272546094623245,
+    "peak": 0.17236328125
+  },
+  {
+    "file": "vibraphone_D4_v127_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "7f0529db050dbaf57f68a22500340317d74c92d3b930bcd6c481112f76fee6fe",
+    "rms": 0.015272546094623245,
+    "peak": 0.17236328125
+  },
+  {
+    "file": "vibraphone_D4_v30_A.wav",
+    "bytes": 1536044,
+    "sha256": "9f6d031b045395de74a91081cb2a3756b3d0bad2c94716ec521fcbb93ed5b348",
+    "rms": 0.005175860936157601,
+    "peak": 0.0411376953125
+  },
+  {
+    "file": "vibraphone_D4_v30_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "5dfc00b38fb26e00200e780f8ea757873853267cf5bb6d2e2952217470cfa6f1",
+    "rms": 0.00421963318641577,
+    "peak": 0.033538818359375
+  },
+  {
+    "file": "vibraphone_D4_v30_B.wav",
+    "bytes": 1536044,
+    "sha256": "7bcc8504d08c92c836fd1c06a458ce2db48f5f1fcc9fea2f9f363236a011feef",
+    "rms": 0.004710187620152838,
+    "peak": 0.04248046875
+  },
+  {
+    "file": "vibraphone_D4_v30_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "2a825d5363ded20f7388fcbe5007a2eac6b3cfa50d85fe2cc040deda50640cf4",
+    "rms": 0.004219624108198852,
+    "peak": 0.038055419921875
+  },
+  {
+    "file": "vibraphone_D4_v30_C.wav",
+    "bytes": 1536044,
+    "sha256": "a6e4c74ef5de49c48afa387e249116ccafbf5a5ecd3576522d967b8f364f9623",
+    "rms": 0.004219654224387787,
+    "peak": 0.0396728515625
+  },
+  {
+    "file": "vibraphone_D4_v30_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "a6e4c74ef5de49c48afa387e249116ccafbf5a5ecd3576522d967b8f364f9623",
+    "rms": 0.004219654224387787,
+    "peak": 0.0396728515625
+  },
+  {
+    "file": "vibraphone_D4_v70_A.wav",
+    "bytes": 1536044,
+    "sha256": "fe02d2513a6c2651e48b8f5963248a55d703926eef3de16fc94e765f58707203",
+    "rms": 0.010137703587876086,
+    "peak": 0.08660888671875
+  },
+  {
+    "file": "vibraphone_D4_v70_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "1b4063ad051b7cd4cda542807cb3873dfea393efb8217d42bad36ad15283d4db",
+    "rms": 0.008574561390744743,
+    "peak": 0.073272705078125
+  },
+  {
+    "file": "vibraphone_D4_v70_B.wav",
+    "bytes": 1536044,
+    "sha256": "3175faa5a50cf9aa6e5ffc47d13fc98680109fa1a06b72fdf65a52f8857a3fa6",
+    "rms": 0.009370111247818133,
+    "peak": 0.09161376953125
+  },
+  {
+    "file": "vibraphone_D4_v70_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "56530382505a1ce1361d542f06eb709444dfc20449efb56cd64824bc1886e9fc",
+    "rms": 0.008574592526449907,
+    "peak": 0.083831787109375
+  },
+  {
+    "file": "vibraphone_D4_v70_C.wav",
+    "bytes": 1536044,
+    "sha256": "5df58fb091d95264d2d82823ac849cc2b98f1e7bbfed79e6ab5f377e011a8a47",
+    "rms": 0.008574577004079598,
+    "peak": 0.088043212890625
+  },
+  {
+    "file": "vibraphone_D4_v70_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "5df58fb091d95264d2d82823ac849cc2b98f1e7bbfed79e6ab5f377e011a8a47",
+    "rms": 0.008574577004079598,
+    "peak": 0.088043212890625
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_off.wav",
+    "bytes": 1536044,
+    "sha256": "fe02d2513a6c2651e48b8f5963248a55d703926eef3de16fc94e765f58707203",
+    "rms": 0.010137703587876086,
+    "peak": 0.08660888671875
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_off_matched.wav",
+    "bytes": 1536044,
+    "sha256": "fd5ea54cc413a881d8015b80056437ff382628235814f04f337cf22eddce3c06",
+    "rms": 0.0075993374263066,
+    "peak": 0.06494140625
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_on_fast_strong.wav",
+    "bytes": 1536044,
+    "sha256": "2102b123e51022968a7ae000d37408a0b4c5e1aee1493a4ab78bef542824a01d",
+    "rms": 0.007599335713594523,
+    "peak": 0.076934814453125
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_on_fast_strong_matched.wav",
+    "bytes": 1536044,
+    "sha256": "2102b123e51022968a7ae000d37408a0b4c5e1aee1493a4ab78bef542824a01d",
+    "rms": 0.007599335713594523,
+    "peak": 0.076934814453125
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_on_medium.wav",
+    "bytes": 1536044,
+    "sha256": "b06a051582dbb526b09664b2831d911ee82ba1a8ea37af3d936338fef140de3c",
+    "rms": 0.008577369478266563,
+    "peak": 0.072662353515625
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_on_medium_matched.wav",
+    "bytes": 1536044,
+    "sha256": "e3f785e93153543d6dbd3e86486aa41ba9e9d30220e48073f5d1b64cb1131799",
+    "rms": 0.00759931261037462,
+    "peak": 0.064361572265625
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_on_slow_subtle.wav",
+    "bytes": 1536044,
+    "sha256": "1d70cfb07e2194feed4887ceeb0f5d5b1260680abd9c431946bfcd5a1fab5842",
+    "rms": 0.00936969878005678,
+    "peak": 0.073638916015625
+  },
+  {
+    "file": "vibraphone_D4_v70_motor_on_slow_subtle_matched.wav",
+    "bytes": 1536044,
+    "sha256": "ac8648b55357b6f9026eff95c27e0a91b42a8a6c9dd34f5b9677aad13ebaa69d",
+    "rms": 0.007599349105546922,
+    "peak": 0.059722900390625
+  },
+  {
+    "file": "vibraphone_D5_v110_A.wav",
+    "bytes": 1536044,
+    "sha256": "d244297f8c45b112e6109852c9fb2d9b942a48d5be3dd0543c06727e5369eb23",
+    "rms": 0.013355753352425833,
+    "peak": 0.130584716796875
+  },
+  {
+    "file": "vibraphone_D5_v110_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "f0c543bae535c8677fb2a749123715bba6d13262c057fe49557a9c5c7c5a56c4",
+    "rms": 0.011452632230866249,
+    "peak": 0.111968994140625
+  },
+  {
+    "file": "vibraphone_D5_v110_B.wav",
+    "bytes": 1536044,
+    "sha256": "e63e349d78e05d37d385bd3901abf5e286bbc514a405b8292b4c6786bfcfd1b1",
+    "rms": 0.012439993252963537,
+    "peak": 0.13525390625
+  },
+  {
+    "file": "vibraphone_D5_v110_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "477afc5b8b7786a5e6cd7f3b19076441efb8c869e991e10159bbc40a351f88ea",
+    "rms": 0.011452649815775765,
+    "peak": 0.12451171875
+  },
+  {
+    "file": "vibraphone_D5_v110_C.wav",
+    "bytes": 1536044,
+    "sha256": "8647addb22ec00ed45182d279464b0779fb0e8bd10036fec5883dd2956b1baaa",
+    "rms": 0.011452652619071033,
+    "peak": 0.13031005859375
+  },
+  {
+    "file": "vibraphone_D5_v110_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "8647addb22ec00ed45182d279464b0779fb0e8bd10036fec5883dd2956b1baaa",
+    "rms": 0.011452652619071033,
+    "peak": 0.13031005859375
+  },
+  {
+    "file": "vibraphone_D5_v127_A.wav",
+    "bytes": 1536044,
+    "sha256": "4ecf37c5446589033fa83da33abe77f070ec349445ff7552211230e25a75f66d",
+    "rms": 0.014343876868526605,
+    "peak": 0.14312744140625
+  },
+  {
+    "file": "vibraphone_D5_v127_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "e598642a64511093d17b5914257d7cb07fb4e39aef0d6647ea71c92a55d4c8a8",
+    "rms": 0.012418690921983406,
+    "peak": 0.1239013671875
+  },
+  {
+    "file": "vibraphone_D5_v127_B.wav",
+    "bytes": 1536044,
+    "sha256": "3a27e8b4161b43819f5f48649db31a4ebc68fa42f2c6c1e899eddaa2f4b3016d",
+    "rms": 0.013421606422713311,
+    "peak": 0.1490478515625
+  },
+  {
+    "file": "vibraphone_D5_v127_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "c5325d180c7174f3184c40ed9082486324cd7108e99b0b1555337f2e5466cd4a",
+    "rms": 0.012418675292053491,
+    "peak": 0.137908935546875
+  },
+  {
+    "file": "vibraphone_D5_v127_C.wav",
+    "bytes": 1536044,
+    "sha256": "3f78a4b74b98290d0866205393e378ba058d0c253aae0307190bf9f8226c4293",
+    "rms": 0.01241868063017907,
+    "peak": 0.145263671875
+  },
+  {
+    "file": "vibraphone_D5_v127_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "3f78a4b74b98290d0866205393e378ba058d0c253aae0307190bf9f8226c4293",
+    "rms": 0.01241868063017907,
+    "peak": 0.145263671875
+  },
+  {
+    "file": "vibraphone_D5_v30_A.wav",
+    "bytes": 1536044,
+    "sha256": "26de81543203ae62ba81d572f2d1a8289b81c2ef3ccc9827f6cce59060bf304c",
+    "rms": 0.004310833382969026,
+    "peak": 0.0367431640625
+  },
+  {
+    "file": "vibraphone_D5_v30_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "3690cb93aaba9aff22d2288a98485156e8a5dc419fb92220aac930aaa521c223",
+    "rms": 0.0034479496015636106,
+    "peak": 0.029388427734375
+  },
+  {
+    "file": "vibraphone_D5_v30_B.wav",
+    "bytes": 1536044,
+    "sha256": "e0811788518281b34f680e72de6726672b2c0b5b35ba33030a4bcba9830d15ad",
+    "rms": 0.003886146568064754,
+    "peak": 0.036376953125
+  },
+  {
+    "file": "vibraphone_D5_v30_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "06ed06e39b8c44cb5c9186c840d68ce9f90ae5f14130902d121c3ca5c76a9919",
+    "rms": 0.0034479622854135836,
+    "peak": 0.03228759765625
+  },
+  {
+    "file": "vibraphone_D5_v30_C.wav",
+    "bytes": 1536044,
+    "sha256": "31567ed92ce5a4e0ab3fde3390a04496e9ff6ab146efce0468306a6c77dbf9c9",
+    "rms": 0.0034479559269643455,
+    "peak": 0.033538818359375
+  },
+  {
+    "file": "vibraphone_D5_v30_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "31567ed92ce5a4e0ab3fde3390a04496e9ff6ab146efce0468306a6c77dbf9c9",
+    "rms": 0.0034479559269643455,
+    "peak": 0.033538818359375
+  },
+  {
+    "file": "vibraphone_D5_v70_A.wav",
+    "bytes": 1536044,
+    "sha256": "761633b6b37c72c7a4adf37a9927194e31cf28571c628005eb385b9416c41a81",
+    "rms": 0.008395285838632917,
+    "peak": 0.076202392578125
+  },
+  {
+    "file": "vibraphone_D5_v70_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "cc115d286846ebf076a054dd11860699c983e3dfa3e9dbaf3f8614ead624a97d",
+    "rms": 0.006905398767039099,
+    "peak": 0.06268310546875
+  },
+  {
+    "file": "vibraphone_D5_v70_B.wav",
+    "bytes": 1536044,
+    "sha256": "6caf13cb3ac8d607a55214fe7079f8e796e32d2fe61ec0a4032be8aa1c54152c",
+    "rms": 0.007667361669187001,
+    "peak": 0.076934814453125
+  },
+  {
+    "file": "vibraphone_D5_v70_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "52882cd21f63690ff56afa46ff4427ce2bdbf4b58ab7e863c3f8d15e0e8584b3",
+    "rms": 0.006905403416497574,
+    "peak": 0.069305419921875
+  },
+  {
+    "file": "vibraphone_D5_v70_C.wav",
+    "bytes": 1536044,
+    "sha256": "5f472396862491653cde3f3cd1536bb6ce182064ac81b51e8666f34c59cf2fb4",
+    "rms": 0.006905409946034706,
+    "peak": 0.0723876953125
+  },
+  {
+    "file": "vibraphone_D5_v70_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "5f472396862491653cde3f3cd1536bb6ce182064ac81b51e8666f34c59cf2fb4",
+    "rms": 0.006905409946034706,
+    "peak": 0.0723876953125
+  },
+  {
+    "file": "vibraphone_phrase_A.wav",
+    "bytes": 1536044,
+    "sha256": "e885cb4a574156421ee8add195263ffdb8603607c2ea8305f84b8c85087f496c",
+    "rms": 0.02447076537927091,
+    "peak": 0.139434814453125
+  },
+  {
+    "file": "vibraphone_phrase_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "71a4269e7b001ee99113564b22242fc9f02ebd2c37651923c336ee11bc7aa98c",
+    "rms": 0.02093367963444084,
+    "peak": 0.119293212890625
+  },
+  {
+    "file": "vibraphone_phrase_B.wav",
+    "bytes": 1536044,
+    "sha256": "e86abdb44a0c70d8c2c927d838bf31def8bc20cc1275bf8b82312b34df0506ac",
+    "rms": 0.02269540235141969,
+    "peak": 0.142822265625
+  },
+  {
+    "file": "vibraphone_phrase_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "1ef61a5446d613648d53237f11d90a55f009eda89560e2a6126c970cbafe2b4e",
+    "rms": 0.020933677627676776,
+    "peak": 0.1317138671875
+  },
+  {
+    "file": "vibraphone_phrase_C.wav",
+    "bytes": 1536044,
+    "sha256": "40519dcb82e389930bb59cf223f59b3f0decf1d7d2299224c8aa9cf2048c13b2",
+    "rms": 0.020933655438270925,
+    "peak": 0.136444091796875
+  },
+  {
+    "file": "vibraphone_phrase_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "40519dcb82e389930bb59cf223f59b3f0decf1d7d2299224c8aa9cf2048c13b2",
+    "rms": 0.020933655438270925,
+    "peak": 0.136444091796875
+  },
+  {
+    "file": "vibraphone_phrase_motor_off.wav",
+    "bytes": 1536044,
+    "sha256": "e885cb4a574156421ee8add195263ffdb8603607c2ea8305f84b8c85087f496c",
+    "rms": 0.02447076537927091,
+    "peak": 0.139434814453125
+  },
+  {
+    "file": "vibraphone_phrase_motor_off_matched.wav",
+    "bytes": 1536044,
+    "sha256": "71824124df773f839e4e0a2fa7b40f3dcb166758ba1cc92e505b1112374a1054",
+    "rms": 0.018482064470637976,
+    "peak": 0.105316162109375
+  },
+  {
+    "file": "vibraphone_phrase_motor_on_fast_strong.wav",
+    "bytes": 1536044,
+    "sha256": "95e68f80ea3e5ed194e223e87d24013464485b586f7c08835643189031ae4d70",
+    "rms": 0.018482079737806648,
+    "peak": 0.133209228515625
+  },
+  {
+    "file": "vibraphone_phrase_motor_on_fast_strong_matched.wav",
+    "bytes": 1536044,
+    "sha256": "95e68f80ea3e5ed194e223e87d24013464485b586f7c08835643189031ae4d70",
+    "rms": 0.018482079737806648,
+    "peak": 0.133209228515625
+  },
+  {
+    "file": "vibraphone_phrase_motor_on_medium.wav",
+    "bytes": 1536044,
+    "sha256": "33bcf016aecb7e62d902536a9f631bdd38bc6a0a29adae9cbf2696309ba3a220",
+    "rms": 0.02071480563933055,
+    "peak": 0.135589599609375
+  },
+  {
+    "file": "vibraphone_phrase_motor_on_medium_matched.wav",
+    "bytes": 1536044,
+    "sha256": "4f1eab611f13ed8a431502f4d57fcf52af984862684a135334f4a0177370fc53",
+    "rms": 0.01848206388491269,
+    "peak": 0.1209716796875
+  },
+  {
+    "file": "vibraphone_phrase_motor_on_slow_subtle.wav",
+    "bytes": 1536044,
+    "sha256": "b96b00828a11371dea85849212e4a993a8e5edb43a91ea3d235befb044118552",
+    "rms": 0.022671821272770558,
+    "peak": 0.1331787109375
+  },
+  {
+    "file": "vibraphone_phrase_motor_on_slow_subtle_matched.wav",
+    "bytes": 1536044,
+    "sha256": "414e4728d3bb5a472413133da65ca38ffa580e5ffb122477f272bea43f42c68d",
+    "rms": 0.018482066672602687,
+    "peak": 0.10858154296875
+  },
+  {
+    "file": "vibraphone_restrike100_A.wav",
+    "bytes": 1536044,
+    "sha256": "bf4df7050269349146f55ec01a82df21f2578762cf02a568e5b556af3afb5e63",
+    "rms": 0.013219090241468072,
+    "peak": 0.116302490234375
+  },
+  {
+    "file": "vibraphone_restrike100_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "b432d216108a6712049abfadcabcd6a8cccf970d9263e8d201d445eaa9163209",
+    "rms": 0.011365738739295281,
+    "peak": 0.100006103515625
+  },
+  {
+    "file": "vibraphone_restrike100_B.wav",
+    "bytes": 1536044,
+    "sha256": "ca28d3d6d2558e133ab9a3bb3e01b352a3ad501bba87ac588ec606658565df59",
+    "rms": 0.012304369879817955,
+    "peak": 0.1234130859375
+  },
+  {
+    "file": "vibraphone_restrike100_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "1ee949e14d7b6aea1d73068254f355016e652c7595ac36a4f45127936778f3d1",
+    "rms": 0.011365748726731451,
+    "peak": 0.114013671875
+  },
+  {
+    "file": "vibraphone_restrike100_C.wav",
+    "bytes": 1536044,
+    "sha256": "16402dd7b2fe49adb717cf5ed524015f2a57b6bb9401e7dcaf8a3d9d7ed5e9d0",
+    "rms": 0.011365748341778729,
+    "peak": 0.120697021484375
+  },
+  {
+    "file": "vibraphone_restrike100_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "16402dd7b2fe49adb717cf5ed524015f2a57b6bb9401e7dcaf8a3d9d7ed5e9d0",
+    "rms": 0.011365748341778729,
+    "peak": 0.120697021484375
+  },
+  {
+    "file": "vibraphone_restrike250_A.wav",
+    "bytes": 1536044,
+    "sha256": "9f4ad0e5b0289def7f9416afc6da9ed65f1ca154683914ec339a6cf652f05135",
+    "rms": 0.01363224830079491,
+    "peak": 0.147979736328125
+  },
+  {
+    "file": "vibraphone_restrike250_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "52b7ba953e4fe35347415a0ed25c16ba043396a6f1aab3a3c715df0cb362ed05",
+    "rms": 0.012505815861096241,
+    "peak": 0.1357421875
+  },
+  {
+    "file": "vibraphone_restrike250_B.wav",
+    "bytes": 1536044,
+    "sha256": "ba45416a9052a80bada407509dc2333e03850ca557e36c2eebff2504b0c7ddd2",
+    "rms": 0.013111933975870287,
+    "peak": 0.160003662109375
+  },
+  {
+    "file": "vibraphone_restrike250_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "f8440634616a424241ccdc44f829a723d9647cd0df70bd9df19f7ab514d9981e",
+    "rms": 0.012505795501072647,
+    "peak": 0.152618408203125
+  },
+  {
+    "file": "vibraphone_restrike250_C.wav",
+    "bytes": 1536044,
+    "sha256": "100effb34e0ae9b5022e46738872e608a47cf89c7adc2fa9f8981800d7798c23",
+    "rms": 0.01250580871729333,
+    "peak": 0.158355712890625
+  },
+  {
+    "file": "vibraphone_restrike250_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "100effb34e0ae9b5022e46738872e608a47cf89c7adc2fa9f8981800d7798c23",
+    "rms": 0.01250580871729333,
+    "peak": 0.158355712890625
+  },
+  {
+    "file": "vibraphone_roll_A.wav",
+    "bytes": 1536044,
+    "sha256": "5291b21730eff8c5a2e2f51d7552bd1d16972ae1481ed9f9bef412b2721f3181",
+    "rms": 0.05980378494836889,
+    "peak": 0.285797119140625
+  },
+  {
+    "file": "vibraphone_roll_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "f2b9078d9ad3c02e641fdac939dc948fad00ea3e5924f5b29beb7bbdc910fd27",
+    "rms": 0.050823625421184404,
+    "peak": 0.242889404296875
+  },
+  {
+    "file": "vibraphone_roll_B.wav",
+    "bytes": 1536044,
+    "sha256": "0ee4af488e6b366f2f1d5bab16a643f22dc07ea2c765e3cba5a074eaaf9f1650",
+    "rms": 0.05534969631185172,
+    "peak": 0.27362060546875
+  },
+  {
+    "file": "vibraphone_roll_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "7c8487b930295a2a57d3f6e448e0acd2e5f95c75a1fc277e0d12894aad9f6142",
+    "rms": 0.050823625034124964,
+    "peak": 0.251251220703125
+  },
+  {
+    "file": "vibraphone_roll_C.wav",
+    "bytes": 1536044,
+    "sha256": "b487541628d786ef91c28b467298e57e18655e5575dba33fa985a9f1b0b969ce",
+    "rms": 0.050823618576278,
+    "peak": 0.25341796875
+  },
+  {
+    "file": "vibraphone_roll_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "b487541628d786ef91c28b467298e57e18655e5575dba33fa985a9f1b0b969ce",
+    "rms": 0.050823618576278,
+    "peak": 0.25341796875
+  },
+  {
+    "file": "vibraphone_roll_motor_off.wav",
+    "bytes": 1536044,
+    "sha256": "5291b21730eff8c5a2e2f51d7552bd1d16972ae1481ed9f9bef412b2721f3181",
+    "rms": 0.05980378494836889,
+    "peak": 0.285797119140625
+  },
+  {
+    "file": "vibraphone_roll_motor_off_matched.wav",
+    "bytes": 1536044,
+    "sha256": "70100691fc0167089392b18b79e36e0bfda8790a20701f64d3582ed438e2315a",
+    "rms": 0.04508188319336627,
+    "peak": 0.2154541015625
+  },
+  {
+    "file": "vibraphone_roll_motor_on_fast_strong.wav",
+    "bytes": 1536044,
+    "sha256": "21012812c01cc20a0e08e3099361e14c3a552e81d8c2d62a7c46a027bef213c9",
+    "rms": 0.04508188844868617,
+    "peak": 0.2841796875
+  },
+  {
+    "file": "vibraphone_roll_motor_on_fast_strong_matched.wav",
+    "bytes": 1536044,
+    "sha256": "21012812c01cc20a0e08e3099361e14c3a552e81d8c2d62a7c46a027bef213c9",
+    "rms": 0.04508188844868617,
+    "peak": 0.2841796875
+  },
+  {
+    "file": "vibraphone_roll_motor_on_medium.wav",
+    "bytes": 1536044,
+    "sha256": "4ed41d2408c6321a83bf21e8e4a943ee7bce1dab75a610221925b2a04ed51834",
+    "rms": 0.050665403450632016,
+    "peak": 0.266754150390625
+  },
+  {
+    "file": "vibraphone_roll_motor_on_medium_matched.wav",
+    "bytes": 1536044,
+    "sha256": "ddeae2bbd4622f59a4144b246b8e3f9c2a0447f9c2cb156ea8ec87bf050fd7a3",
+    "rms": 0.0450819072423165,
+    "peak": 0.23736572265625
+  },
+  {
+    "file": "vibraphone_roll_motor_on_slow_subtle.wav",
+    "bytes": 1536044,
+    "sha256": "445223975b4c87e06f80629476056465eaef8fe4d870ffab29a35b5dd7424f0f",
+    "rms": 0.055263556986339696,
+    "peak": 0.256988525390625
+  },
+  {
+    "file": "vibraphone_roll_motor_on_slow_subtle_matched.wav",
+    "bytes": 1536044,
+    "sha256": "e81e2b1cb8f4ed622fc64e1ed69558ecc73a00a3139dca6acd1538bcb350d90e",
+    "rms": 0.045081884174831714,
+    "peak": 0.209625244140625
+  },
+  {
+    "file": "vibraphone_roll_steady_A.wav",
+    "bytes": 1536044,
+    "sha256": "312b97d294f3dea588f330e6069d2687cb5cfc19879ea4b5978821a060b8ae35",
+    "rms": 0.06743211972638223,
+    "peak": 0.2835693359375
+  },
+  {
+    "file": "vibraphone_roll_steady_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "7c0fe73de7260308cfee7ff6efff7a0b1234e1024ccca14616f7823d3ae91592",
+    "rms": 0.05625391494628275,
+    "peak": 0.236572265625
+  },
+  {
+    "file": "vibraphone_roll_steady_B.wav",
+    "bytes": 1536044,
+    "sha256": "b7f057f09691b5a1fb2e23b0ebce6f2181f668b771bb121c465358cc36fce9cb",
+    "rms": 0.061849825613995366,
+    "peak": 0.271240234375
+  },
+  {
+    "file": "vibraphone_roll_steady_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "c35fd99639cf55f38a4b0467e3286eb2eb35b5e71fee79fe4d4039a3c7823128",
+    "rms": 0.05625392676708979,
+    "peak": 0.2467041015625
+  },
+  {
+    "file": "vibraphone_roll_steady_C.wav",
+    "bytes": 1536044,
+    "sha256": "4bb71bc2f4417ad8878ba55e4d0582096f9e3a0ad471a4760f3efaa4af269266",
+    "rms": 0.056253940060876174,
+    "peak": 0.2509765625
+  },
+  {
+    "file": "vibraphone_roll_steady_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "4bb71bc2f4417ad8878ba55e4d0582096f9e3a0ad471a4760f3efaa4af269266",
+    "rms": 0.056253940060876174,
+    "peak": 0.2509765625
+  },
+  {
+    "file": "vibraphone_steal_burst_A.wav",
+    "bytes": 1536044,
+    "sha256": "747ff75f6349b2797ab8c4f553e358928844e0701463ba7c2e4fb235f6fe161f",
+    "rms": 0.025061185869900894,
+    "peak": 0.296051025390625
+  },
+  {
+    "file": "vibraphone_steal_burst_A_matched.wav",
+    "bytes": 1536044,
+    "sha256": "e999721d563bb85efc0c5852679c5a58ddf664e54151d76a97ee4a7340136302",
+    "rms": 0.021716943687812244,
+    "peak": 0.256561279296875
+  },
+  {
+    "file": "vibraphone_steal_burst_B.wav",
+    "bytes": 1536044,
+    "sha256": "0b939fe90fbbbac69338b0a7b6dc4e08b39e9e2cb74bee6f681d0e90f9ce6d0a",
+    "rms": 0.023454351821689364,
+    "peak": 0.292724609375
+  },
+  {
+    "file": "vibraphone_steal_burst_B_matched.wav",
+    "bytes": 1536044,
+    "sha256": "8fb0b5db9b17e9b919a27b6b178979ac642ae0e0d72614422039260dea7ba197",
+    "rms": 0.021716930439312738,
+    "peak": 0.27105712890625
+  },
+  {
+    "file": "vibraphone_steal_burst_C.wav",
+    "bytes": 1536044,
+    "sha256": "1c95bc318f8af20cf86721e3b90ecd1b0605e13f3bdd6b7c59c556f84449716d",
+    "rms": 0.02171695542635319,
+    "peak": 0.282379150390625
+  },
+  {
+    "file": "vibraphone_steal_burst_C_matched.wav",
+    "bytes": 1536044,
+    "sha256": "1c95bc318f8af20cf86721e3b90ecd1b0605e13f3bdd6b7c59c556f84449716d",
+    "rms": 0.02171695542635319,
+    "peak": 0.282379150390625
+  }
+]

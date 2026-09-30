@@ -24,7 +24,7 @@ public:
     void init(float sampleRate);
     void reset();
 
-    void setPreset(const ModalPreset& preset);
+    void setPreset(const ModalPreset& preset, bool updateCoefficients = true);
     void setConfig(const ResonatorConfig& config);
     void updatePitchAndDamping(float fundamentalFrequencyHz, float damping);
     void setExcitationCoupling(const float* coupling, size_t count);

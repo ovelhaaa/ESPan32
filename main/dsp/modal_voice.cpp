@@ -43,7 +43,11 @@ void ModalVoice::setModelConfig(const InstrumentModelConfig& config) {
     voicingConfig_ = config.voicing;
     exciter_.setConfig(exciterConfig_);
     resonators_.setConfig(resonatorConfig_);
-    resonators_.setPreset(*modalPreset_);
+    // No voice is active here. Trigger installs PreparedNote coefficients or
+    // computes the fallback before the first sample.
+    resonators_.setPreset(*modalPreset_, false);
+    resonators_.resetInternalSaturationCount();
+    exciter_.resetModelState();
     registerLogLo_ = std::log(voicingConfig_.registerLowHz);
     registerLogHi_ = std::log(voicingConfig_.registerHighHz);
     reset();

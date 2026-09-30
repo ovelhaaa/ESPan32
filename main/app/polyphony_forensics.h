@@ -119,6 +119,7 @@ struct Result {
     std::array<Timing, kClassCount> innerTiming{};
     std::array<Timing, kClassCount> callbackTiming{};
     uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0;
+    uint32_t maxObservedVoices = 0;
     // Diagnostic counters for the M6.3.5 fast paths.  Read from the allocator at
     // fixture completion only; never touched by DSP processing.
     uint32_t stable8 = 0, attack = 0;
@@ -232,7 +233,11 @@ inline CallbackBlockContext sCurrentBlockContext;
 inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
-#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+// Keep the M7.4 four-fixture SRAM footprint and timing instrumentation.
+// Batch 1 covers the remaining three fixtures; no cache/PSRAM redesign.
+inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M75_BATCH ? 3 : 4;
+#elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
 inline constexpr unsigned fixtureCount = 4;
 #elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
 inline constexpr unsigned fixtureCount = 4;
@@ -247,7 +252,10 @@ inline hardware::AudioStats fixtureAudioStats[fixtureCount]{};
 inline CallbackOverheadStats gCallbackOverhead[fixtureCount]{};
 
 inline dsp::InstrumentModel modelOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+    (void)id;
+    return dsp::InstrumentModel::Vibraphone;
+#elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
     (void)id;
     return dsp::InstrumentModel::Marimba;
 #elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
@@ -264,7 +272,10 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 }
 
 inline unsigned kindOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+    constexpr unsigned kinds[] = {1, 6, 5, 7, 6, 1, 1};
+    return kinds[id % 7];
+#elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
     constexpr unsigned kinds[] = {1, 6, 5, 7};
     return kinds[id % 4];
 #elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
@@ -283,7 +294,9 @@ inline unsigned kindOf(unsigned id) {
 inline bool isPan(unsigned id) { return modelOf(id) == dsp::InstrumentModel::Pan; }
 
 inline unsigned fixtureId(unsigned index) {
-#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+    return index + (POCKETPAN_FORENSICS_M75_BATCH ? 4 : 0);
+#elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
     return index;
 #elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     return index;
@@ -346,8 +359,14 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     const unsigned id = fixtureId(fixture);
     const unsigned kind = kindOf(id);
     const bool roll = kind == 7;
+#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+    const bool phrase = id == 4;
+    const bool switchProbe = id == 5;
+#else
+    const bool phrase = false, switchProbe = false;
+#endif
     const bool isTransition = (block == 0);
-    const bool event = !isTransition && (roll ? ((block - 1) % 38 == 0) : ((block - 1) % 188 == 0));
+    const bool event = !isTransition && (roll ? ((block - 1) % 38 == 0) : ((block - 1) % (phrase ? 282 : 188) == 0));
 
     ForensicsBlockClass currentClass;
     if (isTransition) {
@@ -372,6 +391,10 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     if (isTransition) {
         const uint32_t start = esp_cpu_get_cycle_count();
         synth.setInstrumentModel(modelOf(id));
+#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+        // Fixture 0/1/2 dry, 3/4/5 motor ON. Same six-mode architecture.
+        synth.setVibraphoneMotor(id >= 3);
+#endif
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
         if (id == 16) synth.setBodyEnabled(false); // Diagnostic PAN isolation only.
         if (id >= 17) {
@@ -396,7 +419,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         synth.renderBlock(output, frames);
         elapsed = esp_cpu_get_cycle_count() - start;
     } else {
-        if (event && !roll) {
+        if (event && !roll && !phrase && !switchProbe) {
             results[fixture].hardClamp += synth.getHardClampCount();
             synth.reset(); // Reset cost deliberately excluded from event timing.
         }
@@ -409,10 +432,15 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         std::fill(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), 0);
 #endif
         const uint32_t start = esp_cpu_get_cycle_count();
+        if (event && switchProbe) {
+            synth.setInstrumentModel(dsp::InstrumentModel::Marimba);
+            synth.setInstrumentModel(dsp::InstrumentModel::Vibraphone);
+        }
         if (event) {
-            for (unsigned v = 0; v < counts[kind]; ++v) {
+            for (unsigned v = 0; v < (phrase ? 1u : counts[kind]); ++v) {
                 midi::MidiEvent note{}; note.type = midi::MidiEventType::NoteOn;
                 note.data1 = kind == 6 ? chord[v] : counts[kind] == 1 ? 62 : cluster[v];
+                if (phrase) note.data1 = chord[((block - 1) / 282) % 4];
                 note.data2 = kind == 6 || counts[kind] == 1 ? 90 : 100;
                 synth.handleMidiEvent(note);
             }
@@ -423,7 +451,13 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 
     auto& r = results[fixture];
     r.timing(timingClass).add(elapsed);
-    if (!isTransition && synth.getVoiceAllocator().getActiveVoiceCount() != counts[kind]) ++r.badVoices;
+    const unsigned expectedVoices = phrase ? std::min(4u, 1u + (block - 1) / 282) : counts[kind];
+    const unsigned observedVoices = synth.getVoiceAllocator().getActiveVoiceCount();
+    r.maxObservedVoices = std::max<uint32_t>(r.maxObservedVoices, observedVoices);
+    // Phrase tails expire naturally; restrikes can also cancel existing energy.
+    // Verify the live count is bounded by the notes introduced, not permanently 4.
+    if (!isTransition && (phrase ? (observedVoices == 0 || observedVoices > expectedVoices)
+                                 : observedVoices != expectedVoices)) ++r.badVoices;
     if (!ready.load(std::memory_order_acquire)) ++r.bleLost;
 
     sCurrentBlockContext.internalRenderUs = (elapsed + 239) / 240;
@@ -488,12 +522,12 @@ inline void logCompleted() {
             (unsigned)io.deadlineMisses, (unsigned)io.writeTimeouts, (unsigned)io.txErrors, (unsigned)io.shortWrites);
         for (unsigned c = 0; c < kClassCount; ++c) {
             const auto& t = r.timing(c);
-            ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u bin_us=%u",
+            ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u bin_us=%u max_observed_voices=%u",
                 dsp::instrumentModelName(modelOf(id)), id, counts[kindOf(id)], kForensicsClassNames[c], (unsigned)t.count,
                 t.count ? double(t.sum) / t.count / 240.0 : 0.0, (unsigned)t.p95(), (unsigned)t.p99(),
                 (unsigned)t.p995(), (unsigned)t.p999(), (unsigned)t.maximum, (unsigned)t.deadline,
                 (unsigned)r.badVoices, (unsigned)r.bleLost, (unsigned)r.hardClamp, (unsigned)r.modalSat,
-                (unsigned)kForensicsBinUs);
+                (unsigned)kForensicsBinUs, (unsigned)r.maxObservedVoices);
             for (size_t i = 0; i < t.bins.size(); ++i) if (t.bins[i])
                 ESP_LOGI("forensics", "[HIST] fixture=%u class=%s lower_us=%u n=%u", id,
                     kForensicsClassNames[c], (unsigned)(i * kForensicsBinUs), (unsigned)t.bins[i]);

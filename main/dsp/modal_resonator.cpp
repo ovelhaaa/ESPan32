@@ -79,12 +79,12 @@ void ModalResonatorBank::setRegisterBehavior(float t60Scale, float splitBeatTarg
     fixedHzSplit_ = fixedHzSplit;
 }
 
-void ModalResonatorBank::setPreset(const ModalPreset& preset) {
+void ModalResonatorBank::setPreset(const ModalPreset& preset, bool updateCoefficients) {
     modeCount_ = std::min(static_cast<size_t>(preset.modeCount), kMaxModesPerVoice);
     for (size_t i = 0; i < modeCount_; ++i) {
         presetModes_[i] = preset.modes[i];
     }
-    updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
+    if (updateCoefficients) updatePitchAndDamping(fundamentalFrequencyHz_, currentDamping_);
 }
 
 void ModalResonatorBank::updatePitchAndDamping(float fundamentalFrequencyHz, float damping) {

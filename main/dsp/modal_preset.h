@@ -160,4 +160,12 @@ inline constexpr ModalPreset kPresetMarimba = {
     }
 };
 
+// First three vertical flexural modes follow traditional undercut 1:4:10 tuning.
+// Remaining modes are deliberately weak approximations, not measured bar data.
+inline constexpr ModalPreset kPresetVibraphone = {"VIBRAPHONE", 6, {
+    {1.0f, 1.0f, 5.5f, 0.0f}, {4.0f, .62f, 3.0f, 0.0f},
+    {10.0f, .20f, 1.25f, 0.0f}, {16.0f, .065f, .65f, 0.0f},
+    {22.4f, .025f, .32f, 0.0f}, {29.0f, .010f, .16f, 0.0f}
+}};
+
 } // namespace pocketpan::dsp

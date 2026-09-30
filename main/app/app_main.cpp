@@ -58,6 +58,8 @@ std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan:
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Bowl};
 #elif defined(POCKETPAN_KALIMBA_SMOKE) && POCKETPAN_KALIMBA_SMOKE
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Kalimba};
+#elif defined(POCKETPAN_VIBRAPHONE_SMOKE) && POCKETPAN_VIBRAPHONE_SMOKE
+std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Vibraphone};
 #elif defined(POCKETPAN_MARIMBA_SMOKE) && POCKETPAN_MARIMBA_SMOKE
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Marimba};
 #elif defined(POCKETPAN_GLASS_SMOKE) && POCKETPAN_GLASS_SMOKE
@@ -330,11 +332,11 @@ void uiTaskLoop(void* param) {
             if (rel >= 1 && rel <= 4) btnPressed = true;
             else if (rel >= 15 && rel <= 18) btnPressed = true;
             else if (rel >= 29 && rel <= 32) btnPressed = true;
-            // Two complete seven-model cycles; one extended hold checks latching.
-            else if (rel >= 50 && rel < 750) {
+            // Two complete eight-model cycles; one extended hold checks latching.
+            else if (rel >= 50 && rel < 850) {
                 const uint32_t phase = (rel - 50) % 50;
                 btnPressed = phase <= 33;
-            } else if (rel >= 770 && rel <= 845) btnPressed = true;
+            } else if (rel >= 870 && rel <= 945) btnPressed = true;
 
             static pocketpan::dsp::InstrumentModel sPrevModel = pocketpan::dsp::InstrumentModel::Pan;
             static pocketpan::ui::UiScreenMode sPrevMode = pocketpan::ui::UiScreenMode::Status;
@@ -352,8 +354,8 @@ void uiTaskLoop(void* param) {
                          pocketpan::dsp::instrumentModelName(curModel), (unsigned)rel);
                 sPrevMode = sUiState.mode;
             }
-            if (rel == 850) {
-                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: schedule finished (3 short, 14 long, 1 extended hold)");
+            if (rel == 950) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: schedule finished (3 short, 16 long, 1 extended hold)");
             }
         }
 #endif
@@ -670,6 +672,8 @@ extern "C" void app_main(void) {
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Bowl);
 #elif defined(POCKETPAN_KALIMBA_SMOKE) && POCKETPAN_KALIMBA_SMOKE
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Kalimba);
+#elif defined(POCKETPAN_VIBRAPHONE_SMOKE) && POCKETPAN_VIBRAPHONE_SMOKE
+    sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Vibraphone);
 #elif defined(POCKETPAN_MARIMBA_SMOKE) && POCKETPAN_MARIMBA_SMOKE
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Marimba);
 #elif defined(POCKETPAN_GLASS_SMOKE) && POCKETPAN_GLASS_SMOKE
@@ -710,6 +714,14 @@ extern "C" void app_main(void) {
     if (!sBleMidi.begin()) {
         ESP_LOGW(kTag, "BLE MIDI Central failed to start advertising/scanning");
     }
+
+#ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
+    ESP_LOGI(kTag, "[M75_MEMORY] table_bytes=%u cache_bytes=%u synth_bytes=%u internal_free=%u largest_internal=%u",
+        (unsigned)pocketpan::dsp::PreparedNoteTable::bytesPerModel(),
+        (unsigned)(pocketpan::dsp::PreparedNoteTable::bytesPerModel() * unsigned(pocketpan::dsp::InstrumentModel::Count)),
+        (unsigned)sizeof(sSynth), (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
+        (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
+#endif
 
     // 6. Start UI Task on Core 1
     xTaskCreatePinnedToCore(

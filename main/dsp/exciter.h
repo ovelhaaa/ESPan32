@@ -22,6 +22,7 @@ public:
 
     void init(float sampleRate);
     void reset();
+    void resetModelState() { rngState_ = 123456789U; reset(); }
     void setConfig(const ExciterConfig& config) {
         config_ = config;
 #if POCKETPAN_VELOCITY_LUT

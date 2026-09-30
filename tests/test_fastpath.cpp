@@ -123,7 +123,11 @@ int main() {
         auto events = chord(0, single, 1, 90);
         for (size_t t=4800;t<48000;t+=4800) events.push_back({t,midi::MidiEventType::NoteOn,62,110});
         compare("MARIMBA roll", true, InstrumentModel::Marimba, events, total);
+        compare("VIBRAPHONE roll", true, InstrumentModel::Vibraphone, events, total);
     }
+    compare("VIBRAPHONE single", true, InstrumentModel::Vibraphone, chord(0, single, 1, 90), total);
+    compare("VIBRAPHONE chord4", true, InstrumentModel::Vibraphone, chord(0, four, 4, 90), total);
+    compare("VIBRAPHONE cluster8", true, InstrumentModel::Vibraphone, chord(0, cluster, 8, 100), total);
     compare("MARIMBA single", true, InstrumentModel::Marimba, chord(0, single, 1, 90), total);
     compare("MARIMBA chord4", true, InstrumentModel::Marimba, chord(0, four, 4, 90), total);
     compare("MARIMBA cluster8", true, InstrumentModel::Marimba, chord(0, cluster, 8, 100), total);
