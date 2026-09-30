@@ -58,6 +58,8 @@ std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan:
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Bowl};
 #elif defined(POCKETPAN_KALIMBA_SMOKE) && POCKETPAN_KALIMBA_SMOKE
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Kalimba};
+#elif defined(POCKETPAN_MARIMBA_SMOKE) && POCKETPAN_MARIMBA_SMOKE
+std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Marimba};
 #elif defined(POCKETPAN_GLASS_SMOKE) && POCKETPAN_GLASS_SMOKE
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Glass};
 #else
@@ -328,30 +330,11 @@ void uiTaskLoop(void* param) {
             if (rel >= 1 && rel <= 4) btnPressed = true;
             else if (rel >= 15 && rel <= 18) btnPressed = true;
             else if (rel >= 29 && rel <= 32) btnPressed = true;
-            // 2. Cycle 1: PAN -> BELL (1000ms = 33 ticks, 50..83)
-            else if (rel >= 50 && rel <= 83) btnPressed = true;
-            // 3. Cycle 2: BELL -> TONGUE (1000ms = 33 ticks, 100..133)
-            else if (rel >= 100 && rel <= 133) btnPressed = true;
-            // 4. Cycle 3: TONGUE -> BOWL (1000ms = 33 ticks, 150..183)
-            else if (rel >= 150 && rel <= 183) btnPressed = true;
-            // 5. Cycle 4: BOWL -> KALIMBA (1000ms = 33 ticks, 200..233)
-            else if (rel >= 200 && rel <= 233) btnPressed = true;
-            // 6. Cycle 5: KALIMBA -> GLASS (1000ms = 33 ticks, 250..283)
-            else if (rel >= 250 && rel <= 283) btnPressed = true;
-            // 7. Cycle 6: GLASS -> PAN (1000ms = 33 ticks, 300..333)
-            else if (rel >= 300 && rel <= 333) btnPressed = true;
-            // 8. Extended hold test: 2500ms (75 ticks, 350..425) PAN -> BELL without repeat cycling
-            else if (rel >= 350 && rel <= 425) btnPressed = true;
-            // 9. Cycle 8: BELL -> TONGUE (1000ms = 33 ticks, 440..473)
-            else if (rel >= 440 && rel <= 473) btnPressed = true;
-            // 10. Cycle 9: TONGUE -> BOWL (1000ms = 33 ticks, 490..523)
-            else if (rel >= 490 && rel <= 523) btnPressed = true;
-            // 11. Cycle 10: BOWL -> KALIMBA (1000ms = 33 ticks, 540..573)
-            else if (rel >= 540 && rel <= 573) btnPressed = true;
-            // 12. Cycle 11: KALIMBA -> GLASS (1000ms = 33 ticks, 590..623)
-            else if (rel >= 590 && rel <= 623) btnPressed = true;
-            // 13. Cycle 12: GLASS -> PAN (1000ms = 33 ticks, 640..673)
-            else if (rel >= 640 && rel <= 673) btnPressed = true;
+            // Two complete seven-model cycles; one extended hold checks latching.
+            else if (rel >= 50 && rel < 750) {
+                const uint32_t phase = (rel - 50) % 50;
+                btnPressed = phase <= 33;
+            } else if (rel >= 770 && rel <= 845) btnPressed = true;
 
             static pocketpan::dsp::InstrumentModel sPrevModel = pocketpan::dsp::InstrumentModel::Pan;
             static pocketpan::ui::UiScreenMode sPrevMode = pocketpan::ui::UiScreenMode::Status;
@@ -369,8 +352,8 @@ void uiTaskLoop(void* param) {
                          pocketpan::dsp::instrumentModelName(curModel), (unsigned)rel);
                 sPrevMode = sUiState.mode;
             }
-            if (rel == 700) {
-                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: 3 short presses + 11 long cycles verified");
+            if (rel == 850) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: schedule finished (3 short, 14 long, 1 extended hold)");
             }
         }
 #endif
@@ -687,6 +670,8 @@ extern "C" void app_main(void) {
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Bowl);
 #elif defined(POCKETPAN_KALIMBA_SMOKE) && POCKETPAN_KALIMBA_SMOKE
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Kalimba);
+#elif defined(POCKETPAN_MARIMBA_SMOKE) && POCKETPAN_MARIMBA_SMOKE
+    sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Marimba);
 #elif defined(POCKETPAN_GLASS_SMOKE) && POCKETPAN_GLASS_SMOKE
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Glass);
 #endif

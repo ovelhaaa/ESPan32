@@ -148,4 +148,16 @@ inline constexpr ModalPreset kPresetGlass = {
     }
 };
 
+// M7.4 provisional wooden bar: no doublets, upper modes shed energy quickly.
+inline constexpr ModalPreset kPresetMarimba = {
+    "MARIMBA", 6, {
+        {1.000f, 1.00f, 2.40f, 0.0f},
+        {2.750f, 0.38f, 0.85f, 0.0f},
+        {5.400f, 0.20f, 0.38f, 0.0f},
+        {8.930f, 0.09f, 0.18f, 0.0f},
+        {13.30f, 0.04f, 0.09f, 0.0f},
+        {18.60f, 0.015f, 0.045f, 0.0f}
+    }
+};
+
 } // namespace pocketpan::dsp

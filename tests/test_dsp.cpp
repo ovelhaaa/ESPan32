@@ -1852,7 +1852,8 @@ void testM7TongueModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
 
     // 2. PolyPressure and ChannelPressure support for Tongue
     for (bool poly : {true, false}) {
@@ -2099,7 +2100,8 @@ void testM71BowlModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
 
     // 2. Beating Doublet Verification (Phase S)
     std::cout << "  Verifying Singing Bowl beating doublet mechanism...\n";
@@ -2458,7 +2460,8 @@ void testM72KalimbaModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
 
     // 2. PolyPressure and ChannelPressure support for Kalimba
     for (bool poly : {true, false}) {
@@ -2731,6 +2734,127 @@ GlassQualificationRender renderGlassQualification(const std::vector<ScheduledEve
     return result;
 }
 
+GlassQualificationRender renderMarimbaQualification(const std::vector<ScheduledEvent>& events,
+                                                  size_t totalFrames, const dsp::InstrumentModelConfig& config) {
+    constexpr size_t kBlock = 128;
+    GlassQualificationRender result;
+    result.rendered.audio.resize(totalFrames * 2);
+    dsp::SynthEngine engine;
+    engine.init(48000.0f);
+    engine.setInstrumentModel(dsp::InstrumentModel::Marimba);
+    engine.setModelConfigForTest(config);
+    size_t eventIndex = 0;
+    int32_t previous = 0;
+    size_t count = 0;
+    for (size_t frame = 0; frame < totalFrames; frame += count) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) {
+            engine.handleMidiEvent(events[eventIndex++].event);
+        }
+        result.maxStealTails = std::max(result.maxStealTails, engine.getVoiceAllocator().getActiveStealTailCount());
+        count = std::min(kBlock, totalFrames - frame);
+        if (eventIndex < events.size()) count = std::min(count, events[eventIndex].frame - frame);
+        engine.renderBlock(result.rendered.audio.data() + frame * 2, count);
+        for (size_t v=0; v<dsp::kMaxVoices; ++v) {
+            const auto& voice = engine.getVoiceAllocator().getVoice(v);
+            assert(std::isfinite(voice.getLastSample()) && std::isfinite(voice.getEstimatedEnergy()));
+        }
+        result.maxActiveVoices = std::max(result.maxActiveVoices, engine.getVoiceAllocator().getActiveVoiceCount());
+        for (size_t i = 0; i < count * 2; ++i) {
+            const int32_t current = result.rendered.audio[frame * 2 + i];
+            result.maxSampleDelta = std::max(result.maxSampleDelta, static_cast<float>(std::abs(double(current) - double(previous))));
+            previous = current;
+        }
+    }
+    result.finalActiveVoices = engine.getVoiceAllocator().getActiveVoiceCount();
+    result.voiceStealCount = engine.getVoiceAllocator().getVoiceStealCount();
+    result.bodyEnergy = engine.getBodyEnergy();
+    result.bodyPeak = engine.getBodyPeak();
+    result.rendered.metrics = computeMetrics(result.rendered.audio, engine.getSoftClipCount());
+    result.rendered.hardClampCount = engine.getHardClampCount();
+    result.rendered.modalSat = engine.getModalInternalSaturationCount();
+    result.rendered.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    result.rendered.metrics.averageGainReductionDb = engine.getAverageGainReductionDb();
+    result.rendered.metrics.preLimiterPeak = engine.getPreLimiterPeak();
+    result.rendered.grOver0p1DbSamples = engine.getGainReductionOver0p1DbSamples();
+    result.rendered.grOver1DbSamples = engine.getGainReductionOver1DbSamples();
+    assert(std::isfinite(engine.getPreLimiterPeak()) && std::isfinite(engine.getBodyEnergy()));
+    return result;
+}
+
+void testM74MarimbaModel() {
+    auto note=[](uint8_t n,uint8_t v) { midi::MidiEvent e{}; e.type=midi::MidiEventType::NoteOn; e.data1=n; e.data2=v; return e; };
+    const auto& base = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Marimba);
+    assert(base.modalPreset->modeCount == 6);
+    assert(std::string(dsp::instrumentModelName(base.id)) == "MARIMBA");
+    dsp::InstrumentModel cycle = dsp::InstrumentModel::Pan;
+    for (unsigned i = 0; i < unsigned(dsp::InstrumentModel::Count); ++i) cycle = dsp::nextInstrumentModel(cycle);
+    assert(cycle == dsp::InstrumentModel::Pan);
+    auto b = base, c = base;
+    auto bright = *base.modalPreset;
+    for (size_t i = 1; i < 6; ++i) bright.modes[i].gain *= 1.18f;
+    b.body = {{{210.0f, .10f, .30f}, {420.0f, .065f, .18f}}, 2, .06f, .05f, 900.0f, true};
+    b.strikeBusGain = 16.0f;
+    c = b; c.modalPreset = &bright; c.body.outputGain = .035f;
+    c.exciter.brightnessMaxHz = 8000.0f;
+    std::array<dsp::InstrumentModelConfig, 3> configs{base,b,c};
+    std::ofstream report("marimba_m74_metrics.md");
+    report << std::fixed << std::setprecision(7)
+           << "# M7.4 deterministic host qualification\n\nA: warm bar only (runtime provisional). B: same bar plus subtle body. C: upper gains x1.18, 8kHz exciter ceiling, reduced body mix. Listening decision OPEN.\n\n"
+           << "| Fixture | Peak | RMS | Crest | Pre peak | Max GR dB | Avg GR dB | >0.1 | >1 | Clamps | Modal sat | Max voices | Steals | Max tails | Nonfinite diagnostics |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+    struct Fixture {std::string name; std::vector<ScheduledEvent> events;};
+    std::vector<Fixture> fixtures;
+    const uint8_t notes[] = {50,57,62,69,74};
+    const char* names[] = {"D3","A3","D4","A4","D5"};
+    for (size_t n=0;n<5;++n) for (uint8_t v : {30,70,110,127})
+        fixtures.push_back({std::string(names[n])+"_v"+std::to_string(v), {{0,note(notes[n],v)}}});
+    fixtures.push_back({"chord", {{0,note(50,110)},{0,note(57,110)},{0,note(62,110)},{0,note(65,110)}}});
+    Fixture cluster{"cluster8",{}};
+    for (uint8_t n : {50,52,54,56,57,59,61,62}) cluster.events.push_back({0,note(n,110)});
+    fixtures.push_back(cluster);
+    Fixture stealing{"steal_burst",{}};
+    for (unsigned i=0;i<12;++i) stealing.events.push_back({i*384,note(uint8_t(50+i),90)});
+    fixtures.push_back(stealing);
+    fixtures.push_back({"restrike100",{{0,note(62,70)},{4800,note(62,110)}}});
+    fixtures.push_back({"restrike250",{{0,note(62,110)},{12000,note(62,30)}}});
+    for (bool varying : {true,false}) {
+        Fixture roll{varying?"roll":"roll_steady",{}}; size_t frame=0;
+        for (unsigned i=0;i<24;++i) {
+            roll.events.push_back({frame,note(62, varying ? uint8_t(40+(i%4)*25) : 90)});
+            frame += (i%3==0 ? 3360 : i%3==1 ? 4800 : 5760);
+        }
+        fixtures.push_back(roll);
+    }
+    for (const auto& f : fixtures) {
+        std::array<GlassQualificationRender,3> results;
+        for (size_t i=0;i<3;++i) {
+            auto& q=results[i]; q=renderMarimbaQualification(f.events,288000,configs[i]);
+            auto& m=q.rendered.metrics;
+            assert(q.rendered.hardClampCount==0 && q.rendered.modalSat==0);
+            assert(m.rms>0 && std::isfinite(m.rms) && std::isfinite(m.maxGainReductionDb));
+            assert(std::abs(m.maxGainReductionDb) < .1f);
+            const std::string filename="marimba_"+f.name+"_"+char('A'+i)+".wav";
+            writeWavFile(filename.c_str(),q.rendered.audio.data(),288000,48000);
+            report << "| "<< filename <<" | "<<m.peak<<" | "<<m.rms<<" | "<<m.crestFactor<<" | "<<m.preLimiterPeak<<" | "<<m.maxGainReductionDb<<" | "<<m.averageGainReductionDb<<" | "<<q.rendered.grOver0p1DbSamples<<" | "<<q.rendered.grOver1DbSamples<<" | "<<q.rendered.hardClampCount<<" | "<<q.rendered.modalSat<<" | "<<q.maxActiveVoices<<" | "<<q.voiceStealCount<<" | "<<q.maxStealTails<<" | 0 |\n";
+        }
+        // One common RMS target per comparison; minimum avoids clipping normalization.
+        const float target=std::min({results[0].rendered.metrics.rms,results[1].rendered.metrics.rms,results[2].rendered.metrics.rms});
+        for (size_t i=0;i<3;++i) {
+            const auto& audio=results[i].rendered.audio;
+            const float gain=target/results[i].rendered.metrics.rms;
+            assert(gain*results[i].rendered.metrics.peak < .99f);
+            writeRmsMatchedWav(("marimba_"+f.name+"_"+char('A'+i)+"_matched.wav").c_str(),audio,target);
+        }
+    }
+    report << "\n## Register / Nyquist\n\n| MIDI | Hz | Active modes |\n|---|---:|---:|\n";
+    for (uint8_t n : {50,57,62,69,74,96,108,127}) {
+        dsp::ModalResonatorBank bank; bank.init(48000); bank.setConfig(base.resonator);
+        const float hz=midi::MidiMapping::noteToHz(n); bank.setPreset(*base.modalPreset); bank.updatePitchAndDamping(hz,0.0f);
+        report << "| "<<int(n)<<" | "<<hz<<" | "<<bank.getActiveModeCount()<<" |\n";
+        for (unsigned i=0;i<48000;++i) assert(std::isfinite(bank.processSample(i==0?.01f:0.0f)));
+    }
+}
+
 void testM73GlassModel() {
     std::cout << "[Test 26] M7.3 Glass V1 model, fixtures, strike exciter, and 6-model cycling...\n";
     auto allFinite = [](const std::vector<int32_t>& audio) {
@@ -2766,7 +2890,8 @@ void testM73GlassModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Kalimba);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Glass);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Glass) == dsp::InstrumentModel::Marimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Marimba) == dsp::InstrumentModel::Pan);
 
     // 2. PolyPressure and ChannelPressure support for Glass
     for (bool poly : {true, false}) {
@@ -3009,6 +3134,7 @@ int main() {
     testM71BowlModel();
     testM72KalimbaModel();
     testM73GlassModel();
+    testM74MarimbaModel();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

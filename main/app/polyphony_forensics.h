@@ -232,7 +232,9 @@ inline CallbackBlockContext sCurrentBlockContext;
 inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
-#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+inline constexpr unsigned fixtureCount = 4;
+#elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
 inline constexpr unsigned fixtureCount = 4;
 #elif defined(CONFIG_POCKETPAN_DSP_PROFILE)
 inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_CRITICAL_ONLY ? 3 : 19;
@@ -241,10 +243,14 @@ inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_CRITICAL_ONLY ? 3 :
 #endif
 
 inline Result results[fixtureCount]{};
+inline hardware::AudioStats fixtureAudioStats[fixtureCount]{};
 inline CallbackOverheadStats gCallbackOverhead[fixtureCount]{};
 
 inline dsp::InstrumentModel modelOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+    (void)id;
+    return dsp::InstrumentModel::Marimba;
+#elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     switch (id) {
         case 0: return dsp::InstrumentModel::Pan;
         case 1: return dsp::InstrumentModel::Glass;
@@ -258,7 +264,10 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 }
 
 inline unsigned kindOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+    constexpr unsigned kinds[] = {1, 6, 5, 7};
+    return kinds[id % 4];
+#elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     switch (id) {
         case 0: return 5; // cluster8
         case 1: return 6; // chord4
@@ -274,7 +283,9 @@ inline unsigned kindOf(unsigned id) {
 inline bool isPan(unsigned id) { return modelOf(id) == dsp::InstrumentModel::Pan; }
 
 inline unsigned fixtureId(unsigned index) {
-#if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
+#if defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
+    return index;
+#elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     return index;
 #else
     constexpr unsigned critical[] = {5, 14, 13};
@@ -440,6 +451,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #if POCKETPAN_ATTACK_VOICE_FASTPATH
         r.attack = synth.getVoiceAllocator().getAttackFastPathBlocksForTest();
 #endif
+        if (sAudioInstance) fixtureAudioStats[fixture] = sAudioInstance->getStats();
         completed.store(++fixture, std::memory_order_release); block = 0;
     }
 }
@@ -469,6 +481,11 @@ inline void logCompleted() {
     while (logged < done) {
         const unsigned id = fixtureId(logged);
         const auto& r = results[logged];
+        const auto& io = fixtureAudioStats[logged];
+        ESP_LOGI("forensics", "[FIXTURE_IO] model=%s fixture=%u avg_us=%u p99_us=%u max_us=%u cpu_pct=%.2f deadline=%u timeouts=%u tx_errors=%u short_writes=%u",
+            dsp::instrumentModelName(modelOf(id)), id, (unsigned)io.avgBlockTimeUs,
+            (unsigned)io.p99BlockTimeUs, (unsigned)io.maxBlockTimeUs, double(io.cpuLoadPercent),
+            (unsigned)io.deadlineMisses, (unsigned)io.writeTimeouts, (unsigned)io.txErrors, (unsigned)io.shortWrites);
         for (unsigned c = 0; c < kClassCount; ++c) {
             const auto& t = r.timing(c);
             ESP_LOGI("forensics", "[CURVE] model=%s fixture=%u voices=%u class=%s n=%u avg_us=%.2f p95_us=%u p99_us=%u p995_us=%u p999_us=%u max_us=%u deadline=%u bad_voices=%u ble_lost=%u hard=%u sat=%u bin_us=%u",

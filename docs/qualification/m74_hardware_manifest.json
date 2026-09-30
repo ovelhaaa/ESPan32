@@ -1,0 +1,54 @@
+{
+  "firmware_sha256": "55d57a4ece63357b1bf189e9532659623017b860cfca13ad4fae88395fd5ec7b",
+  "raw_log_sha256": "be054918eaa18b4964925f8e0f1bdb9d22086448c4fbe54ab195390015c3be76",
+  "fixtures": [
+    {
+      "model": "MARIMBA",
+      "fixture": "0",
+      "avg_us": "266",
+      "p99_us": "375",
+      "max_us": "2776",
+      "cpu_pct": "9.97",
+      "deadline": "1",
+      "timeouts": "0",
+      "tx_errors": "0",
+      "short_writes": "0"
+    },
+    {
+      "model": "MARIMBA",
+      "fixture": "1",
+      "avg_us": "627",
+      "p99_us": "900",
+      "max_us": "1545",
+      "cpu_pct": "23.51",
+      "deadline": "0",
+      "timeouts": "0",
+      "tx_errors": "0",
+      "short_writes": "0"
+    },
+    {
+      "model": "MARIMBA",
+      "fixture": "2",
+      "avg_us": "1096",
+      "p99_us": "1625",
+      "max_us": "2228",
+      "cpu_pct": "41.09",
+      "deadline": "0",
+      "timeouts": "0",
+      "tx_errors": "0",
+      "short_writes": "0"
+    },
+    {
+      "model": "MARIMBA",
+      "fixture": "3",
+      "avg_us": "279",
+      "p99_us": "750",
+      "max_us": "1177",
+      "cpu_pct": "10.46",
+      "deadline": "0",
+      "timeouts": "0",
+      "tx_errors": "0",
+      "short_writes": "0"
+    }
+  ]
+}

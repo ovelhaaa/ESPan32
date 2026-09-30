@@ -119,6 +119,14 @@ int main() {
     compare("KALIMBA single", true, InstrumentModel::Kalimba, chord(0, single, 1, 90), total);
     compare("KALIMBA chord4", true, InstrumentModel::Kalimba, chord(0, four, 4, 90), total);
     compare("KALIMBA cluster8", true, InstrumentModel::Kalimba, chord(0, cluster, 8, 100), total);
+    {
+        auto events = chord(0, single, 1, 90);
+        for (size_t t=4800;t<48000;t+=4800) events.push_back({t,midi::MidiEventType::NoteOn,62,110});
+        compare("MARIMBA roll", true, InstrumentModel::Marimba, events, total);
+    }
+    compare("MARIMBA single", true, InstrumentModel::Marimba, chord(0, single, 1, 90), total);
+    compare("MARIMBA chord4", true, InstrumentModel::Marimba, chord(0, four, 4, 90), total);
+    compare("MARIMBA cluster8", true, InstrumentModel::Marimba, chord(0, cluster, 8, 100), total);
     compare("GLASS single", true, InstrumentModel::Glass, chord(0, single, 1, 90), total);
     compare("GLASS chord4", true, InstrumentModel::Glass, chord(0, four, 4, 90), total);
     compare("GLASS cluster8", true, InstrumentModel::Glass, chord(0, cluster, 8, 100), total);

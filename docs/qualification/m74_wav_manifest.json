@@ -1,0 +1,812 @@
+[
+  {
+    "filename": "marimba_A3_v110_A.wav",
+    "bytes": 1152044,
+    "sha256": "15ab2652f7fa76fe21c627af2ce3c93dacc4540786b66caf4de7ab57e1f5b9a7"
+  },
+  {
+    "filename": "marimba_A3_v110_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "a95eb0a6aa707309024cf139da5ffce5e89714227433a31dd349b7b5a00910c6"
+  },
+  {
+    "filename": "marimba_A3_v110_B.wav",
+    "bytes": 1152044,
+    "sha256": "b6d81b8e39a553c704a5c403b4aeb88634d327ba4190b2ecf478097121bc76d4"
+  },
+  {
+    "filename": "marimba_A3_v110_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "1bdef7daad984764e51b966c6912fe9c2252391feee603fea4f2705f08abd93f"
+  },
+  {
+    "filename": "marimba_A3_v110_C.wav",
+    "bytes": 1152044,
+    "sha256": "d5eea4ec7228307f25288d0dc9b49bc51afa1ed30555015bb46ea264c2dde3be"
+  },
+  {
+    "filename": "marimba_A3_v110_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "d5eea4ec7228307f25288d0dc9b49bc51afa1ed30555015bb46ea264c2dde3be"
+  },
+  {
+    "filename": "marimba_A3_v127_A.wav",
+    "bytes": 1152044,
+    "sha256": "cbc1c550e236121151f64d52749b90702681dd44e1953943c6d6e4def95f2a18"
+  },
+  {
+    "filename": "marimba_A3_v127_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "30985b09eeb9c5da3ad522a67f058a53bc7293dfe7a4c914145d68e56c133aa3"
+  },
+  {
+    "filename": "marimba_A3_v127_B.wav",
+    "bytes": 1152044,
+    "sha256": "afc4d1cddec18bd0f66c5de2ffaedb742946f1e2acfc3af3e5ea8ece5959c7be"
+  },
+  {
+    "filename": "marimba_A3_v127_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "99f0ab578f15f2c654c446ac8a2e473b3022e8e02fc9daa74e9cd1c875733105"
+  },
+  {
+    "filename": "marimba_A3_v127_C.wav",
+    "bytes": 1152044,
+    "sha256": "189876fef5249851547173b94ee591181c8eddd3ab3164274e592c43bbbe4bd9"
+  },
+  {
+    "filename": "marimba_A3_v127_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "189876fef5249851547173b94ee591181c8eddd3ab3164274e592c43bbbe4bd9"
+  },
+  {
+    "filename": "marimba_A3_v30_A.wav",
+    "bytes": 1152044,
+    "sha256": "89d8f69b93e16d476b35cb477ef4987fcb90d8abcd5148e442db1851db19a437"
+  },
+  {
+    "filename": "marimba_A3_v30_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "2f46c899ae88b744303c5d6889b06b5e77ee2feb4b932239efcc1cc3d6ba3b17"
+  },
+  {
+    "filename": "marimba_A3_v30_B.wav",
+    "bytes": 1152044,
+    "sha256": "75ec27184ddd06f4ff387983e8c24b8447f5dc0fe88ebde828e89d6d5dbc73a0"
+  },
+  {
+    "filename": "marimba_A3_v30_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "c1571cb8e3374baab84ebb8f7bf3e6f754049c06f9e93ba871c64268c9d13a76"
+  },
+  {
+    "filename": "marimba_A3_v30_C.wav",
+    "bytes": 1152044,
+    "sha256": "cd58cf2c91453639f0ca315458e1850fecec4e72ebdf416c6740d51b2a76facc"
+  },
+  {
+    "filename": "marimba_A3_v30_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "cd58cf2c91453639f0ca315458e1850fecec4e72ebdf416c6740d51b2a76facc"
+  },
+  {
+    "filename": "marimba_A3_v70_A.wav",
+    "bytes": 1152044,
+    "sha256": "04e5ff15546da30f297a202a58e55500827dbadab54cfda9862aae219fd914bf"
+  },
+  {
+    "filename": "marimba_A3_v70_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "629b11eb909f67dc54a5db9d8fbe0813ceb23cf934c98f3cc2b6b7568fd04572"
+  },
+  {
+    "filename": "marimba_A3_v70_B.wav",
+    "bytes": 1152044,
+    "sha256": "92c1bd4e391cac8753114190da097d50275ba754e692e75ae01c430aaf5f03ed"
+  },
+  {
+    "filename": "marimba_A3_v70_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "39ce84c7fb5b2d01568ad3c9c98e25647359521d6580a52059f522f95e536277"
+  },
+  {
+    "filename": "marimba_A3_v70_C.wav",
+    "bytes": 1152044,
+    "sha256": "4223251434a3a64093eb1fe9f6b6e598964c5b65a19fa964133e017b75212f49"
+  },
+  {
+    "filename": "marimba_A3_v70_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "4223251434a3a64093eb1fe9f6b6e598964c5b65a19fa964133e017b75212f49"
+  },
+  {
+    "filename": "marimba_A4_v110_A.wav",
+    "bytes": 1152044,
+    "sha256": "6afe39c3e27fcddbaa0180b5a04300844ad6bc0959c76878daa2387041a44140"
+  },
+  {
+    "filename": "marimba_A4_v110_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "9e503a7c8010c625e6f7e28a40fc0a3920ba775a180753f6e529fa6d3ceb3e92"
+  },
+  {
+    "filename": "marimba_A4_v110_B.wav",
+    "bytes": 1152044,
+    "sha256": "0e80a38ca80d11e2ce89acbb15332afbc3a984c7847cc3a571ecef7c6b80cf55"
+  },
+  {
+    "filename": "marimba_A4_v110_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "9a569dc02d20412578745cde8bcc39f3d24bc2f23438b0d7a9aff8d21ce9f034"
+  },
+  {
+    "filename": "marimba_A4_v110_C.wav",
+    "bytes": 1152044,
+    "sha256": "f5622644b7eb3a297daa33576515e60bb5fcf9f577901e40713b7d21a4e9724d"
+  },
+  {
+    "filename": "marimba_A4_v110_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "f5622644b7eb3a297daa33576515e60bb5fcf9f577901e40713b7d21a4e9724d"
+  },
+  {
+    "filename": "marimba_A4_v127_A.wav",
+    "bytes": 1152044,
+    "sha256": "9c088dd58cd88dedd987b036e11932af14fd9eef544fb3b370b38aff37c94d68"
+  },
+  {
+    "filename": "marimba_A4_v127_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "129746af9543f61e2a391b8cf0c973f7e332c237b1b0a4deec927e214cf5f3c6"
+  },
+  {
+    "filename": "marimba_A4_v127_B.wav",
+    "bytes": 1152044,
+    "sha256": "835b4de742b8cf988aade96dc25cd3d165ed3adb55a480fecd637573c488a33a"
+  },
+  {
+    "filename": "marimba_A4_v127_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "46aa610b91512569fcb20ddfac72a6933ca83d0d33690c8bfd182901c085ca9c"
+  },
+  {
+    "filename": "marimba_A4_v127_C.wav",
+    "bytes": 1152044,
+    "sha256": "73e98aec7635c78113753948019bdc53e74fc32a5abebcc42a0fc7b10537ef3a"
+  },
+  {
+    "filename": "marimba_A4_v127_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "73e98aec7635c78113753948019bdc53e74fc32a5abebcc42a0fc7b10537ef3a"
+  },
+  {
+    "filename": "marimba_A4_v30_A.wav",
+    "bytes": 1152044,
+    "sha256": "5f50284632faa28cc8f13de50ef61e21c6218add30a03d57c8e99c620d1a1a56"
+  },
+  {
+    "filename": "marimba_A4_v30_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "2b62023400a17bc0c5551e5dc3c768f903438b121c1d7dad00c4d5a161f34e43"
+  },
+  {
+    "filename": "marimba_A4_v30_B.wav",
+    "bytes": 1152044,
+    "sha256": "9b457c0bd64d0f19fbf12d1b96b9eec3cd7f3edf6ccb859c4e537699048714cc"
+  },
+  {
+    "filename": "marimba_A4_v30_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "fa10d4058c3d9eda3dcba36003c94189e6cd3fd14536d277568651225ce889e5"
+  },
+  {
+    "filename": "marimba_A4_v30_C.wav",
+    "bytes": 1152044,
+    "sha256": "45ba707375df4f242910701438a5e0c603a6a4abc88f3a6c85738a973e5df2f1"
+  },
+  {
+    "filename": "marimba_A4_v30_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "45ba707375df4f242910701438a5e0c603a6a4abc88f3a6c85738a973e5df2f1"
+  },
+  {
+    "filename": "marimba_A4_v70_A.wav",
+    "bytes": 1152044,
+    "sha256": "20e8d947ed7e5cf2ef6d7db304459325e6eb13ca8472d2b57a863fc937f1ae1e"
+  },
+  {
+    "filename": "marimba_A4_v70_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "8d3d37cca838490589bbacbb57f146fcaa0ecde8d31736f247c34097822419e5"
+  },
+  {
+    "filename": "marimba_A4_v70_B.wav",
+    "bytes": 1152044,
+    "sha256": "45293447530200cc991848c319910c7471d8b98246b3f7cdadd93211a3f514ad"
+  },
+  {
+    "filename": "marimba_A4_v70_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "9aec0633247a6a5c4062f3717e8ec77251076f07a127bfa18ab8a2adc8fc6782"
+  },
+  {
+    "filename": "marimba_A4_v70_C.wav",
+    "bytes": 1152044,
+    "sha256": "32ae810892dc2cf913a3e16b9cb7bdbaeaedb490d86763e8a0a80cfb29a9438d"
+  },
+  {
+    "filename": "marimba_A4_v70_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "32ae810892dc2cf913a3e16b9cb7bdbaeaedb490d86763e8a0a80cfb29a9438d"
+  },
+  {
+    "filename": "marimba_chord_A.wav",
+    "bytes": 1152044,
+    "sha256": "424588d748ccea175e15af3fe1b4bcd3901d9c590c93d8fed45f91b2881836b3"
+  },
+  {
+    "filename": "marimba_chord_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "03ab0b6f135511ebe4f99debd030cb7c0cd779b443044c382c82b244e6ad6387"
+  },
+  {
+    "filename": "marimba_chord_B.wav",
+    "bytes": 1152044,
+    "sha256": "dfad4ddd5ab1c552a4439fdacbda97a79bf78f3077cedeb0938eaeb19688601a"
+  },
+  {
+    "filename": "marimba_chord_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "e039d62594a968221951a54859c0f9bf2b837bd9be8fb8b5efadcb187b38bf8a"
+  },
+  {
+    "filename": "marimba_chord_C.wav",
+    "bytes": 1152044,
+    "sha256": "5179209ec1b30a8f6bf504896d9c3e19f77c84f0c79ca8f96a7c7e39ff08f7b8"
+  },
+  {
+    "filename": "marimba_chord_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "5179209ec1b30a8f6bf504896d9c3e19f77c84f0c79ca8f96a7c7e39ff08f7b8"
+  },
+  {
+    "filename": "marimba_cluster8_A.wav",
+    "bytes": 1152044,
+    "sha256": "768ba731e47c99162e01971269a3f47a19805db893a98a1fe23e4e4fec9010cb"
+  },
+  {
+    "filename": "marimba_cluster8_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "3d8e25f709d0187f31f7ff0bf6021d0febacac8b5444f9f1c156b15c735e9346"
+  },
+  {
+    "filename": "marimba_cluster8_B.wav",
+    "bytes": 1152044,
+    "sha256": "15ce6cf32640f0f32f5b98aea518801b956fd0f89ac7115dde571f3f9825351f"
+  },
+  {
+    "filename": "marimba_cluster8_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "36941dcc7250022a4ba311cf96272b060e0f7a7e2f4af23054789f769e95fd6e"
+  },
+  {
+    "filename": "marimba_cluster8_C.wav",
+    "bytes": 1152044,
+    "sha256": "b19ab2dffa1cc63a9dcc46c651d35dd15a2b55b50ed9e55653476a05e93b7658"
+  },
+  {
+    "filename": "marimba_cluster8_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "b19ab2dffa1cc63a9dcc46c651d35dd15a2b55b50ed9e55653476a05e93b7658"
+  },
+  {
+    "filename": "marimba_D3_v110_A.wav",
+    "bytes": 1152044,
+    "sha256": "2b2c643b1e0b13a606ef939abe465e3feaac528e27bb2245f080a6f00791a30f"
+  },
+  {
+    "filename": "marimba_D3_v110_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "f9b4963423b4e1fa267e9d50401bedb7ba488823e05d365e3e5d50d43b7b14e1"
+  },
+  {
+    "filename": "marimba_D3_v110_B.wav",
+    "bytes": 1152044,
+    "sha256": "df1e865e153bca12cb15d47bb203c7a2c9e0223b82c30f668a4911a9291d9851"
+  },
+  {
+    "filename": "marimba_D3_v110_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "cedd76a4638877600d357b20b71e5afdac42b3ba60c120bbb4faf83e0df48c91"
+  },
+  {
+    "filename": "marimba_D3_v110_C.wav",
+    "bytes": 1152044,
+    "sha256": "1541467db8b40e027c0eac393f41ba7a5ce11205244c544c712b8848362a44ed"
+  },
+  {
+    "filename": "marimba_D3_v110_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "1541467db8b40e027c0eac393f41ba7a5ce11205244c544c712b8848362a44ed"
+  },
+  {
+    "filename": "marimba_D3_v127_A.wav",
+    "bytes": 1152044,
+    "sha256": "2c903312f8f42e020079a23091cbc9feef22837fc54d0da57d30704f0832ecba"
+  },
+  {
+    "filename": "marimba_D3_v127_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "5d63b6d5146a95a30fc2ecc8583fbf5f88704cf7d62bc738e82a4a6f68500353"
+  },
+  {
+    "filename": "marimba_D3_v127_B.wav",
+    "bytes": 1152044,
+    "sha256": "26551acc7d5f7ac02b23e541a42caa71e32888aa0d758710dae2b87dce49999c"
+  },
+  {
+    "filename": "marimba_D3_v127_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "0be45ea9ca80d5f0b14f64cd1df0b521fb200610348ef76c12d24dd8c3f553f4"
+  },
+  {
+    "filename": "marimba_D3_v127_C.wav",
+    "bytes": 1152044,
+    "sha256": "5ab76a4fc83c4c79dc0f23c25973f601f2cd5ce8721c2e07c43576381f48a81d"
+  },
+  {
+    "filename": "marimba_D3_v127_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "5ab76a4fc83c4c79dc0f23c25973f601f2cd5ce8721c2e07c43576381f48a81d"
+  },
+  {
+    "filename": "marimba_D3_v30_A.wav",
+    "bytes": 1152044,
+    "sha256": "7ccd4fbf8b3cdb51442c69eaeb2ed23571a60f539cad98472ce348c5224d14c7"
+  },
+  {
+    "filename": "marimba_D3_v30_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "9a72c4c8906774e15fabd951c5bbbc9f112d3b88023be8441501e5aceba9b7d2"
+  },
+  {
+    "filename": "marimba_D3_v30_B.wav",
+    "bytes": 1152044,
+    "sha256": "0053835e9e23c35824026e8ad6eaa2fe3d20fc2eb0e6d72ca98d1d5a900568a5"
+  },
+  {
+    "filename": "marimba_D3_v30_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "1c29d1f7f0139eb6f6a677bc397027ac165862736b01c12348c0361f38cf6b32"
+  },
+  {
+    "filename": "marimba_D3_v30_C.wav",
+    "bytes": 1152044,
+    "sha256": "7b5125081b58e7328ab793c8d0d76fb81fdc80e1ce5dd48f4d7141950dedd05b"
+  },
+  {
+    "filename": "marimba_D3_v30_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "7b5125081b58e7328ab793c8d0d76fb81fdc80e1ce5dd48f4d7141950dedd05b"
+  },
+  {
+    "filename": "marimba_D3_v70_A.wav",
+    "bytes": 1152044,
+    "sha256": "7d0ab2b7dcea032c8c1e1711fc2ae7ca5cb189fa8d7cfe2c88f1c071de5aa961"
+  },
+  {
+    "filename": "marimba_D3_v70_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "25f7b9a44cca06013d7eaee3bc580790ae778befe4a002af6b2e358f0688364b"
+  },
+  {
+    "filename": "marimba_D3_v70_B.wav",
+    "bytes": 1152044,
+    "sha256": "972fa4e91a637c08abfc3853c57fb9079e2211f28d4a0271e7c74cb4b2901695"
+  },
+  {
+    "filename": "marimba_D3_v70_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "c52d6ca41e8bc3524ef3279750422b38170133a1c370c2646757a47a6e20e748"
+  },
+  {
+    "filename": "marimba_D3_v70_C.wav",
+    "bytes": 1152044,
+    "sha256": "feb49825122354575e9f5b0f11b26d4caa55d1d122e88c0e92cfb281c00161c3"
+  },
+  {
+    "filename": "marimba_D3_v70_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "feb49825122354575e9f5b0f11b26d4caa55d1d122e88c0e92cfb281c00161c3"
+  },
+  {
+    "filename": "marimba_D4_v110_A.wav",
+    "bytes": 1152044,
+    "sha256": "71a1f52ce222ce10952c32dc5143df222940b6e7207dd616c91876dc55249a3b"
+  },
+  {
+    "filename": "marimba_D4_v110_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "014ce83c75ddf9d778be68ef27423b784e9cdb2e5c53ed0462222baee38b28ea"
+  },
+  {
+    "filename": "marimba_D4_v110_B.wav",
+    "bytes": 1152044,
+    "sha256": "e9fa4dae3c8c3e62ef0cb2121cd6ddb0165cbf4404b3abf5c2c92a84b34a9019"
+  },
+  {
+    "filename": "marimba_D4_v110_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "57044bde9f22f138c8dd50e981a2b727d2aefa1ad766275206f9c91a2b027976"
+  },
+  {
+    "filename": "marimba_D4_v110_C.wav",
+    "bytes": 1152044,
+    "sha256": "680970f206e60e109b750801b46cc07ee5a9b6ee359415ccd40093165b5a8bc1"
+  },
+  {
+    "filename": "marimba_D4_v110_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "680970f206e60e109b750801b46cc07ee5a9b6ee359415ccd40093165b5a8bc1"
+  },
+  {
+    "filename": "marimba_D4_v127_A.wav",
+    "bytes": 1152044,
+    "sha256": "4fe424cd9ad7c7c20d579d9f4d36d8da8ecdbc2f5631f5cfad8b86b09f94fe9e"
+  },
+  {
+    "filename": "marimba_D4_v127_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "ca6c39784ceff5ed206fe254f3d4d0dc73bdb0d8e8c12f73d9191c56cad96002"
+  },
+  {
+    "filename": "marimba_D4_v127_B.wav",
+    "bytes": 1152044,
+    "sha256": "3409abf8af960c228cb35a4e9c5a83fc139c8dda8a2005d6ccbb4b22f0692a91"
+  },
+  {
+    "filename": "marimba_D4_v127_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "fb206a0fcfae4098aa2bb1bae776162e15783d6e5123a20e0c92e5fb4b842d99"
+  },
+  {
+    "filename": "marimba_D4_v127_C.wav",
+    "bytes": 1152044,
+    "sha256": "19d4d7de4b76eb17928a87530bbae3fbcbf02338d583c66031e066a88bf1e4dd"
+  },
+  {
+    "filename": "marimba_D4_v127_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "19d4d7de4b76eb17928a87530bbae3fbcbf02338d583c66031e066a88bf1e4dd"
+  },
+  {
+    "filename": "marimba_D4_v30_A.wav",
+    "bytes": 1152044,
+    "sha256": "7da4976d755b9d971fbf5a8447d16ae0e05fa1be7739ecc97f28b806f6eca940"
+  },
+  {
+    "filename": "marimba_D4_v30_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "0d739a4da0d228b801a67d66b0a700ace3f3f409969aa2b6e0517792515c18fa"
+  },
+  {
+    "filename": "marimba_D4_v30_B.wav",
+    "bytes": 1152044,
+    "sha256": "71db11004581328452d5165d23322b512eb18f5d6129dbc01dcd221305b5453d"
+  },
+  {
+    "filename": "marimba_D4_v30_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "cf992cf94e5dda02ee708c3f21aa831583fd6e36ec214049ccd82f77707456c1"
+  },
+  {
+    "filename": "marimba_D4_v30_C.wav",
+    "bytes": 1152044,
+    "sha256": "85d5c77d7e324ef6667514a84c73c2308f2e4766bf17c00ee9cb56600603e3d6"
+  },
+  {
+    "filename": "marimba_D4_v30_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "85d5c77d7e324ef6667514a84c73c2308f2e4766bf17c00ee9cb56600603e3d6"
+  },
+  {
+    "filename": "marimba_D4_v70_A.wav",
+    "bytes": 1152044,
+    "sha256": "855d4ba6fdb51104107bb0654bccebd3ad6fcfef84223d78a96b66307c70de41"
+  },
+  {
+    "filename": "marimba_D4_v70_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "9463bc3612a9c2f485e0619f6389437dd7174100c2494dccf0bb7aba64b19bc4"
+  },
+  {
+    "filename": "marimba_D4_v70_B.wav",
+    "bytes": 1152044,
+    "sha256": "9fdbdd97444432f32e25289333a56357e4f97a6c78ae8839ff5cfb8185d2aa48"
+  },
+  {
+    "filename": "marimba_D4_v70_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "98e6255fae1659a0e0729f68118268d29b5c007d0de8ec7aeb6acc8489c925ad"
+  },
+  {
+    "filename": "marimba_D4_v70_C.wav",
+    "bytes": 1152044,
+    "sha256": "995d177a967d2b50d0242634c13ac5a7dedcb08730d0bf961c91a7be0a290ca5"
+  },
+  {
+    "filename": "marimba_D4_v70_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "995d177a967d2b50d0242634c13ac5a7dedcb08730d0bf961c91a7be0a290ca5"
+  },
+  {
+    "filename": "marimba_D5_v110_A.wav",
+    "bytes": 1152044,
+    "sha256": "7d7baf574d968ca31c66b236fa49b98454f6cea2d5b47c56809da33a2a85d02d"
+  },
+  {
+    "filename": "marimba_D5_v110_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "73085c58c9ddd2d14630a7438d4eb32cfbcfe62493173ddd4d83224b5fd14bd8"
+  },
+  {
+    "filename": "marimba_D5_v110_B.wav",
+    "bytes": 1152044,
+    "sha256": "1ac357c4c26f4dffc057f39fae21b2aae787d8d3c45ed9287864ea167b220a7c"
+  },
+  {
+    "filename": "marimba_D5_v110_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "02b25b902370135d67b1260fff605986cb8237950a3bbdf66a878345c621aa26"
+  },
+  {
+    "filename": "marimba_D5_v110_C.wav",
+    "bytes": 1152044,
+    "sha256": "53ae4cd2f01c2661262bc4796a27b88296e4c8ba7b7cd90fc36e0cf77f4bf41a"
+  },
+  {
+    "filename": "marimba_D5_v110_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "53ae4cd2f01c2661262bc4796a27b88296e4c8ba7b7cd90fc36e0cf77f4bf41a"
+  },
+  {
+    "filename": "marimba_D5_v127_A.wav",
+    "bytes": 1152044,
+    "sha256": "f7ef4125e2d080daf3027d47e42e5f1d4d90a90790d5684c709938831b4bde40"
+  },
+  {
+    "filename": "marimba_D5_v127_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "b12d4e1f4e7e7e312d9a90c987c65dcb499616534bd5b16a4d12210a5d213e70"
+  },
+  {
+    "filename": "marimba_D5_v127_B.wav",
+    "bytes": 1152044,
+    "sha256": "bfad7b92b1f87ef8a4ce64d5da7d7eb11b76addc223987bebd15d139baa8c921"
+  },
+  {
+    "filename": "marimba_D5_v127_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "be15007e7d1fddd06ff80e4f8b9ab4de4733a0e63e72d8fcd6dbf995b78f05f6"
+  },
+  {
+    "filename": "marimba_D5_v127_C.wav",
+    "bytes": 1152044,
+    "sha256": "ce0a74c488fbb5642531e87ee6c2c0eedef6e261420e8a7fb6d026168de24c8a"
+  },
+  {
+    "filename": "marimba_D5_v127_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "ce0a74c488fbb5642531e87ee6c2c0eedef6e261420e8a7fb6d026168de24c8a"
+  },
+  {
+    "filename": "marimba_D5_v30_A.wav",
+    "bytes": 1152044,
+    "sha256": "7b962eb506eedcea4d86a8afce6e435d970b4d6d8498d9e1ffb76dd8cc35587f"
+  },
+  {
+    "filename": "marimba_D5_v30_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "a595fbedc107765599a529d7a3525e8111421b30480744fe236902cbe0e2279c"
+  },
+  {
+    "filename": "marimba_D5_v30_B.wav",
+    "bytes": 1152044,
+    "sha256": "00ce08051f0c5ed0de5283e96ac4e1b8d5f5e2d08add64addf426fa723409a29"
+  },
+  {
+    "filename": "marimba_D5_v30_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "c894ee5fea85c082db9088afb49dd8bc3beb2e3b98aec099509b717735220a49"
+  },
+  {
+    "filename": "marimba_D5_v30_C.wav",
+    "bytes": 1152044,
+    "sha256": "ffefedd6a8f40d71582cbbfb31f1fccd8cbcd8df412d42f72a915e6ead5e0138"
+  },
+  {
+    "filename": "marimba_D5_v30_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "ffefedd6a8f40d71582cbbfb31f1fccd8cbcd8df412d42f72a915e6ead5e0138"
+  },
+  {
+    "filename": "marimba_D5_v70_A.wav",
+    "bytes": 1152044,
+    "sha256": "9b56f28f41acecec909b813efa5cd15660b3f80907362b56a27aad01ffeace86"
+  },
+  {
+    "filename": "marimba_D5_v70_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "43e8e0666928c512c6929f1d3c63094fda2b584ebd572e5020ddb9e127e53f60"
+  },
+  {
+    "filename": "marimba_D5_v70_B.wav",
+    "bytes": 1152044,
+    "sha256": "74a5a724df0608199d3554133c6258b7399a2f5a0c5fadcd40047868ae8771eb"
+  },
+  {
+    "filename": "marimba_D5_v70_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "5822db725d7d27b453d1e57b944bfd4cffa6c0f7a4b31a09b05cd42b10666d0a"
+  },
+  {
+    "filename": "marimba_D5_v70_C.wav",
+    "bytes": 1152044,
+    "sha256": "88c00f5389b58ba951a7c76ef91abbaeb999598adecbf2ddecc98eec0490459d"
+  },
+  {
+    "filename": "marimba_D5_v70_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "88c00f5389b58ba951a7c76ef91abbaeb999598adecbf2ddecc98eec0490459d"
+  },
+  {
+    "filename": "marimba_restrike100_A.wav",
+    "bytes": 1152044,
+    "sha256": "1e09a9e794163cf42a5eb7ddaba0b108b615f154d62d86b9dbb43fe9c64db08a"
+  },
+  {
+    "filename": "marimba_restrike100_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "b65d5f57c52324d5fba5b66215593d4a720747e74c28dab74bc38b065ddb6992"
+  },
+  {
+    "filename": "marimba_restrike100_B.wav",
+    "bytes": 1152044,
+    "sha256": "87ebea59f68b6453f6ee2bbec7a60017198f693dfc38567afeab2833f455ad06"
+  },
+  {
+    "filename": "marimba_restrike100_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "8388c51a24267328082f22b4215de429ac67954857e7c2c7cd37deedadb2c0ea"
+  },
+  {
+    "filename": "marimba_restrike100_C.wav",
+    "bytes": 1152044,
+    "sha256": "aa3160e6a00beb35882c9f9c572ecb38de8ee9166624b7db83cea08a18951195"
+  },
+  {
+    "filename": "marimba_restrike100_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "aa3160e6a00beb35882c9f9c572ecb38de8ee9166624b7db83cea08a18951195"
+  },
+  {
+    "filename": "marimba_restrike250_A.wav",
+    "bytes": 1152044,
+    "sha256": "7cbe1ce1ced5602018dc971ab70d7e853cb7572a3b6d6032610d06f60c7bd976"
+  },
+  {
+    "filename": "marimba_restrike250_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "10560f827efcd6b7e292201278ee678fca96c373fafb73b16206c8006d5e77ce"
+  },
+  {
+    "filename": "marimba_restrike250_B.wav",
+    "bytes": 1152044,
+    "sha256": "a987c7463f92ef5a99544b4b21f7074408fa8e69c03eb32019f6605149ce353d"
+  },
+  {
+    "filename": "marimba_restrike250_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "d2c91e8a2301d78874892cb506673dadbab5cd5b6b6ceb28b5377aca25039706"
+  },
+  {
+    "filename": "marimba_restrike250_C.wav",
+    "bytes": 1152044,
+    "sha256": "0d975d00a8299ae68f9d8e169b510020dfb040bfe9db761cdfc6153e1c15d734"
+  },
+  {
+    "filename": "marimba_restrike250_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "0d975d00a8299ae68f9d8e169b510020dfb040bfe9db761cdfc6153e1c15d734"
+  },
+  {
+    "filename": "marimba_roll_A.wav",
+    "bytes": 1152044,
+    "sha256": "4a483c8e2bce7373562c0a83684b91f9cb1e2133476cc244ac2b31ba3dc0b539"
+  },
+  {
+    "filename": "marimba_roll_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "125ed9e0843e260fb46d5ad13ec80d69ee2d06eb502225fd8a225aa4b0f4386f"
+  },
+  {
+    "filename": "marimba_roll_B.wav",
+    "bytes": 1152044,
+    "sha256": "40224bb10145fe702341ec72938818e9e6d2b05e3f2f258582a1b72ab097c1dc"
+  },
+  {
+    "filename": "marimba_roll_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "53a7663fa7b43cde644e1278b80d7437c98d3394a163fa767c22b112bf9428ee"
+  },
+  {
+    "filename": "marimba_roll_C.wav",
+    "bytes": 1152044,
+    "sha256": "228f31868e8c43381a524eee43a6254d53a93d76618ea574087fcca64c1aa836"
+  },
+  {
+    "filename": "marimba_roll_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "228f31868e8c43381a524eee43a6254d53a93d76618ea574087fcca64c1aa836"
+  },
+  {
+    "filename": "marimba_roll_steady_A.wav",
+    "bytes": 1152044,
+    "sha256": "adc631c94be2c909f0d0bf5051d751295436c6c9899ac2bc7c7e7bed066ba517"
+  },
+  {
+    "filename": "marimba_roll_steady_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "9213c978db5ed1479a77cf60fe117afa131c4c7194f9ca34e5806d260e9d823a"
+  },
+  {
+    "filename": "marimba_roll_steady_B.wav",
+    "bytes": 1152044,
+    "sha256": "aba883b15ac48139a978417780ade5a90fbb8b0cd704c73b422effc393a52693"
+  },
+  {
+    "filename": "marimba_roll_steady_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "bf0983621841a3bf8e003d62c7c952a4ec95c02aa11ff93318fc46ac5f3929cc"
+  },
+  {
+    "filename": "marimba_roll_steady_C.wav",
+    "bytes": 1152044,
+    "sha256": "3364e1cc9b32b4940eb4974fffc3ab6888f2f5246ae06b2ae5b977a4acbfc1cc"
+  },
+  {
+    "filename": "marimba_roll_steady_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "3364e1cc9b32b4940eb4974fffc3ab6888f2f5246ae06b2ae5b977a4acbfc1cc"
+  },
+  {
+    "filename": "marimba_steal_burst_A.wav",
+    "bytes": 1152044,
+    "sha256": "3451f5c3020642ee7dd4a173436f991174f8df8912ad79fd056d46ee38a5472b"
+  },
+  {
+    "filename": "marimba_steal_burst_A_matched.wav",
+    "bytes": 1152044,
+    "sha256": "8603876a207dab7079c75bd7542fa41c72ad1c2ffaf769987e09a7a448457c28"
+  },
+  {
+    "filename": "marimba_steal_burst_B.wav",
+    "bytes": 1152044,
+    "sha256": "e235628aea1ded55c6f2d4cc89abc7522bebd30d5c4e95d60045ef92ba77fa33"
+  },
+  {
+    "filename": "marimba_steal_burst_B_matched.wav",
+    "bytes": 1152044,
+    "sha256": "b3a38a8b269eed85188672134bfe8a516407d14e1ef738fda6c16b61601ccff3"
+  },
+  {
+    "filename": "marimba_steal_burst_C.wav",
+    "bytes": 1152044,
+    "sha256": "df9d5d7c253039d2a13b107f22048bd5782671929c3c39c85ec55faea668fc32"
+  },
+  {
+    "filename": "marimba_steal_burst_C_matched.wav",
+    "bytes": 1152044,
+    "sha256": "df9d5d7c253039d2a13b107f22048bd5782671929c3c39c85ec55faea668fc32"
+  }
+]

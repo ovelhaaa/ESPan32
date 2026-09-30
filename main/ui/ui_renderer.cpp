@@ -15,7 +15,7 @@ namespace pocketpan::ui {
 namespace {
 // Phase C: preallocated static tile memory in .bss (total ~10 KB)
 alignas(4) uint8_t sTileBle[60 * 12 * 2] = {0};
-alignas(4) uint8_t sTilePreset[72 * 18 * 2] = {0};
+alignas(4) uint8_t sTilePreset[96 * 18 * 2] = {0};
 alignas(4) uint8_t sTileRoot[50 * 18 * 2] = {0};
 alignas(4) uint8_t sTileVoices[80 * 12 * 2] = {0};
 alignas(4) uint8_t sTileCpu[80 * 12 * 2] = {0};
@@ -210,7 +210,7 @@ void UiRenderer::renderStatus(const UiState& state) {
     // F1: True rectangle update via full framebuffer
     drawStatusFieldRectFb(175, 5, 55, 12, state.bleStatus, bleColor, hardware::colors::DarkGray,
                           1, lastBle_, sizeof(lastBle_), &lastBleColor_, force);
-    drawStatusFieldRectFb(12, 40, 70, 18, state.presetName, hardware::colors::White, hardware::colors::Background,
+    drawStatusFieldRectFb(12, 40, 96, 18, state.presetName, hardware::colors::White, hardware::colors::Background,
                           2, lastPreset_, sizeof(lastPreset_), &lastBleColor_, force);
     drawStatusFieldRectFb(140, 40, 50, 18, state.rootNoteName, hardware::colors::Yellow, hardware::colors::Background,
                           2, lastRoot_, sizeof(lastRoot_), &lastBleColor_, force);
@@ -225,7 +225,7 @@ void UiRenderer::renderStatus(const UiState& state) {
     // F2 (and F3): True rectangle update via isolated tile scratch memory (zero framebuffer touches)
     drawStatusFieldTile(175, 5, 55, 12, state.bleStatus, bleColor, hardware::colors::DarkGray,
                         1, lastBle_, sizeof(lastBle_), &lastBleColor_, sTileBle, force);
-    drawStatusFieldTile(12, 40, 70, 18, state.presetName, hardware::colors::White, hardware::colors::Background,
+    drawStatusFieldTile(12, 40, 96, 18, state.presetName, hardware::colors::White, hardware::colors::Background,
                         2, lastPreset_, sizeof(lastPreset_), &lastBleColor_, sTilePreset, force);
     drawStatusFieldTile(140, 40, 50, 18, state.rootNoteName, hardware::colors::Yellow, hardware::colors::Background,
                         2, lastRoot_, sizeof(lastRoot_), &lastBleColor_, sTileRoot, force);

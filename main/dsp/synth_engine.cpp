@@ -12,7 +12,7 @@ void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
     allocator_.init(sampleRate_);
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Model changes are applied by the audio callback.  Build all three fixed
+    // Model changes are applied by the audio callback.  Build all seven fixed
     // tables now, before the callback/I2S transport exists, so no coefficient
     // table generation or heap work can occur at a realtime boundary.
     assert(verifyPreparedNoteCanaries());
@@ -27,6 +27,8 @@ void SynthEngine::init(float sampleRate) {
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Kalimba), kalimbaPreparedNotes_);
     assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Glass), glassPreparedNotes_);
+    assert(verifyPreparedNoteCanaries());
+    allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Marimba), marimbaPreparedNotes_);
     assert(verifyPreparedNoteCanaries());
 #endif
     model_ = InstrumentModel::Pan;
@@ -92,6 +94,8 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
         table = &kalimbaPreparedNotes_;
     } else if (model_ == InstrumentModel::Glass) {
         table = &glassPreparedNotes_;
+    } else if (model_ == InstrumentModel::Marimba) {
+        table = &marimbaPreparedNotes_;
     }
     allocator_.setPreparedNoteTable(table);
 #endif

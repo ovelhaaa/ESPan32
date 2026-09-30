@@ -1,0 +1,23 @@
+Test project C:/progs/ESPan/build-host-p6off
+    Start 1: ble_midi_parser
+1/9 Test #1: ble_midi_parser ..................   Passed    0.48 sec
+    Start 2: dsp
+2/9 Test #2: dsp ..............................   Passed    9.17 sec
+    Start 3: prepared_note
+3/9 Test #3: prepared_note ....................   Passed    1.20 sec
+    Start 4: telemetry
+4/9 Test #4: telemetry ........................   Passed    0.07 sec
+    Start 5: modal_kernel
+5/9 Test #5: modal_kernel .....................   Passed    0.05 sec
+    Start 6: fastpath
+6/9 Test #6: fastpath .........................   Passed    0.99 sec
+    Start 7: exciter_fastpath
+7/9 Test #7: exciter_fastpath .................   Passed    0.04 sec
+    Start 8: m635_fastpath
+8/9 Test #8: m635_fastpath ....................   Passed    1.22 sec
+    Start 9: m637_trigger
+9/9 Test #9: m637_trigger .....................   Passed    0.06 sec
+
+100% tests passed, 0 tests failed out of 9
+
+Total Test time (real) =  13.31 sec

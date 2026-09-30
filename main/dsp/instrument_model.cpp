@@ -85,6 +85,21 @@ constexpr InstrumentModelConfig kGlassModelConfig{
     {false, 0.0f, 0.0f, 1500.0f, 0.0f},
     BodyExcitationStrategy::StrikeBus, 0.0f,
 };
+constexpr ModalVoicingConfig kMarimbaVoicing{
+    .12f, .65f, 1.04f, .94f, 1.0f, .78f, .12f, .85f,
+    1.25f, .80f, 0.0f, 146.83f, 587.33f, false,
+    {1.0f, .42f, .18f, .06f, .02f, .005f},
+    {1.0f, .92f, .72f, .48f, .28f, .12f}, 1.0e-8f};
+
+// Candidate A is the provisional runtime configuration; listening decides freeze.
+constexpr InstrumentModelConfig kMarimbaModelConfig{
+    InstrumentModel::Marimba, &kPresetMarimba,
+    {.20f, .12f, 650.0f, 6500.0f, .85f, .38f, ExciterShape::Strike},
+    {1.0f, .95f, true}, kMarimbaVoicing,
+    {{}, 0, 0.0f, 0.0f, 1000.0f, false},
+    {false, 0.0f, 0.0f, 1500.0f, 0.0f},
+    BodyExcitationStrategy::StrikeBus, 0.0f,
+};
 }
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
@@ -94,6 +109,7 @@ const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
         case InstrumentModel::Bowl: return kBowlModelConfig;
         case InstrumentModel::Kalimba: return kKalimbaModelConfig;
         case InstrumentModel::Glass: return kGlassModelConfig;
+        case InstrumentModel::Marimba: return kMarimbaModelConfig;
         case InstrumentModel::Pan:
         default: return kPanModelConfig;
     }
