@@ -131,24 +131,41 @@ inline float Exciter::processSample() {
 
     float output = 0.0f;
 
-    // 1. Shaped impulse component.  The segment below runs only for the first
-    // impulseSamples_ samples; window is a table lookup, norm is hoisted.  The
-    // multiplication order (strikeAmplitude_ * window) * norm is preserved.
-    if (sampleIndex_ < impulseSamples_) {
-        const float window = (impulseSamples_ >= 3u && impulseSamples_ <= kExciterMaxImpulseSamples)
-            ? windowTable_[impulseSamples_][sampleIndex_]
-            : std::sin((kExciterPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_));
-        output += strikeAmplitude_ * window * impulseNorm_;
-    }
+    if (config_.shape == ExciterShape::Pluck) {
+        // 1. Asymmetric displacement release pulse
+        if (sampleIndex_ < impulseSamples_) {
+            const float p = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(impulseSamples_));
+            output += strikeAmplitude_ * (p * p) * impulseNorm_;
+        }
 
-    // 2. Filtered noise burst component with decay.  The PRNG is inlined and
-    // the envelope expression is unchanged (no iterative subtraction).
-    if (sampleIndex_ < noiseSamples_) {
-        const float rawNoise = nextNoise();
-        filterState_ += filterCoeff_ * (rawNoise - filterState_);
+        // 2. Filtered noise click with fast decay
+        if (sampleIndex_ < noiseSamples_) {
+            const float rawNoise = nextNoise();
+            filterState_ += filterCoeff_ * (rawNoise - filterState_);
 
-        const float env = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(noiseSamples_));
-        output += filterState_ * noiseGain_ * (env * env);
+            const float env = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(noiseSamples_));
+            output += filterState_ * noiseGain_ * (env * env);
+        }
+    } else {
+        // 1. Shaped impulse component.  The segment below runs only for the first
+        // impulseSamples_ samples; window is a table lookup, norm is hoisted.  The
+        // multiplication order (strikeAmplitude_ * window) * norm is preserved.
+        if (sampleIndex_ < impulseSamples_) {
+            const float window = (impulseSamples_ >= 3u && impulseSamples_ <= kExciterMaxImpulseSamples)
+                ? windowTable_[impulseSamples_][sampleIndex_]
+                : std::sin((kExciterPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_));
+            output += strikeAmplitude_ * window * impulseNorm_;
+        }
+
+        // 2. Filtered noise burst component with decay.  The PRNG is inlined and
+        // the envelope expression is unchanged (no iterative subtraction).
+        if (sampleIndex_ < noiseSamples_) {
+            const float rawNoise = nextNoise();
+            filterState_ += filterCoeff_ * (rawNoise - filterState_);
+
+            const float env = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(noiseSamples_));
+            output += filterState_ * noiseGain_ * (env * env);
+        }
     }
 
     sampleIndex_++;

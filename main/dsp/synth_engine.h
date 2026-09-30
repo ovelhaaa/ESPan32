@@ -139,7 +139,7 @@ private:
     InstrumentModel model_ = InstrumentModel::Pan;
 
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Exactly four shared tables (not one per voice), prepared before I2S is
+    // Exactly five shared tables (not one per voice), prepared before I2S is
     // started.  Model selection in the audio callback only swaps a pointer.
     // Phase P diagnostic canaries:
     static constexpr uint32_t kCanaryMagic = 0x50414E32; // "PAN2"
@@ -151,14 +151,17 @@ private:
     PreparedNoteTable tonguePreparedNotes_{};
     uint32_t canaryMid3_ = kCanaryMagic;
     PreparedNoteTable bowlPreparedNotes_{};
-    uint32_t canaryPostBowl_ = kCanaryMagic;
+    uint32_t canaryMid4_ = kCanaryMagic;
+    PreparedNoteTable kalimbaPreparedNotes_{};
+    uint32_t canaryPostKalimba_ = kCanaryMagic;
 public:
     bool verifyPreparedNoteCanaries() const {
         return canaryPrePan_ == kCanaryMagic &&
                canaryMid_ == kCanaryMagic &&
                canaryMid2_ == kCanaryMagic &&
                canaryMid3_ == kCanaryMagic &&
-               canaryPostBowl_ == kCanaryMagic;
+               canaryMid4_ == kCanaryMagic &&
+               canaryPostKalimba_ == kCanaryMagic;
     }
 private:
 #endif

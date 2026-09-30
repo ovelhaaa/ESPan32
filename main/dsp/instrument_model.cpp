@@ -55,6 +55,21 @@ constexpr InstrumentModelConfig kBowlModelConfig{
     {false, 0.0f, 0.0f, 1500.0f, 0.0f},
     BodyExcitationStrategy::StrikeBus, 0.0f,
 };
+
+constexpr ModalVoicingConfig kKalimbaVoicing{
+    0.30f, 0.95f, 1.05f, 0.92f, 1.00f, 0.80f, 0.15f, 0.90f,
+    1.15f, 0.80f, 0.0f, 146.83f, 440.0f, false,
+    {1.00f, 0.18f, 0.05f, 0.01f, 0.00f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+    {1.00f, 0.65f, 0.42f, 0.22f, 0.10f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 1.0e-8f};
+
+constexpr InstrumentModelConfig kKalimbaModelConfig{
+    InstrumentModel::Kalimba, &kPresetKalimba,
+    {0.78f, 0.22f, 1400.0f, 11000.0f, 0.85f, 0.42f, ExciterShape::Pluck},
+    {1.0f, 0.95f, true}, kKalimbaVoicing,
+    {{{210.0f, 0.15f, 0.35f}, {420.0f, 0.10f, 0.22f}, {820.0f, 0.05f, 0.12f}}, 3, 0.12f, 0.08f, 1200.0f, true},
+    {false, 0.0f, 0.0f, 1500.0f, 0.0f},
+    BodyExcitationStrategy::StrikeBus, 32.0f,
+};
 }
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
@@ -62,6 +77,7 @@ const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
         case InstrumentModel::Bell: return kBellModelConfig;
         case InstrumentModel::Tongue: return kTongueModelConfig;
         case InstrumentModel::Bowl: return kBowlModelConfig;
+        case InstrumentModel::Kalimba: return kKalimbaModelConfig;
         case InstrumentModel::Pan:
         default: return kPanModelConfig;
     }

@@ -22,8 +22,9 @@ uint32_t bits(float f) {
     return u;
 }
 
-void run_one(float velocity, float hardness, bool (&seen)[15]) {
+void run_one(float velocity, float hardness, bool (&seen)[15], ExciterShape shape = ExciterShape::Strike) {
     ExciterConfig cfg{};
+    cfg.shape = shape;
     Exciter fast, ref;
     fast.init(48000.0f);
     ref.init(48000.0f);
@@ -44,14 +45,14 @@ void run_one(float velocity, float hardness, bool (&seen)[15]) {
         const float b = fast.processSample();
         if (bits(a) != bits(b)) {
             std::fprintf(stderr,
-                "exciter differs v=%.4f h=%.4f impulse=%u sample=%u (ref=%08x %g fast=%08x %g)\n",
-                velocity, hardness, impulse, i, bits(a), a, bits(b), b);
+                "exciter differs shape=%d v=%.4f h=%.4f impulse=%u sample=%u (ref=%08x %g fast=%08x %g)\n",
+                static_cast<int>(shape), velocity, hardness, impulse, i, bits(a), a, bits(b), b);
             assert(false);
         }
         if (ref.activeForTest() != fast.activeForTest()) {
             std::fprintf(stderr,
-                "exciter active_ differs v=%.4f h=%.4f impulse=%u sample=%u (ref=%d fast=%d)\n",
-                velocity, hardness, impulse, i, ref.activeForTest(), fast.activeForTest());
+                "exciter active_ differs shape=%d v=%.4f h=%.4f impulse=%u sample=%u (ref=%d fast=%d)\n",
+                static_cast<int>(shape), velocity, hardness, impulse, i, ref.activeForTest(), fast.activeForTest());
             assert(false);
         }
     }
@@ -71,17 +72,26 @@ int main() {
 
     for (float v : velocities)
         for (float h : hardnesses)
-            run_one(v, h, seen);
+            run_one(v, h, seen, ExciterShape::Strike);
 
     // Sweep hardness densely so every integer impulse length is exercised.
     for (float v : velocities)
         for (int s = 0; s <= 40; ++s)
-            run_one(v, static_cast<float>(s) / 40.0f, seen);
+            run_one(v, static_cast<float>(s) / 40.0f, seen, ExciterShape::Strike);
 
     int covered = 0;
     for (int n = 3; n <= 14; ++n) { if (seen[n]) ++covered; }
     assert(covered == 12 && "all 12 supported impulse lengths must be exercised");
     std::fprintf(stderr, "exciter fast path: exact for all impulse lengths (3..14), PRNG state exact\n");
+
+    bool seenPluck[15] = {};
+    for (float v : velocities)
+        for (float h : hardnesses)
+            run_one(v, h, seenPluck, ExciterShape::Pluck);
+    for (float v : velocities)
+        for (int s = 0; s <= 40; ++s)
+            run_one(v, static_cast<float>(s) / 40.0f, seenPluck, ExciterShape::Pluck);
+    std::fprintf(stderr, "exciter fast path: Pluck shape exact across velocities and hardnesses\n");
 #else
     std::fprintf(stderr, "exciter fast path: candidate %d has no attack fast path; skipped\n",
                  POCKETPAN_DSP_CANDIDATE);

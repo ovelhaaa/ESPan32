@@ -2,6 +2,11 @@
 
 namespace pocketpan::dsp {
 
+enum class ExciterShape : uint8_t {
+    Strike = 0,
+    Pluck = 1,
+};
+
 // Model-neutral controls.  A voice/model selects these; DSP primitives do not
 // know which instrument calibration supplied them.
 struct ExciterConfig {
@@ -13,6 +18,7 @@ struct ExciterConfig {
     // v127; only strike energy is gently compressed before the limiter.
     float velocityKnee = 1.0f;
     float velocityKneeSlope = 1.0f;
+    ExciterShape shape = ExciterShape::Strike;
 };
 
 struct ResonatorConfig {

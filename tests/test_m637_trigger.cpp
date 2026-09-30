@@ -36,7 +36,7 @@ void checkVelocityTables() {
         }
     }
 
-    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl};
+    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba};
     for (InstrumentModel model : models) {
         const ExciterConfig cfg = getInstrumentModelConfig(model).exciter;
         for (int i = 0; i < kMidiVelocityCount; ++i) {
@@ -72,7 +72,7 @@ void checkVelocityTables() {
 
 void checkRegisterLogCache() {
 #ifdef POCKETPAN_TRIGGER_DIFFERENTIAL_TEST
-    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl};
+    const InstrumentModel models[] = {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba};
     for (InstrumentModel model : models) {
         const InstrumentModelConfig cfg = getInstrumentModelConfig(model);
         const auto& v = cfg.voicing;

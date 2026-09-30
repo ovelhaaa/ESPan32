@@ -205,6 +205,9 @@ int main() {
         compare("BOWL single", InstrumentModel::Bowl, chord(0, single, 1, vel), total, true);
         compare("BOWL chord4", InstrumentModel::Bowl, chord(0, four, 4, vel), total, true);
         compare("BOWL cluster8", InstrumentModel::Bowl, chord(0, cluster, 8, vel), total, true);
+        compare("KALIMBA single", InstrumentModel::Kalimba, chord(0, single, 1, vel), total, false);
+        compare("KALIMBA chord4", InstrumentModel::Kalimba, chord(0, four, 4, vel), total, false);
+        compare("KALIMBA cluster8", InstrumentModel::Kalimba, chord(0, cluster, 8, vel), total, false);
     }
 
     compare("PAN steal9", InstrumentModel::Pan, chord(0, nine, 9, 100), total, false);

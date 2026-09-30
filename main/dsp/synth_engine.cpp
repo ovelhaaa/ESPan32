@@ -24,6 +24,8 @@ void SynthEngine::init(float sampleRate) {
     assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Bowl), bowlPreparedNotes_);
     assert(verifyPreparedNoteCanaries());
+    allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Kalimba), kalimbaPreparedNotes_);
+    assert(verifyPreparedNoteCanaries());
 #endif
     model_ = InstrumentModel::Pan;
     modelConfig_ = getInstrumentModelConfig(model_);
@@ -84,6 +86,8 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
         table = &tonguePreparedNotes_;
     } else if (model_ == InstrumentModel::Bowl) {
         table = &bowlPreparedNotes_;
+    } else if (model_ == InstrumentModel::Kalimba) {
+        table = &kalimbaPreparedNotes_;
     }
     allocator_.setPreparedNoteTable(table);
 #endif

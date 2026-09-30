@@ -116,6 +116,9 @@ int main() {
     compare("BOWL single", true, InstrumentModel::Bowl, chord(0, single, 1, 90), total);
     compare("BOWL chord4", true, InstrumentModel::Bowl, chord(0, four, 4, 90), total);
     compare("BOWL cluster8", true, InstrumentModel::Bowl, chord(0, cluster, 8, 100), total);
+    compare("KALIMBA single", true, InstrumentModel::Kalimba, chord(0, single, 1, 90), total);
+    compare("KALIMBA chord4", true, InstrumentModel::Kalimba, chord(0, four, 4, 90), total);
+    compare("KALIMBA cluster8", true, InstrumentModel::Kalimba, chord(0, cluster, 8, 100), total);
 
     {
         auto events = chord(0, four, 4, 90);
@@ -138,6 +141,11 @@ int main() {
         auto events = chord(0, four, 4, 90);
         events.push_back({48000, midi::MidiEventType::PolyPressure, 62, 90});
         compare("BOWL polypressure", true, InstrumentModel::Bowl, events, total);
+    }
+    {
+        auto events = chord(0, four, 4, 90);
+        events.push_back({48000, midi::MidiEventType::PolyPressure, 62, 90});
+        compare("KALIMBA polypressure", true, InstrumentModel::Kalimba, events, total);
     }
     {
         // A model switch resets every voice, so strike again after the switch
@@ -168,7 +176,13 @@ int main() {
     {
         auto events = chord(0, cluster, 8, 100);
         for (auto e : chord(49152, cluster, 8, 100)) events.push_back(e);
-        compare("BOWL to PAN switch", true, InstrumentModel::Bowl, events,
+        compare("BOWL to KALIMBA switch", true, InstrumentModel::Bowl, events,
+                total, 48000, InstrumentModel::Kalimba);
+    }
+    {
+        auto events = chord(0, cluster, 8, 100);
+        for (auto e : chord(49152, cluster, 8, 100)) events.push_back(e);
+        compare("KALIMBA to PAN switch", true, InstrumentModel::Kalimba, events,
                 total, 48000, InstrumentModel::Pan);
     }
 #else

@@ -247,9 +247,9 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 #if defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
     switch (id) {
         case 0: return dsp::InstrumentModel::Pan;
-        case 1: return dsp::InstrumentModel::Tongue;
-        case 2: return dsp::InstrumentModel::Bowl;
-        case 3: return dsp::InstrumentModel::Bowl;
+        case 1: return dsp::InstrumentModel::Bowl;
+        case 2: return dsp::InstrumentModel::Kalimba;
+        case 3: return dsp::InstrumentModel::Kalimba;
         default: return dsp::InstrumentModel::Pan;
     }
 #else

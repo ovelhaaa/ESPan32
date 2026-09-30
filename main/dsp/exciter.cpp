@@ -87,30 +87,58 @@ void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
     strikeAmplitude_ = strikeGain * config_.gain;
 
     // 2. Transient hardness: high velocity yields a shorter, sharper impulse
-    // Soft strike (low v): ~14 samples (soft finger pad / rounded mallet)
-    // Hard strike (high v): ~3 samples (hard strike / knuckle)
-    const float durationSamples = 14.0f - 11.0f * h;
-    impulseSamples_ = std::max<uint32_t>(3U, static_cast<uint32_t>(durationSamples));
+    if (config_.shape == ExciterShape::Pluck) {
+        // Pluck: very short release snap (3 to 8 samples)
+        const float durationSamples = 8.0f - 5.0f * h;
+        impulseSamples_ = std::max<uint32_t>(3U, static_cast<uint32_t>(durationSamples));
 
-    // 3. Noise burst: duration ~3 ms to 8 ms
-    const float burstSeconds = 0.003f + 0.005f * (1.0f - h);
-    noiseSamples_ = static_cast<uint32_t>(burstSeconds * sampleRate_);
+        // Noise click: very short slip burst ~1.0 ms to 2.5 ms
+        const float burstSeconds = 0.0010f + 0.0015f * (1.0f - h);
+        noiseSamples_ = static_cast<uint32_t>(burstSeconds * sampleRate_);
 
-    // 4. Brightness / Cutoff frequency:
-    // Low velocity: ~700 Hz (warm, rounded thud)
-    // High velocity: ~12,000 Hz (bright, crisp acoustic strike)
-    const float cutoffHz = std::clamp((config_.brightnessMinHz +
-        (config_.brightnessMaxHz - config_.brightnessMinHz) * (h * h)) * brightnessScale,
-        config_.brightnessMinHz * 0.65f, config_.brightnessMaxHz);
-    const float w = (2.0f * kPi * cutoffHz) / sampleRate_;
-    filterCoeff_ = std::clamp(1.0f - std::exp(-w), 0.01f, 0.99f);
+        // Brightness / Cutoff frequency
+        const float cutoffHz = std::clamp((config_.brightnessMinHz +
+            (config_.brightnessMaxHz - config_.brightnessMinHz) * (h * h)) * brightnessScale,
+            config_.brightnessMinHz * 0.65f, config_.brightnessMaxHz);
+        const float w = (2.0f * kPi * cutoffHz) / sampleRate_;
+        filterCoeff_ = std::clamp(1.0f - std::exp(-w), 0.01f, 0.99f);
 
-    // Hardness adds texture, but high velocity is primarily modal coupling.
-    noiseGain_ = strikeAmplitude_ * (0.035f + 0.045f * h) * config_.noiseAmount;
+        noiseGain_ = strikeAmplitude_ * (0.020f + 0.035f * h) * config_.noiseAmount;
 
-    // Hoisted impulse normalisation.  The multiply association used by the
-    // sample loop remains (strikeAmplitude_ * window) * norm.
-    impulseNorm_ = (kExciterPi * 0.5f) / static_cast<float>(impulseSamples_);
+        // Normalization for sum of (1 - i/N)^2 over i=0..N-1
+        float sumWeight = 0.0f;
+        const float invN = 1.0f / static_cast<float>(impulseSamples_);
+        for (uint32_t i = 0; i < impulseSamples_; ++i) {
+            const float p = 1.0f - static_cast<float>(i) * invN;
+            sumWeight += p * p;
+        }
+        impulseNorm_ = (sumWeight > 0.0f) ? (1.0f / sumWeight) : 1.0f;
+    } else {
+        // Soft strike (low v): ~14 samples (soft finger pad / rounded mallet)
+        // Hard strike (high v): ~3 samples (hard strike / knuckle)
+        const float durationSamples = 14.0f - 11.0f * h;
+        impulseSamples_ = std::max<uint32_t>(3U, static_cast<uint32_t>(durationSamples));
+
+        // 3. Noise burst: duration ~3 ms to 8 ms
+        const float burstSeconds = 0.003f + 0.005f * (1.0f - h);
+        noiseSamples_ = static_cast<uint32_t>(burstSeconds * sampleRate_);
+
+        // 4. Brightness / Cutoff frequency:
+        // Low velocity: ~700 Hz (warm, rounded thud)
+        // High velocity: ~12,000 Hz (bright, crisp acoustic strike)
+        const float cutoffHz = std::clamp((config_.brightnessMinHz +
+            (config_.brightnessMaxHz - config_.brightnessMinHz) * (h * h)) * brightnessScale,
+            config_.brightnessMinHz * 0.65f, config_.brightnessMaxHz);
+        const float w = (2.0f * kPi * cutoffHz) / sampleRate_;
+        filterCoeff_ = std::clamp(1.0f - std::exp(-w), 0.01f, 0.99f);
+
+        // Hardness adds texture, but high velocity is primarily modal coupling.
+        noiseGain_ = strikeAmplitude_ * (0.035f + 0.045f * h) * config_.noiseAmount;
+
+        // Hoisted impulse normalisation.  The multiply association used by the
+        // sample loop remains (strikeAmplitude_ * window) * norm.
+        impulseNorm_ = (kExciterPi * 0.5f) / static_cast<float>(impulseSamples_);
+    }
 
     sampleIndex_ = 0;
     filterState_ = 0.0f;
@@ -132,13 +160,20 @@ float Exciter::processSample() {
 
     float output = 0.0f;
 
-    // 1. Shaped impulse component (half-sine bell window normalized to unit integral)
-    // Ensures physical momentum conservation across different mallet hardnesses
-    if (sampleIndex_ < impulseSamples_) {
-        const float phase = (kPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_);
-        const float window = std::sin(phase);
-        const float norm = (kPi * 0.5f) / static_cast<float>(impulseSamples_);
-        output += strikeAmplitude_ * window * norm;
+    if (config_.shape == ExciterShape::Pluck) {
+        if (sampleIndex_ < impulseSamples_) {
+            const float p = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(impulseSamples_));
+            output += strikeAmplitude_ * (p * p) * impulseNorm_;
+        }
+    } else {
+        // 1. Shaped impulse component (half-sine bell window normalized to unit integral)
+        // Ensures physical momentum conservation across different mallet hardnesses
+        if (sampleIndex_ < impulseSamples_) {
+            const float phase = (kPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_);
+            const float window = std::sin(phase);
+            const float norm = (kPi * 0.5f) / static_cast<float>(impulseSamples_);
+            output += strikeAmplitude_ * window * norm;
+        }
     }
 
     // 2. Filtered noise burst component with decay
@@ -165,11 +200,18 @@ float Exciter::processSampleReference() {
 
     float output = 0.0f;
 
-    if (sampleIndex_ < impulseSamples_) {
-        const float phase = (kPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_);
-        const float window = std::sin(phase);
-        const float norm = (kPi * 0.5f) / static_cast<float>(impulseSamples_);
-        output += strikeAmplitude_ * window * norm;
+    if (config_.shape == ExciterShape::Pluck) {
+        if (sampleIndex_ < impulseSamples_) {
+            const float p = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(impulseSamples_));
+            output += strikeAmplitude_ * (p * p) * impulseNorm_;
+        }
+    } else {
+        if (sampleIndex_ < impulseSamples_) {
+            const float phase = (kPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_);
+            const float window = std::sin(phase);
+            const float norm = (kPi * 0.5f) / static_cast<float>(impulseSamples_);
+            output += strikeAmplitude_ * window * norm;
+        }
     }
 
     if (sampleIndex_ < noiseSamples_) {

@@ -97,4 +97,29 @@ inline constexpr ModalPreset kPresetBowl = {
     }
 };
 
+// African thumb piano / Kalimba acoustic model:
+// 5 modes:
+// Mode 0: Fundamental tine pitch (1.0000) - dominant pitch and sustained tine body
+// Mode 1: First tine bending overtone (2.7000) - characteristic inharmonic tine mode
+// Mode 2: Second bending region (5.4000) - mid metallic tine partial
+// Mode 3: High metallic click/colour (8.9000) - fast transient chime
+// Mode 4: Upper tine partial (13.0000) - short metallic attack sheen
+inline constexpr ModalPreset kPresetKalimba = {
+    "KALIMBA",
+    5,
+    {
+        // ratio,   gain,  t60(s), detune
+        { 1.0000f, 1.00f, 2.20f, 0.0000f }, // Mode 0: Fundamental
+        { 2.7000f, 0.32f, 1.10f, 0.0000f }, // Mode 1: First bending overtone
+        { 5.4000f, 0.15f, 0.55f, 0.0000f }, // Mode 2: Second bending overtone
+        { 8.9000f, 0.06f, 0.25f, 0.0000f }, // Mode 3: High metallic click
+        { 13.0000f, 0.02f, 0.12f, 0.0000f }, // Mode 4: Upper tine partial
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f },
+        { 0.0000f, 0.00f, 0.00f, 0.0000f }
+    }
+};
+
 } // namespace pocketpan::dsp

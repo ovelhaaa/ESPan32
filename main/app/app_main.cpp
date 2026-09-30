@@ -56,6 +56,8 @@ std::atomic<bool> sSynthResetRequested{false};
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Tongue};
 #elif defined(POCKETPAN_BOWL_SMOKE) && POCKETPAN_BOWL_SMOKE
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Bowl};
+#elif defined(POCKETPAN_KALIMBA_SMOKE) && POCKETPAN_KALIMBA_SMOKE
+std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Kalimba};
 #else
 std::atomic<pocketpan::dsp::InstrumentModel> sSelectedInstrumentModel{pocketpan::dsp::InstrumentModel::Pan};
 #endif
@@ -330,16 +332,20 @@ void uiTaskLoop(void* param) {
             else if (rel >= 100 && rel <= 133) btnPressed = true;
             // 4. Cycle 3: TONGUE -> BOWL (1000ms = 33 ticks, 150..183)
             else if (rel >= 150 && rel <= 183) btnPressed = true;
-            // 5. Cycle 4: BOWL -> PAN (1000ms = 33 ticks, 200..233)
+            // 5. Cycle 4: BOWL -> KALIMBA (1000ms = 33 ticks, 200..233)
             else if (rel >= 200 && rel <= 233) btnPressed = true;
-            // 6. Extended hold test: 2500ms (75 ticks, 250..325) PAN -> BELL without repeat cycling
-            else if (rel >= 250 && rel <= 325) btnPressed = true;
-            // 7. Cycle 6: BELL -> TONGUE (1000ms = 33 ticks, 340..373)
-            else if (rel >= 340 && rel <= 373) btnPressed = true;
-            // 8. Cycle 7: TONGUE -> BOWL (1000ms = 33 ticks, 390..423)
+            // 6. Cycle 5: KALIMBA -> PAN (1000ms = 33 ticks, 250..283)
+            else if (rel >= 250 && rel <= 283) btnPressed = true;
+            // 7. Extended hold test: 2500ms (75 ticks, 300..375) PAN -> BELL without repeat cycling
+            else if (rel >= 300 && rel <= 375) btnPressed = true;
+            // 8. Cycle 7: BELL -> TONGUE (1000ms = 33 ticks, 390..423)
             else if (rel >= 390 && rel <= 423) btnPressed = true;
-            // 9. Cycle 8: BOWL -> PAN (1000ms = 33 ticks, 440..473)
+            // 9. Cycle 8: TONGUE -> BOWL (1000ms = 33 ticks, 440..473)
             else if (rel >= 440 && rel <= 473) btnPressed = true;
+            // 10. Cycle 9: BOWL -> KALIMBA (1000ms = 33 ticks, 490..523)
+            else if (rel >= 490 && rel <= 523) btnPressed = true;
+            // 11. Cycle 10: KALIMBA -> PAN (1000ms = 33 ticks, 540..573)
+            else if (rel >= 540 && rel <= 573) btnPressed = true;
 
             static pocketpan::dsp::InstrumentModel sPrevModel = pocketpan::dsp::InstrumentModel::Pan;
             static pocketpan::ui::UiScreenMode sPrevMode = pocketpan::ui::UiScreenMode::Status;
@@ -357,8 +363,8 @@ void uiTaskLoop(void* param) {
                          pocketpan::dsp::instrumentModelName(curModel), (unsigned)rel);
                 sPrevMode = sUiState.mode;
             }
-            if (rel == 500) {
-                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: 3 short presses + 7 long cycles verified");
+            if (rel == 600) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: 3 short presses + 9 long cycles verified");
             }
         }
 #endif
@@ -673,7 +679,11 @@ extern "C" void app_main(void) {
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Tongue);
 #elif defined(POCKETPAN_BOWL_SMOKE) && POCKETPAN_BOWL_SMOKE
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Bowl);
+#elif defined(POCKETPAN_KALIMBA_SMOKE) && POCKETPAN_KALIMBA_SMOKE
+    sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Kalimba);
 #endif
+    snprintf(sUiState.presetName, sizeof(sUiState.presetName), "%s",
+             pocketpan::dsp::instrumentModelName(selectedInstrumentModel()));
 
     // 2. Connect SPSC lock-free queue to BLE transport
     sBleMidi.setQueue(&sBleMidiQueue);

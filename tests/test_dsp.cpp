@@ -1850,7 +1850,8 @@ void testM7TongueModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Pan);
 
     // 2. PolyPressure and ChannelPressure support for Tongue
     for (bool poly : {true, false}) {
@@ -2095,7 +2096,8 @@ void testM71BowlModel() {
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
-    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Pan);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel(3)) == dsp::InstrumentModel::Kalimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Pan);
 
     // 2. Beating Doublet Verification (Phase S)
     std::cout << "  Verifying Singing Bowl beating doublet mechanism...\n";
@@ -2173,8 +2175,8 @@ void testM71BowlModel() {
         }
     }
 
-    // 4. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> PAN
-    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> PAN...\n";
+    // 4. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN
+    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN...\n";
     dsp::SynthEngine swEngine;
     swEngine.init(48000.0f);
     int32_t swBlock[256]{};
@@ -2195,6 +2197,11 @@ void testM71BowlModel() {
         swEngine.renderBlock(swBlock, 128);
         for (auto sample : swBlock) assert(sample == 0);
         swEngine.handleMidiEvent(note(60, 85));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Kalimba);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(62, 95));
         swEngine.renderBlock(swBlock, 128);
         swEngine.setInstrumentModel(dsp::InstrumentModel::Pan);
         swEngine.renderBlock(swBlock, 128);
@@ -2357,6 +2364,313 @@ void testM71BowlModel() {
     std::cout << "  -> PASSED: M7.1 Singing Bowl V1 fixtures, doublets, and objective tests verified.\n";
 }
 
+struct KalimbaQualificationRender {
+    M5cResult rendered;
+    size_t maxActiveVoices = 0;
+    size_t maxStealTails = 0;
+    float maxSampleDelta = 0.0f;
+    size_t finalActiveVoices = 0;
+    uint32_t voiceStealCount = 0;
+    float bodyEnergy = 0.0f;
+    float bodyPeak = 0.0f;
+};
+
+KalimbaQualificationRender renderKalimbaQualification(const std::vector<ScheduledEvent>& events,
+                                                     size_t totalFrames,
+                                                     int bodyOverride = -1) {
+    constexpr size_t kBlock = 128;
+    KalimbaQualificationRender result;
+    result.rendered.audio.resize(totalFrames * 2);
+    dsp::SynthEngine engine;
+    engine.init(48000.0f);
+    engine.setInstrumentModel(dsp::InstrumentModel::Kalimba);
+    if (bodyOverride >= 0) {
+        engine.setBodyEnabled(bodyOverride != 0);
+    }
+    size_t eventIndex = 0;
+    int32_t previous = 0;
+    for (size_t frame = 0; frame < totalFrames; frame += kBlock) {
+        while (eventIndex < events.size() && events[eventIndex].frame <= frame) {
+            engine.handleMidiEvent(events[eventIndex++].event);
+        }
+        result.maxStealTails = std::max(result.maxStealTails, engine.getVoiceAllocator().getActiveStealTailCount());
+        const size_t count = std::min(kBlock, totalFrames - frame);
+        engine.renderBlock(result.rendered.audio.data() + frame * 2, count);
+        result.maxActiveVoices = std::max(result.maxActiveVoices, engine.getVoiceAllocator().getActiveVoiceCount());
+        for (size_t i = 0; i < count * 2; ++i) {
+            const int32_t current = result.rendered.audio[frame * 2 + i];
+            result.maxSampleDelta = std::max(result.maxSampleDelta, static_cast<float>(std::abs(current - previous)));
+            previous = current;
+        }
+    }
+    result.finalActiveVoices = engine.getVoiceAllocator().getActiveVoiceCount();
+    result.voiceStealCount = engine.getVoiceAllocator().getVoiceStealCount();
+    result.bodyEnergy = engine.getBodyEnergy();
+    result.bodyPeak = engine.getBodyPeak();
+    result.rendered.metrics = computeMetrics(result.rendered.audio, engine.getSoftClipCount());
+    result.rendered.hardClampCount = engine.getHardClampCount();
+    result.rendered.modalSat = engine.getModalInternalSaturationCount();
+    result.rendered.metrics.maxGainReductionDb = engine.getMaxGainReductionDb();
+    result.rendered.metrics.averageGainReductionDb = engine.getAverageGainReductionDb();
+    return result;
+}
+
+void testM72KalimbaModel() {
+    std::cout << "[Test 25] M7.2 Kalimba V1 model, fixtures, pluck exciter, and 5-model cycling...\n";
+    auto allFinite = [](const std::vector<int32_t>& audio) {
+        for (int32_t s : audio) { if (!std::isfinite(static_cast<float>(s))) return false; }
+        return true;
+    };
+    auto note = [](uint8_t n, uint8_t v) {
+        midi::MidiEvent e{};
+        e.type = midi::MidiEventType::NoteOn;
+        e.data1 = n;
+        e.data2 = v;
+        return e;
+    };
+
+    // 1. Model Registry and Config validation
+    const auto& kalimbaConfig = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Kalimba);
+    assert(kalimbaConfig.id == dsp::InstrumentModel::Kalimba);
+    assert(kalimbaConfig.modalPreset != nullptr);
+    assert(kalimbaConfig.modalPreset->modeCount == 5);
+    assert(dsp::kPresetKalimba.modeCount == 5);
+    assert(kalimbaConfig.body.enabled == true);
+    assert(kalimbaConfig.body.modeCount == 3);
+    assert(kalimbaConfig.sympathetic.enabled == false);
+    assert(kalimbaConfig.exciter.shape == dsp::ExciterShape::Pluck);
+    assert(kalimbaConfig.exciter.gain == 0.78f);
+    assert(kalimbaConfig.exciter.noiseAmount == 0.22f);
+    assert(kalimbaConfig.exciter.brightnessMinHz == 1400.0f);
+    assert(kalimbaConfig.exciter.brightnessMaxHz == 11000.0f);
+    assert(kalimbaConfig.exciter.velocityKnee == 0.85f);
+    assert(kalimbaConfig.exciter.velocityKneeSlope == 0.42f);
+    assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Kalimba)) == "KALIMBA");
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Tongue) == dsp::InstrumentModel::Bowl);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bowl) == dsp::InstrumentModel::Kalimba);
+    assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Kalimba) == dsp::InstrumentModel::Pan);
+
+    // 2. PolyPressure and ChannelPressure support for Kalimba
+    for (bool poly : {true, false}) {
+        for (uint8_t pressure : {0, 32, 64, 96, 127}) {
+            dsp::SynthEngine pressureEngine;
+            pressureEngine.init(48000.0f);
+            pressureEngine.setInstrumentModel(dsp::InstrumentModel::Kalimba);
+            pressureEngine.handleMidiEvent(note(62, 90));
+            int32_t pressureBlock[256]{};
+            pressureEngine.renderBlock(pressureBlock, 128);
+            midi::MidiEvent event{};
+            event.type = poly ? midi::MidiEventType::PolyPressure : midi::MidiEventType::ChannelPressure;
+            event.data1 = poly ? 62 : pressure;
+            event.data2 = poly ? pressure : 0;
+            pressureEngine.handleMidiEvent(event);
+            pressureEngine.renderBlock(pressureBlock, 128);
+            for (auto sample : pressureBlock) assert(std::isfinite(static_cast<float>(sample)));
+        }
+    }
+
+    // 3. 100 model switch cycles: PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN
+    std::cout << "  Testing 100 model switch cycles PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> PAN...\n";
+    dsp::SynthEngine swEngine;
+    swEngine.init(48000.0f);
+    int32_t swBlock[256]{};
+    for (int iter = 0; iter < 100; ++iter) {
+        swEngine.handleMidiEvent(note(50, 70));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Bell);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(62, 90));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Tongue);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(58, 80));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Bowl);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(60, 85));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Kalimba);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+        swEngine.handleMidiEvent(note(62, 95));
+        swEngine.renderBlock(swBlock, 128);
+        swEngine.setInstrumentModel(dsp::InstrumentModel::Pan);
+        swEngine.renderBlock(swBlock, 128);
+        for (auto sample : swBlock) assert(sample == 0);
+    }
+    // Verify direct PAN matches PAN after 100 switches
+    swEngine.handleMidiEvent(note(50, 70));
+    std::vector<int32_t> swPan(96000 * 2);
+    for (size_t frame = 0; frame < 96000; frame += 128) {
+        swEngine.renderBlock(swPan.data() + frame * 2, std::min<size_t>(128, 96000 - frame));
+    }
+    const auto directPan = renderModel({{0, note(50, 70)}}, 96000, dsp::InstrumentModel::Pan);
+    assert(fnv1a64(swPan) == fnv1a64(directPan.audio));
+    std::cout << "  -> 100 cycles verified bit-identical direct PAN recovery!\n";
+
+    // 4. A/B Body Evaluation (Phase I): K0 (body disabled) vs K1 (body enabled)
+    std::cout << "  Evaluating Body A/B: K0 (tine only) vs K1 (tine + body)...\n";
+    const auto k0_D4 = renderKalimbaQualification({{0, note(62, 90)}}, 96000, 0); // K0 body OFF
+    const auto k1_D4 = renderKalimbaQualification({{0, note(62, 90)}}, 96000, 1); // K1 body ON
+    writeWavFile("kalimba_K0_D4_v90.wav", k0_D4.rendered.audio.data(), 96000, 48000);
+    writeWavFile("kalimba_K1_D4_v90.wav", k1_D4.rendered.audio.data(), 96000, 48000);
+    std::cout << "    K0 D4 v90: RMS=" << k0_D4.rendered.metrics.rms << ", Peak=" << k0_D4.rendered.metrics.peak
+              << ", BodyEnergy=" << k0_D4.bodyEnergy << "\n";
+    std::cout << "    K1 D4 v90: RMS=" << k1_D4.rendered.metrics.rms << ", Peak=" << k1_D4.rendered.metrics.peak
+              << ", BodyEnergy=" << k1_D4.bodyEnergy << "\n";
+    assert(k1_D4.bodyEnergy > 0.0f);
+    assert(k0_D4.bodyEnergy == 0.0f);
+
+    // 5. Deterministic fixtures and metrics report
+    std::ofstream report("kalimba_m72_metrics.md");
+    report << std::fixed << std::setprecision(6);
+    report << "# Kalimba M7.2 host qualification\n\n"
+           << "**InstrumentModel::Kalimba (African Thumb Piano V1 Candidate)**\n\n"
+           << "## 1. Modal preset topology\n\n"
+           << "| Mode | Ratio | Gain | T60 (s) | Detune | Role |\n"
+           << "|---|---:|---:|---:|---:|---|\n";
+    constexpr const char* kalimbaRoles[] = {
+        "Fundamental tine pitch", "First bending overtone", "Second bending overtone",
+        "High metallic click/colour", "Upper tine partial"
+    };
+    for (size_t i = 0; i < dsp::kPresetKalimba.modeCount; ++i) {
+        const auto& m = dsp::kPresetKalimba.modes[i];
+        report << "| " << i << " | " << m.ratio << " | " << m.gain << " | " << m.t60 << " | "
+               << m.detune << " | " << kalimbaRoles[i] << " |\n";
+    }
+
+    // Velocity tests (D4):
+    report << "\n## 2. Velocity progression (D4)\n\n"
+           << "| Velocity | RMS | Peak | Crest Factor | max GR dB | Modal Sat | Clamp |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|\n";
+    float prevRms = 0.0f;
+    for (uint8_t vel : {30, 60, 90, 110, 127}) {
+        const auto q = renderKalimbaQualification({{0, note(62, vel)}}, 96000); // 2 seconds
+        const auto& m = q.rendered.metrics;
+        writeWavFile((std::string("kalimba_D4_v") + std::to_string(vel) + ".wav").c_str(), q.rendered.audio.data(), 96000, 48000);
+        report << "| " << static_cast<int>(vel) << " | " << m.rms << " | " << m.peak << " | " << m.crestFactor << " | "
+               << m.maxGainReductionDb << " | " << q.rendered.modalSat << " | " << q.rendered.hardClampCount << " |\n";
+        assert(allFinite(q.rendered.audio));
+        assert(q.rendered.hardClampCount == 0);
+        assert(q.rendered.modalSat == 0);
+        // Monotonic progression requirement:
+        assert(m.rms > prevRms);
+        prevRms = m.rms;
+    }
+
+    // Single notes: D3 v30, v90
+    report << "\n## 3. Register notes (D3 and A4)\n\n"
+           << "| Note | Velocity | RMS | Peak | max GR dB | Modal Sat | Clamp |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|\n";
+    for (uint8_t vel : {30, 90}) {
+        const auto qD3 = renderKalimbaQualification({{0, note(50, vel)}}, 96000);
+        writeWavFile((std::string("kalimba_D3_v") + std::to_string(vel) + ".wav").c_str(), qD3.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qD3.rendered.audio) && qD3.rendered.hardClampCount == 0 && qD3.rendered.modalSat == 0);
+        report << "| D3 | " << static_cast<int>(vel) << " | " << qD3.rendered.metrics.rms << " | " << qD3.rendered.metrics.peak
+               << " | " << qD3.rendered.metrics.maxGainReductionDb << " | " << qD3.rendered.modalSat << " | " << qD3.rendered.hardClampCount << " |\n";
+    }
+
+    // Single note: A4 v90
+    {
+        const auto qA4 = renderKalimbaQualification({{0, note(69, 90)}}, 96000);
+        writeWavFile("kalimba_A4_v90.wav", qA4.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qA4.rendered.audio) && qA4.rendered.hardClampCount == 0 && qA4.rendered.modalSat == 0);
+        report << "| A4 | 90 | " << qA4.rendered.metrics.rms << " | " << qA4.rendered.metrics.peak
+               << " | " << qA4.rendered.metrics.maxGainReductionDb << " | " << qA4.rendered.modalSat << " | " << qA4.rendered.hardClampCount << " |\n";
+    }
+
+    // Interval2: D4 + A4 (62, 69)
+    {
+        const auto qInt = renderKalimbaQualification({{0, note(62, 80)}, {0, note(69, 80)}}, 96000);
+        writeWavFile("kalimba_interval2.wav", qInt.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qInt.rendered.audio) && qInt.rendered.hardClampCount == 0 && qInt.rendered.modalSat == 0);
+    }
+
+    // Chord4: D3, A3, D4, A4 (50, 57, 62, 69) v80 and v110
+    const auto qChord80 = renderKalimbaQualification({{0, note(50, 80)}, {0, note(57, 80)}, {0, note(62, 80)}, {0, note(69, 80)}}, 96000);
+    assert(allFinite(qChord80.rendered.audio) && qChord80.rendered.hardClampCount == 0 && qChord80.rendered.modalSat == 0);
+    assert(qChord80.maxActiveVoices <= 8);
+
+    const auto qChord110 = renderKalimbaQualification({{0, note(50, 110)}, {0, note(57, 110)}, {0, note(62, 110)}, {0, note(69, 110)}}, 96000);
+    writeWavFile("kalimba_chord4.wav", qChord110.rendered.audio.data(), 96000, 48000);
+    assert(allFinite(qChord110.rendered.audio) && qChord110.rendered.hardClampCount == 0 && qChord110.rendered.modalSat == 0);
+    assert(qChord110.maxActiveVoices <= 8);
+
+    // Cluster8: 8 voices v100
+    const auto qClust = renderKalimbaQualification({
+        {0, note(50, 100)}, {0, note(52, 100)}, {0, note(54, 100)}, {0, note(56, 100)},
+        {0, note(57, 100)}, {0, note(59, 100)}, {0, note(61, 100)}, {0, note(62, 100)}
+    }, 96000);
+    writeWavFile("kalimba_cluster8.wav", qClust.rendered.audio.data(), 96000, 48000);
+    assert(allFinite(qClust.rendered.audio) && qClust.rendered.hardClampCount == 0 && qClust.rendered.modalSat == 0);
+    assert(qClust.maxActiveVoices == 8);
+
+    report << "\n## 4. Polyphonic fixtures (Chord4 & Cluster8)\n\n"
+           << "| Fixture | Voices | RMS | Peak | max GR dB | Modal Sat | Clamp |\n"
+           << "|---|---:|---:|---:|---:|---:|---:|\n"
+           << "| Chord4 v80 | 4 | " << qChord80.rendered.metrics.rms << " | " << qChord80.rendered.metrics.peak
+           << " | " << qChord80.rendered.metrics.maxGainReductionDb << " | " << qChord80.rendered.modalSat << " | " << qChord80.rendered.hardClampCount << " |\n"
+           << "| Chord4 v110 | 4 | " << qChord110.rendered.metrics.rms << " | " << qChord110.rendered.metrics.peak
+           << " | " << qChord110.rendered.metrics.maxGainReductionDb << " | " << qChord110.rendered.modalSat << " | " << qChord110.rendered.hardClampCount << " |\n"
+           << "| Cluster8 v100 | 8 | " << qClust.rendered.metrics.rms << " | " << qClust.rendered.metrics.peak
+           << " | " << qClust.rendered.metrics.maxGainReductionDb << " | " << qClust.rendered.modalSat << " | " << qClust.rendered.hardClampCount << " |\n";
+
+    // Restrike: soft->hard, hard->soft
+    {
+        const auto qSh = renderKalimbaQualification({{0, note(62, 30)}, {4800, note(62, 110)}}, 96000);
+        writeWavFile("kalimba_restrike.wav", qSh.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qSh.rendered.audio) && qSh.rendered.hardClampCount == 0);
+
+        const auto qHs = renderKalimbaQualification({{0, note(62, 110)}, {4800, note(62, 30)}}, 96000);
+        assert(allFinite(qHs.rendered.audio) && qHs.rendered.hardClampCount == 0);
+    }
+
+    // Roll: 8 strikes
+    {
+        std::vector<ScheduledEvent> rollEvents;
+        for (size_t r = 0; r < 8; ++r) {
+            rollEvents.push_back({static_cast<uint32_t>(r * 1920), note(62, 75)});
+        }
+        const auto qRoll = renderKalimbaQualification(rollEvents, 96000);
+        writeWavFile("kalimba_roll.wav", qRoll.rendered.audio.data(), 96000, 48000);
+        assert(allFinite(qRoll.rendered.audio) && qRoll.rendered.hardClampCount == 0);
+    }
+
+    // Register sweep: C3 to C6
+    {
+        std::vector<ScheduledEvent> sweepEvents;
+        for (uint8_t n = 48; n <= 84; n += 4) {
+            sweepEvents.push_back({static_cast<uint32_t>((n - 48) * 4800), note(n, 80)});
+        }
+        const auto qSweep = renderKalimbaQualification(sweepEvents, 192000);
+        writeWavFile("kalimba_register_sweep.wav", qSweep.rendered.audio.data(), 192000, 48000);
+        assert(allFinite(qSweep.rendered.audio) && qSweep.rendered.hardClampCount == 0);
+    }
+
+    // Voice lifecycle termination:
+    // Single strike with 8 seconds of render (384,000 frames) - must naturally terminate to 0 active voices
+    {
+        const auto qLong = renderKalimbaQualification({{0, note(62, 70)}}, 384000);
+        assert(qLong.finalActiveVoices == 0);
+    }
+
+    report << "\n## 5. Qualification summary\n\n"
+           << "- Modal saturation count: 0 across single v127, interval2, chord4 v110, cluster8 v100\n"
+           << "- Hard clamp count: 0 across all fixtures\n"
+           << "- All samples finite: YES (no NaN, no Inf)\n"
+           << "- Voice lifecycle: terminates naturally to 0 active voices\n"
+           << "- PolyPressure & ChannelPressure: functional and stable\n"
+           << "- 100 model switch cycles: bit-identical PAN recovery\n"
+           << "- Body A/B: K0 (tine only) vs K1 (tine + body box) verified\n";
+    report.close();
+    std::cout << "  -> PASSED: M7.2 Kalimba V1 fixtures, pluck exciter, and objective tests verified.\n";
+}
+
 int main() {
     std::cout << "=======================================================\n";
     std::cout << "  Pocket Pan / Metal Modal Synth - Comprehensive DSP  \n";
@@ -2392,6 +2706,7 @@ int main() {
     testForensicsClassification();
     testM7TongueModel();
     testM71BowlModel();
+    testM72KalimbaModel();
 
     std::cout << "\n=======================================================\n";
     std::cout << "  ALL DSP AND ACOUSTIC TESTS PASSED SUCCESSFULLY!     \n";

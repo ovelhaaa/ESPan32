@@ -1,5 +1,9 @@
 # Singing Bowl V1 Baseline
 
+Status: **FROZEN**  
+Human listening: COMPLETE  
+User verdict: accepted  
+
 This document records the **M7.1 Singing Bowl V1** (`InstrumentModel::Bowl`) configuration, verified directly against source and host test qualification.
 
 Source of truth: `main/dsp/modal_preset.h`, `main/dsp/instrument_model.cpp`, `main/dsp/instrument_model.h`, `main/dsp/dsp_config.h`, `main/dsp/modal_resonator.h`, `main/dsp/modal_resonator.cpp`, `main/dsp/modal_voice.cpp`, `main/dsp/exciter.cpp`, `main/dsp/synth_engine.h`, `main/dsp/synth_engine.cpp`, `main/dsp/peak_limiter.h`.
