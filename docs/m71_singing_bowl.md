@@ -35,19 +35,54 @@ pocket_pan_main: [FORENSICS] candidate=25 profile=0 cpu_mhz=240 optimization_per
 pocket_pan_main: [CANARY] PreparedNote canaries OK=1
 ```
 
-Evidence logged in `docs/hardware/m71_forensics_all.log` across 8,192 blocks per fixture with connected BLE MIDI:
+Evidence logged in `docs/hardware/m71_forensics_all.log` across 8,192 blocks per fixture with connected BLE MIDI.
 
-| Fixture | Model | Voices | Resonators | Steady Avg | Steady p95 | Steady p99 | Steady Max | Callback Steady Avg | Callback p99 | Deadline Misses |
+### 2.1 Multi-Class Breakdown & Forensic Measurements
+
+Nominal block period budget:
+$$\text{period} = \frac{128\text{ frames}}{48000\text{ Hz}} = 2.666667\text{ ms} = 2666.7\text{ µs}$$
+
+Under the platform's multi-class instrumentation, processing is classified into `true_steady`, `attack_tail`, and `event`:
+
+#### Bowl Cluster8 (Fixture 3, 8 voices, 56 resonators, generic scalar path):
+
+- **Inner DSP execution:**
+  - `true_steady` ($n=8103$): avg 1791.67 µs, p95 2105 µs, p99 2155 µs, max 2445 µs, nominal deadline overruns = **0**
+  - `attack_tail` ($n=44$): avg 2221.52 µs, p95 2550 µs, p99 2660 µs, max 2655 µs, nominal deadline overruns = **0**
+  - `event` ($n=44$): avg 2721.34 µs, p95 3030 µs, p99 3070 µs, max 3067 µs, nominal deadline overruns = **20 / 44**
+
+- **Full Audio Callback (DSP + telemetry + overhead):**
+  - `true_steady` ($n=8103$): avg 1808.40 µs, p95 2130 µs, p99 2215 µs, max 2596 µs, nominal deadline overruns = **0**
+  - `attack_tail` ($n=44$): avg 2261.50 µs, p95 2605 µs, p99 2730 µs, max 2729 µs, nominal deadline overruns = **1 / 44**
+  - `event` ($n=44$): avg 2805.39 µs, p95 3120 µs, p99 3160 µs, max 3155 µs, nominal deadline overruns = **43 / 44**
+
+#### Baseline Comparison Across Fixtures (True Steady):
+
+| Fixture | Model | Voices | Resonators | Steady Avg | Steady p95 | Steady p99 | Steady Max | Callback Steady Avg | Callback p99 | Steady Deadline Misses |
 |:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | 0 | PAN | 8 | 64 | 1649.98 µs | 1695 µs | 1815 µs | 1959 µs | 1665.75 µs | 1885 µs | **0** |
 | 1 | TONGUE | 8 | 48 | 1238.13 µs | 1295 µs | 1375 µs | 1585 µs | 1254.08 µs | 1445 µs | **0** |
 | 2 | **BOWL** | **4** | **28** | **1041.15 µs** | **1215 µs** | **1260 µs** | **1564 µs** | **1057.45 µs** | **1310 µs** | **0** |
 | 3 | **BOWL** | **8** | **56** | **1791.67 µs** | **2105 µs** | **2155 µs** | **2445 µs** | **1808.40 µs** | **2215 µs** | **0** |
 
-### 2.1 Analysis
-- **Headroom on BOWL chord4:** At 4 voices, total callback average is 1057.45 µs, leaving 1609.22 µs of headroom (60.3% margin, 39.7% CPU load).
-- **Headroom on BOWL cluster8:** At full 8 voices (56 resonators running generic scalar path), steady callback average is 1808.40 µs with p99 of 2215 µs and maximum of 2596 µs — strictly below the 2666.67 µs deadline (**0 deadline misses across all 8,103 steady blocks**).
-- **Transport Integrity:** Over 36,000 blocks rendered with `timeout=0 tx_error=0 short=0` (zero I2S DMA underruns or transport drops).
+### 2.2 Buffered Real-Time Contract & Timing Semantics
+
+Bowl cluster8 must **not** be characterized simply as having "0 deadline misses".
+
+> **Performance Semantics:** Bowl cluster8 has zero true-steady deadline misses, but high-polyphony trigger events frequently exceed the nominal 2.667 ms block period. The production engine is already qualified under a buffered real-time contract (`docs/performance_contract_v1.md`), so these transient overruns are evaluated at the system level rather than treated as transport failure by themselves.
+
+- **Nominal Block Period:** 2666.7 µs. A callback duration exceeding 2666.7 µs constitutes a nominal-period overrun, not an I2S transport failure.
+- **Transport Verification:** Across 36,000+ blocks executed under live BLE MIDI on hardware:
+  - `I2S timeout = 0`
+  - `TX error = 0`
+  - `short write = 0`
+  - `BLE lost = 0`
+  - `bad_voices = 0`, `hard clamps = 0`, `saturation count = 0`
+- **Streak / Overlap Note:** Raw log analysis (`docs/hardware/m71_forensics_all.log`) reveals at least one case where an event block exceeding the nominal period is immediately followed by an attack-tail block also exceeding the nominal period:
+  - `seq=31281 callback_us=2736 inner_us=2659 class=event`
+  - `seq=31282 callback_us=2729 inner_us=2655 class=attack_tail`
+  Consequently, it cannot be claimed that all Bowl overruns are strictly isolated single-block instances. The 6-descriptor DMA buffer absorption capacity absorbed this 2-block transient sequence without DMA underflow.
+- **Process7 Microkernel Decision:** The generic scalar 7-mode kernel achieves steady callback average of ~1.81 ms with 0 steady deadline misses. A specialized 7-mode kernel is not justified solely to improve benchmark numbers while current steady-state operation is safe and the instrument has not yet undergone human listening.
 
 ---
 
@@ -82,42 +117,47 @@ I (25857) pocket_pan_main: [AUDIO] model=PAN blocks=9372 avg_us=341 p99_us=375 m
 
 Host test suite executed with CTest (9/9 passed, 100%):
 
-1. `test_ble_midi_parser`: Passed (0.12 s)
-2. `test_dsp`: Passed (6.24 s) — includes 24 M7.1 Bowl qualification tests:
-   - Doublet beating verification: 0.7000 Hz split, 0.0001 cancellation ratio across D3, D4, A4.
-   - 100 consecutive 4-way model switches (`PAN -> BELL -> TONGUE -> BOWL -> PAN`) with bit-identical direct PAN recovery.
-   - Monotonic RMS scaling across velocities v30, v60, v90, v110, v127.
-   - Zero NaN, zero Inf, zero hard clamps.
-   - Zero modal internal saturations across single v127, chord4 v110, cluster8 v100.
-   - Finite voice lifetimes and clean ring-down envelope.
-3. `test_prepared_note`: Passed (0.81 s) — complete Bowl table coverage, canaries, and 4-way model switches.
-4. `test_telemetry`: Passed (0.16 s)
-5. `test_modal_kernel`: Passed (0.13 s)
-6. `test_fastpath`: Passed (0.49 s) — includes Bowl fastpath coverage.
-7. `test_exciter_fastpath`: Passed (0.09 s)
-8. `test_m635_fastpath`: Passed (0.87 s) — includes Bowl cluster8 / chord4.
-9. `test_m637_trigger`: Passed (0.07 s) — includes Bowl in trigger models.
+1. `test_ble_midi_parser`: Passed
+2. `test_dsp`: Passed — includes doublet beating verification (0.7000 Hz split, 0.0001 cancellation ratio across D3, D4, A4), 100 consecutive 4-way model switches (`PAN -> BELL -> TONGUE -> BOWL -> PAN`) with bit-identical direct PAN recovery, monotonic RMS scaling, zero NaN/Inf/clamps/saturation, and canonical source consistency assertions (`modeCount=7`, `splitBeatTargetHz=0.70`, `fixedHzSplit=true`, `body.enabled=false`, `sympathetic.enabled=false`, exciter parameters).
+3. `test_prepared_note`: Passed — complete Bowl table coverage, canaries, memory footprint verification (128 bytes/note, 9,348 bytes/table, 37,392 bytes total storage across 4 tables), and 4-way model switches.
+4. `test_telemetry`: Passed
+5. `test_modal_kernel`: Passed
+6. `test_fastpath`: Passed — includes Bowl fastpath coverage.
+7. `test_exciter_fastpath`: Passed
+8. `test_m635_fastpath`: Passed — includes Bowl cluster8 / chord4.
+9. `test_m637_trigger`: Passed — includes Bowl in trigger models.
 
 ---
 
 ## 5. Listening Pack (`listening/bowl_v1_m71/`)
 
-14 host-rendered 48 kHz / 16-bit stereo WAV fixtures:
-- `bowl_D3_v30.wav`, `bowl_D3_v90.wav`, `bowl_D3_v127.wav`
-- `bowl_D4_v30.wav`, `bowl_D4_v60.wav`, `bowl_D4_v90.wav`, `bowl_D4_v110.wav`, `bowl_D4_v127.wav`
-- `bowl_A4_v90.wav`
-- `bowl_interval2.wav`
-- `bowl_chord4.wav`
-- `bowl_cluster8.wav`
-- `bowl_restrike_softhard.wav`, `bowl_restrike_hardsoft.wav`
-- `bowl_roll.wav`
-- `bowl_register_sweep.wav`
+These fixtures are generated by host qualification (`tests/test_dsp.cpp`, command: `ctest --test-dir build-host -R dsp` or `./build-host/test_dsp.exe`).
+Per repository policy (`.gitignore`), WAV binaries are intentionally unversioned.
+
+Exactly **17 host-rendered 48 kHz / 16-bit stereo WAV fixtures** are generated:
+1. `bowl_D3_v30.wav`
+2. `bowl_D3_v90.wav`
+3. `bowl_D3_v127.wav`
+4. `bowl_D4_v30.wav`
+5. `bowl_D4_v60.wav`
+6. `bowl_D4_v90.wav`
+7. `bowl_D4_v110.wav`
+8. `bowl_D4_v127.wav`
+9. `bowl_A4_v90.wav`
+10. `bowl_interval2.wav`
+11. `bowl_chord4_v80.wav`
+12. `bowl_chord4.wav`
+13. `bowl_cluster8.wav`
+14. `bowl_restrike_softhard.wav`
+15. `bowl_restrike_hardsoft.wav`
+16. `bowl_roll.wav`
+17. `bowl_register_sweep.wav`
 
 ---
 
 ## 6. Milestone Conclusion
 
-- **Singing Bowl V1** is successfully implemented, verified, and qualified on physical hardware.
-- Status remains **CANDIDATE** pending extended musical evaluation.
+- **Singing Bowl V1** implementation remains untouched and qualified on physical hardware.
+- Status remains **CANDIDATE** pending human critical listening.
 - All baseline models (PAN = REFERENCE, Bell V1 = FROZEN, Tongue V1 = CANDIDATE) remain 100% bit-exact.
-- M7.1 is **COMPLETE**.
+- M7.1 is **PASS** (with M7.1.1 documentation sync and qualification closure complete).

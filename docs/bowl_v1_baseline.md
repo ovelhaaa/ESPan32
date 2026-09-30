@@ -66,9 +66,9 @@ The Singing Bowl model reproduces a traditional Tibetan / Himalayan singing bowl
 | `lowRegisterBrightness` | 1.00 | Full warm fundamental in bass |
 | `highRegisterBrightness` | 0.80 | Tamed top end to avoid harsh aliasing |
 | `upperModeSoftVelocity` | 0.15 | Upper modes start opening at v=0.15 |
-| `upperModeHardVelocity` | 0.92 | Upper modes reach maximum blend at v=0.92 |
+| `upperModeHardVelocity` | 0.90 | Upper modes reach maximum blend at v=0.90 |
 | `t60LowRegisterScale` | 1.15 | Bass bowl rings up to 6.90 s on prime |
-| `t60HighRegisterScale` | 0.80 | High bowl decays faster (~4.80 s) |
+| `t60HighRegisterScale` | 0.85 | High bowl decays faster (~5.10 s) |
 | `splitBeatTargetHz` | 0.70 | Target 0.70 Hz beating doublet |
 | `registerLowHz` | 146.83 Hz | D3 anchor |
 | `registerHighHz` | 440.00 Hz | A4 anchor |
@@ -79,21 +79,21 @@ The Singing Bowl model reproduces a traditional Tibetan / Himalayan singing bowl
 
 ## 4. Velocity Mapping & Dynamic Coupling
 
-- **Hardness:** $h = 0.20 + 0.70 \cdot v^{1.20}$
-- **Upper Blend:** $\text{blend} = \text{clamp}\left(\frac{v - 0.15}{0.92 - 0.15}, 0, 1\right)$
+- **Hardness:** $h = 0.20 + 0.70 \cdot v^{1.15}$
+- **Upper Blend:** $\text{blend} = \text{clamp}\left(\frac{v - 0.15}{0.90 - 0.15}, 0, 1\right)$
 - **Mode Coupling Tables (`kBowlVoicing`):**
 
-| Mode | Role | Soft Strike ($v \le 0.15$) | Hard Strike ($v \ge 0.92$) |
+| Mode | Role | Soft Strike ($v \le 0.15$) | Hard Strike ($v \ge 0.90$) |
 |-----:|------|---------------------------:|---------------------------:|
 | 0 | Fundamental | 1.00 | 1.00 |
-| 1 | Beating Doublet | 0.40 | 0.55 |
-| 2 | Low Inharmonic | 0.25 | 0.50 |
-| 3 | Mid Partial | 0.15 | 0.40 |
-| 4 | Metallic Partial | 0.05 | 0.30 |
-| 5 | Upper Partial | 0.02 | 0.18 |
+| 1 | Beating Doublet | 0.30 | 0.70 |
+| 2 | Low Inharmonic | 0.22 | 0.65 |
+| 3 | Mid Partial | 0.08 | 0.50 |
+| 4 | Metallic Partial | 0.03 | 0.35 |
+| 5 | Upper Partial | 0.01 | 0.20 |
 | 6 | Upper Colour | 0.00 | 0.10 |
 
-Soft strikes ($v \le 0.15$) produce a dark, calming, fundamental-heavy tone with gentle beating doublet ($g_0 = 1.00, g_1 = 0.40, g_2 = 0.25$). Firm strikes ($v \ge 0.92$) progressively energize metallic upper partials ($g_3 = 0.40, g_4 = 0.30, g_5 = 0.18, g_6 = 0.10$) dynamically, retaining a warm singing bowl identity without bell-like clang.
+Soft strikes ($v \le 0.15$) produce a dark, calming, fundamental-heavy tone with gentle beating doublet ($g_0 = 1.00, g_1 = 0.30, g_2 = 0.22$). Firm strikes ($v \ge 0.90$) progressively energize metallic upper partials ($g_3 = 0.50, g_4 = 0.35, g_5 = 0.20, g_6 = 0.10$) dynamically, retaining a warm singing bowl identity without bell-like clang.
 
 ---
 
@@ -112,9 +112,15 @@ Soft strikes ($v \le 0.15$) produce a dark, calming, fundamental-heavy tone with
 
 ### 5.2 Contact Duration & Impulse Shape
 - **Contact Duration:**
-  $$\text{duration} = \max(3, \text{static\_cast<uint32\_t>}(15.0f - 11.0f \cdot h))$$
-  - At minimum hardness ($h = 0.20$): duration = 12 samples (~0.25 ms at 48 kHz).
-  - At maximum hardness ($h = 0.90$): duration = 5 samples (~0.10 ms at 48 kHz).
+  Real implementation in `main/dsp/exciter.cpp`:
+  ```cpp
+  const float durationSamples = 14.0f - 11.0f * h;
+  impulseSamples_ = std::max<uint32_t>(3U, static_cast<uint32_t>(durationSamples));
+  ```
+  Therefore:
+  $$\text{duration} = \max(3, \text{truncation toward zero of }(14.0f - 11.0f \cdot h))$$
+  - At minimum hardness ($h = 0.20$): $14.0 - 11.0 \times 0.20 = 11.8 \implies$ duration = 11 samples (~0.23 ms at 48 kHz).
+  - At maximum hardness ($h = 0.90$): $14.0 - 11.0 \times 0.90 = 4.1 \implies$ duration = 4 samples (~0.08 ms at 48 kHz).
 - **Excitation Output:** Hann-windowed half-sine impulse filtered through variable cutoff one-pole low-pass filter, mixed with 30% shaped noise.
 
 ---
@@ -125,18 +131,20 @@ Soft strikes ($v \le 0.15$) produce a dark, calming, fundamental-heavy tone with
 - **Sympathetic Coupling:** `sympathetic.enabled = false` (Sympathetic = OFF).
 - **Microkernel / Dispatcher Path:**
   - Generic scalar 7-mode recurrence (`processSampleReference`).
-  - No specialized Process7 microkernel needed: hardware measurements show 0 deadline misses in steady state and ample headroom (~60% on chord4, ~32% on cluster8).
+  - No specialized `Process7` microkernel added in M7.1.1.
+  - Justification: A specialized 7-mode kernel is not justified solely to improve benchmark numbers while current steady-state operation is safe and the instrument has not yet undergone human listening.
 
 ---
 
 ## 7. Safety Saturation & Headroom
 
-- **Resonator Internal Saturation:** `safetySaturation = true`
-- **Safety Saturator Implementation:**
+- **Resonator Internal Saturation:** `internalSafetySaturation = true`
+- **Safety Saturator Implementation (`main/dsp/modal_resonator.cpp`):**
   ```cpp
-  if (fabsf(x) > 1.2f) {
-      x = 1.2f * tanhf(x / 1.2f);
-      ++saturationCount;
+  if (config_.internalSafetySaturation && std::abs(y) > 2.0f) {
+      ++internalSaturationCount_;
+      y = (y > 0.0f) ? (2.0f + 0.5f * std::tanh(y - 2.0f))
+                     : (-2.0f + 0.5f * std::tanh(y + 2.0f));
   }
   ```
 - **Qualification Results:**
@@ -150,12 +158,23 @@ Soft strikes ($v \le 0.15$) produce a dark, calming, fundamental-heavy tone with
 ## 8. Memory & Stack Footprint
 
 - **`PreparedNote` Table Size:**
-  - 128 MIDI notes * 7 modes * sizeof(PreparedModeCoeffs) (16 bytes) = 14,336 bytes in heap/BSS.
-  - Symmetrically matches PAN (16 KB), Bell (20 KB), and Tongue (12 KB).
-- **Integrity Canaries:**
-  - `canaryPre_`: `0xB001CAFE`
-  - `canaryMid_`: `0xB002CAFE`
-  - `canaryMid2_`: `0xB003CAFE`
-  - `canaryMid3_`: `0xB004CAFE`
-  - `canaryPost_`: `0xB005CAFE`
+  - `sizeof(PreparedModeCoeffs)`: N/A (does not exist in source; previous documentation estimated 16 bytes per mode, but coefficients are stored directly in `PreparedNote`).
+  - `sizeof(PreparedNote)`: 128 bytes (8 bytes header: `midiNote` [1], `modeCount` [1], `activeMask` [2], `fundamentalFrequencyHz` [4]; plus 3 arrays of `kMaxModesPerVoice = 10` floats: `a1[10]` [40], `a2[10]` [40], `modalAmplitude[10]` [40]).
+  - `kPreparedNoteFirst = 24`, `kPreparedNoteLast = 96` $\implies kPreparedNoteCount = 73$ playable notes cached.
+  - `sizeof(PreparedNoteTable)`: 9,348 bytes ($73 \times 128 + 1\text{ byte ready} + 3\text{ bytes padding}$).
+  - `sizeof(SynthEngine)`: 47,760 bytes.
+- **Table Allocation:**
+  Four distinct tables statically allocated in `SynthEngine`:
+  - `panPreparedNotes_`: 9,348 bytes
+  - `bellPreparedNotes_`: 9,348 bytes
+  - `tonguePreparedNotes_`: 9,348 bytes
+  - `bowlPreparedNotes_`: 9,348 bytes
+  - **Total PreparedNote storage:** $4 \times 9,348 = 37,392$ bytes.
+- **Integrity Canaries (`SynthEngine`):**
+  - Magic canary: `kCanaryMagic = 0x50414E32` ("PAN2")
+  - `canaryPrePan_`: `0x50414E32`
+  - `canaryMid_`: `0x50414E32`
+  - `canaryMid2_`: `0x50414E32`
+  - `canaryMid3_`: `0x50414E32`
+  - `canaryPostBowl_`: `0x50414E32`
   - Verified intact (`OK=1`) on both host test and ESP32-S3 boot.

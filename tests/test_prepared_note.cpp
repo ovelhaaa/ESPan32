@@ -450,11 +450,27 @@ void testPreparedTableResetAndSwitch() {
     static_assert(sizeof(pocketpan::dsp::PreparedNoteTable) > 4096, "PreparedNoteTable must be large");
 }
 
+void testPreparedNoteMemoryFootprint() {
+    std::cout << "[PreparedNote] Memory footprint:\n";
+    std::cout << "  sizeof(PreparedNote):      " << sizeof(pocketpan::dsp::PreparedNote) << " bytes\n";
+    std::cout << "  sizeof(PreparedNoteTable): " << sizeof(pocketpan::dsp::PreparedNoteTable) << " bytes\n";
+    std::cout << "  sizeof(SynthEngine):       " << sizeof(pocketpan::dsp::SynthEngine) << " bytes\n";
+    std::cout << "  kMaxModesPerVoice:         " << pocketpan::dsp::kMaxModesPerVoice << "\n";
+    std::cout << "  kPreparedNoteCount:        " << pocketpan::dsp::kPreparedNoteCount << " (MIDI "
+              << static_cast<int>(pocketpan::dsp::kPreparedNoteFirst) << ".."
+              << static_cast<int>(pocketpan::dsp::kPreparedNoteLast) << ")\n";
+
+    static_assert(sizeof(pocketpan::dsp::PreparedNote) == 128, "PreparedNote size unexpected");
+    static_assert(sizeof(pocketpan::dsp::PreparedNoteTable) == (sizeof(pocketpan::dsp::PreparedNote) * pocketpan::dsp::kPreparedNoteCount + 4),
+                  "PreparedNoteTable size mismatch");
+}
+
 } // namespace
 
 int main() {
     std::cout << "M6.3.2 PreparedNote cache host qualification (candidate "
               << POCKETPAN_DSP_CANDIDATE << ")\n";
+    testPreparedNoteMemoryFootprint();
     testPreparedTableCoverage();
     testPreparedTableResetAndSwitch();
     testGrid();

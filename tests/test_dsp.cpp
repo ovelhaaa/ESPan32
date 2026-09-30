@@ -2076,8 +2076,21 @@ void testM71BowlModel() {
     };
 
     // 1. Model Registry and helpers checks
-    assert(dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl).id == dsp::InstrumentModel::Bowl);
+    const auto& bowlConfig = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Bowl);
+    assert(bowlConfig.id == dsp::InstrumentModel::Bowl);
+    assert(bowlConfig.modalPreset != nullptr);
+    assert(bowlConfig.modalPreset->modeCount == 7);
     assert(dsp::kPresetBowl.modeCount == 7);
+    assert(bowlConfig.body.enabled == false);
+    assert(bowlConfig.sympathetic.enabled == false);
+    assert(bowlConfig.voicing.splitBeatTargetHz == 0.70f);
+    assert(bowlConfig.voicing.fixedHzSplit == true);
+    assert(bowlConfig.exciter.gain == 0.76f);
+    assert(bowlConfig.exciter.noiseAmount == 0.30f);
+    assert(bowlConfig.exciter.brightnessMinHz == 600.0f);
+    assert(bowlConfig.exciter.brightnessMaxHz == 9000.0f);
+    assert(bowlConfig.exciter.velocityKnee == 0.85f);
+    assert(bowlConfig.exciter.velocityKneeSlope == 0.36f);
     assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Bowl)) == "BOWL");
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Pan) == dsp::InstrumentModel::Bell);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Bell) == dsp::InstrumentModel::Tongue);
