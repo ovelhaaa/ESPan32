@@ -36,6 +36,10 @@ idf_component_register(
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+set(POCKETPAN_FORENSICS_M76 0 CACHE STRING "M7.6 Mbira connected qualification")
+set(POCKETPAN_FORENSICS_M76_BATCH 0 CACHE STRING "M7.6 qualification batch: 0 single/chord/cluster, 1 roll/groove/switch, 2 buzz-on single")
+target_compile_definitions(${COMPONENT_LIB} PRIVATE POCKETPAN_FORENSICS_M76=${POCKETPAN_FORENSICS_M76}
+    POCKETPAN_FORENSICS_M76_BATCH=${POCKETPAN_FORENSICS_M76_BATCH})
 
 # M6.3.5 connected qualification promotes candidate 25 (20 + sympathetic
 # coefficient cache + PAN stable-8 sustain path + attack-voice fast path) as the

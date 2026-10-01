@@ -1,0 +1,83 @@
+{
+  "restored_normal_firmware": true,
+  "default_model": "PAN",
+  "long_boot_cycle_preserved": true,
+  "long_boot_evidence": "main/app/app_main.cpp:365 (unchanged); instrument registry/model-boundary host assertions",
+  "forensics": false,
+  "smoke_flags": false,
+  "m2_m3_runtime": false,
+  "listening_reference_branch": false,
+  "flags": {
+    "POCKETPAN_ACTIVE_SOAK": "0",
+    "POCKETPAN_BOWL_SMOKE": "0",
+    "POCKETPAN_BUTTON_QUAL": "0",
+    "POCKETPAN_FORENSICS_CRITICAL_ONLY": "0",
+    "POCKETPAN_FORENSICS_DISCONNECTED": "0",
+    "POCKETPAN_FORENSICS_FINE_BINS": "0",
+    "POCKETPAN_FORENSICS_M7": "0",
+    "POCKETPAN_FORENSICS_M74": "0",
+    "POCKETPAN_FORENSICS_M75": "0",
+    "POCKETPAN_FORENSICS_M75_BATCH": "0",
+    "POCKETPAN_GLASS_SMOKE": "0",
+    "POCKETPAN_KALIMBA_SMOKE": "0",
+    "POCKETPAN_MARIMBA_SMOKE": "0",
+    "POCKETPAN_RARE_STALL_FORENSICS": "0",
+    "POCKETPAN_TONGUE_SMOKE": "0",
+    "POCKETPAN_TRANSIENT_QUAL": "0",
+    "POCKETPAN_VIBRAPHONE_SMOKE": "0"
+  },
+  "audio": [
+    {
+      "model": "PAN",
+      "blocks": "1841",
+      "avg_us": "336",
+      "p99_us": "0",
+      "max_us": "964",
+      "cpu_load": "12.6",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "3722",
+      "avg_us": "336",
+      "p99_us": "550",
+      "max_us": "964",
+      "cpu_load": "12.6",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "5604",
+      "avg_us": "337",
+      "p99_us": "350",
+      "max_us": "964",
+      "cpu_load": "12.6",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "7486",
+      "avg_us": "337",
+      "p99_us": "375",
+      "max_us": "964",
+      "cpu_load": "12.6",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    }
+  ],
+  "internal_free": 56363,
+  "largest_internal": 31744,
+  "firmware_sha256": "1c4ea925fc8e1d8e231d8be6b42f00f48313506cc77647cbbd04ac9e6314ee21",
+  "log_sha256": "3e724396d0983f9078bca2b0734e9e57599ae1b9d8847f1826e97bad732c186a"
+}

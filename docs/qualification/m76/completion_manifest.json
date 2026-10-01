@@ -1,0 +1,269 @@
+{
+  "boot_transitions": [
+    [
+      "PAN",
+      "BELL",
+      "BELL",
+      "0",
+      "77"
+    ],
+    [
+      "BELL",
+      "TONGUE",
+      "TONGUE",
+      "0",
+      "128"
+    ],
+    [
+      "TONGUE",
+      "BOWL",
+      "BOWL",
+      "0",
+      "178"
+    ],
+    [
+      "BOWL",
+      "KALIMBA",
+      "KALIMBA",
+      "0",
+      "227"
+    ],
+    [
+      "KALIMBA",
+      "GLASS",
+      "GLASS",
+      "0",
+      "278"
+    ],
+    [
+      "GLASS",
+      "MARIMBA",
+      "MARIMBA",
+      "0",
+      "328"
+    ],
+    [
+      "MARIMBA",
+      "VIBRAPHONE",
+      "VIBRAPHONE",
+      "0",
+      "378"
+    ],
+    [
+      "VIBRAPHONE",
+      "MBIRA",
+      "MBIRA",
+      "0",
+      "428"
+    ],
+    [
+      "MBIRA",
+      "PAN",
+      "PAN",
+      "0",
+      "478"
+    ],
+    [
+      "PAN",
+      "BELL",
+      "BELL",
+      "0",
+      "528"
+    ],
+    [
+      "BELL",
+      "TONGUE",
+      "TONGUE",
+      "0",
+      "577"
+    ],
+    [
+      "TONGUE",
+      "BOWL",
+      "BOWL",
+      "0",
+      "628"
+    ],
+    [
+      "BOWL",
+      "KALIMBA",
+      "KALIMBA",
+      "0",
+      "678"
+    ],
+    [
+      "KALIMBA",
+      "GLASS",
+      "GLASS",
+      "0",
+      "727"
+    ],
+    [
+      "GLASS",
+      "MARIMBA",
+      "MARIMBA",
+      "0",
+      "778"
+    ],
+    [
+      "MARIMBA",
+      "VIBRAPHONE",
+      "VIBRAPHONE",
+      "0",
+      "828"
+    ],
+    [
+      "VIBRAPHONE",
+      "MBIRA",
+      "MBIRA",
+      "0",
+      "878"
+    ],
+    [
+      "MBIRA",
+      "PAN",
+      "PAN",
+      "0",
+      "928"
+    ],
+    [
+      "PAN",
+      "BELL",
+      "BELL",
+      "0",
+      "998"
+    ]
+  ],
+  "production_audio": [
+    {
+      "model": "PAN",
+      "blocks": "1847",
+      "avg_us": "343",
+      "p99_us": "0",
+      "max_us": "1005",
+      "cpu_load": "12.9",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "3728",
+      "avg_us": "342",
+      "p99_us": "525",
+      "max_us": "1005",
+      "cpu_load": "12.8",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "5610",
+      "avg_us": "343",
+      "p99_us": "375",
+      "max_us": "1005",
+      "cpu_load": "12.9",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "7492",
+      "avg_us": "343",
+      "p99_us": "375",
+      "max_us": "1005",
+      "cpu_load": "12.9",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "9374",
+      "avg_us": "343",
+      "p99_us": "375",
+      "max_us": "1005",
+      "cpu_load": "12.9",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    }
+  ],
+  "production_memory": [
+    {
+      "internal_free": "45687",
+      "largest_internal": "27648"
+    },
+    {
+      "internal_free": "45687",
+      "largest_internal": "27648"
+    },
+    {
+      "internal_free": "45687",
+      "largest_internal": "27648"
+    },
+    {
+      "internal_free": "45687",
+      "largest_internal": "27648"
+    }
+  ],
+  "buzz_cost": [
+    [
+      "28.330",
+      "35.987"
+    ],
+    [
+      "28.328",
+      "34.913"
+    ],
+    [
+      "28.330",
+      "35.987"
+    ]
+  ],
+  "artifacts": {
+    "boot_raw.log": "58a7edb200fe5f1487ed7f023f76732f964657ac029e28138341800febd882c2",
+    "boot_firmware.bin": "a5975150435f528bfd0ef7876925ceecbbe822b8ceda351f62635671ce773332",
+    "production_raw.log": "3d1b67f59e0489aa301d38de7fc2d95b146123ffb908a9a18c32a9161aded959",
+    "production_firmware.bin": "6f4dfff9e52ec5a89d75b1010512094a9e882f1b6a2d055194e225b26bb5e73b",
+    "sdkconfig.m76": "abc3681e13da8d8ffa2fd18828fa4cc1472fb2219f255a411c2eed969e2c194b",
+    "sdkconfig.production": "cdb8e68709f5f71d9932bbd1628631f84d9e4e8d8dcfdd892d67de1a505c1a94"
+  },
+  "tests": {
+    "tests/analyze_m635_tail.py": "d672f17cdfc1824c166d40438b3817f08ecf0b31522ba64f3e7d0ca1b3746304",
+    "tests/analyze_m74.py": "4d0ef2d3bc5289a036bb3433e0c8b6b06195f1077e311bd462e9abb6b278e1dd",
+    "tests/analyze_m75.py": "8e62e9ec4fa532e194e789882be288c7bdbe1594716af6bb154c0b9b34e02117",
+    "tests/capture_forensics.py": "64965612c5b2672e2a87642454b4380cfb1189c8bf188f4956e700b42379252c",
+    "tests/CMakeLists.txt": "aef1c57bba480d2f42fc944089a5dec2532f08642c92cc74fccf51462583c0dc",
+    "tests/collect_m75.py": "240464b2d4d249f4bbed710d319e45bba2e7b099944b6adea931aef7633adb80",
+    "tests/collect_m751.py": "4be2918fbc0ea7aced700f80cfb2531dd666c1fd5ddcf8c998963bcca2b07897",
+    "tests/collect_m752.py": "00c9f4565b314ba2a943fb4f7f506e37c79f8df4a75c6b39e35a7c827314b52a",
+    "tests/m631_modal_kernel_hashes.txt": "567bff04a88248ec1276cd4ec570ab9d0ebb6023b6b450c2b720f2e9b28c1b37",
+    "tests/soak_monitor.py": "8bfe2b960652766ca6c2f4f0012707c6aecbee547159c80524fda39307549da3",
+    "tests/summarize_forensics.py": "3670d8b959bf7fb9696308fcfbc57eaf67aa6bf0a842ee438f62c27dc2614f2b",
+    "tests/summarize_m751.py": "2cc2fa0693ba7c2b6edb1e70ae2f872abbebf768ec095e6812df21f67b6c102f",
+    "tests/summarize_m752.py": "999cc72ae9b98745cdb173008019fd614caf621ebae952de8b7e89f5747f932f",
+    "tests/summarize_m753.py": "058c6fe7bcf4800493fbdb95135d267a688fce89bfd1f70abedddfdcf8ff0d32",
+    "tests/summarize_m76.py": "cbb4727216ce3329efea7ad9d9a8650ca3144452703f338a8efe0465a3024e8c",
+    "tests/test_ble_midi_parser.cpp": "4090dde453f0a82666e5c87ecc942df0f015ca5341384305754c00c725a311cc",
+    "tests/test_dsp.cpp": "a1f12d0e8064821d2eb4a79ae35a5b785f155e903716f31690077044f7a4ba05",
+    "tests/test_exciter_fastpath.cpp": "bca810d6df4340ed175230d63dc7d766097a7084300c0d0cd012c10be85e7274",
+    "tests/test_fastpath.cpp": "aa4ed3a5431a2b8c201eeeb5036c56c5eb77372a9900fc355af2fbdfb2e9813d",
+    "tests/test_m635_fastpath.cpp": "b83ead23e2dfd0623b12bb19809ca62edc8615566fee74d4f9732b94ef8c4174",
+    "tests/test_m637_trigger.cpp": "f55c44b8d708fcd5b10afb94f6987f249c44c16552ca60deece84be55e53737f",
+    "tests/test_mbira.cpp": "7459f12c9d01ae9581e697c78da837c5c0c22d9f36fbeb94d69cc05783ea8ee5",
+    "tests/test_metrics.md": "98ef8634d39d524dd2ad60d8d01d936a8f58eebee30d5b63f1f48460b950f3be",
+    "tests/test_modal_kernel.cpp": "56d22a0e71d3f8a6074d7bcfc801ffa6f0ee57735b418521d02c5d63122edd1f",
+    "tests/test_prepared_note.cpp": "c15ce93d3d6e7e5c86ad402cadfe4e2201c41944c8f5e27757f08d891a6df023",
+    "tests/test_telemetry.cpp": "a1ff021b818b13ca971e06e8de2635a14725e0ffd8793330fe0d5c86a0979867",
+    "tests/test_vibraphone_runtime.cpp": "1377106d514f2bbfeaaa309ac3d655d7fc60dd31adf15ed90f297f6475993437",
+    "tests/verify_m76_completion.py": "0ea57194344cf9af515446bedd34c6ed93a9e8726164376d0cb993f19e501a30"
+  }
+}

@@ -18,7 +18,8 @@ enum class InstrumentModel : uint8_t {
     Glass = 5,
     Marimba = 6,
     Vibraphone = 7,
-    Count = 8
+    Mbira = 8,
+    Count = 9
 };
 
 inline constexpr const char* instrumentModelName(InstrumentModel model) {
@@ -30,6 +31,7 @@ inline constexpr const char* instrumentModelName(InstrumentModel model) {
         case InstrumentModel::Glass: return "GLASS";
         case InstrumentModel::Marimba: return "MARIMBA";
         case InstrumentModel::Vibraphone: return "VIBRAPHONE";
+        case InstrumentModel::Mbira: return "MBIRA";
         case InstrumentModel::Pan:
         default: return "PAN";
     }
@@ -44,7 +46,8 @@ inline constexpr InstrumentModel nextInstrumentModel(InstrumentModel model) {
         case InstrumentModel::Kalimba: return InstrumentModel::Glass;
         case InstrumentModel::Glass: return InstrumentModel::Marimba;
         case InstrumentModel::Marimba: return InstrumentModel::Vibraphone;
-        case InstrumentModel::Vibraphone: return InstrumentModel::Pan;
+        case InstrumentModel::Vibraphone: return InstrumentModel::Mbira;
+        case InstrumentModel::Mbira: return InstrumentModel::Pan;
         default: return InstrumentModel::Pan;
     }
 }
@@ -85,8 +88,7 @@ struct InstrumentModelConfig {
     BodyExcitationStrategy bodyStrategy;
     float strikeBusGain;
     float tubeCoupling = 0.0f;
-    float tubePhaseLagDegrees = 0.0f;
-    bool tubeSoftCoupling = false;
+    float mbiraBuzzGain = 0.0f;
 };
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model);

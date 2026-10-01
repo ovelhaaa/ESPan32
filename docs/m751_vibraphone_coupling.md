@@ -1,5 +1,7 @@
 # M7.5.1 — Vibraphone resonator coupling refinement
 
+Historical milestone snapshot. Production is now [frozen VIBRAPHONE V1: BAR=C, MOTOR/TUBE=M1](m753_vibraphone_v1_freeze.md).
+
 Implemented as a provisional listening candidate. VIBRAPHONE is not frozen; the perceptual verdict remains a listening decision.
 
 The previous motor multiplied the completed bar/body mix by `1 - depth * shutter`. Every partial rose and fell together, producing conventional VCA tremolo. The new signal flow keeps the dry modal bar continuously present:

@@ -1,5 +1,7 @@
 # M7.5.2 — selected C bar, tube modulation
 
+Historical listening archive. The final selection is **C + M1**, frozen in [M7.5.3](../../m753_vibraphone_v1_freeze.md). M2/M3 were not selected and are absent from production.
+
 Exactly 16 stereo PCM16 WAVs, 48 kHz, eight seconds each. Identical events, deterministic seeds and C bar in every comparison. Each four-file group is RMS matched after PCM conversion; normalization only attenuates. Unmatched safety levels and limiter diagnostics are in [host metrics](../../qualification/m752/host_metrics.md); checksums, RMS and peaks are in [manifest](../../qualification/m752/listening_manifest.json).
 
 | State | Tube behavior |
@@ -20,4 +22,4 @@ All ON states use 4.5 Hz, depth .32 and tube coupling .75. The production bar is
 
 Compare M1/M2/M3 first: **does the resonance underneath the bar change shape and bloom with the fan, rather than the fundamental simply getting louder and quieter?** On chords, check for low-frequency buildup, excessive beating or diffuse phasing. No automatic scoring or winner is supplied.
 
-Reproduce: build/run `test_dsp`, then `python tests/collect_m752.py BUILD docs/listening/m752 docs/qualification/m752/listening_manifest.json`. The suite also tests cluster8, roll, three phase relationships (30/60/110°) and linear/quadratic aperture curves without writing additional listening WAVs. Linear versus quadratic coupling remains a listening decision; quadratic is provisional.
+Historical reproduction: check out commit `43f9196` and build/run its `test_dsp`, then `python tests/collect_m752.py BUILD docs/listening/m752 docs/qualification/m752/listening_manifest.json`. The suite also tests cluster8, roll, three phase relationships (30/60/110°) and linear/quadratic aperture curves without writing additional listening WAVs. Linear versus quadratic coupling remains a listening decision; quadratic is provisional.

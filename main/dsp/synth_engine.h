@@ -8,6 +8,7 @@
 #include "body_resonator.h"
 #include "pan_calibration.h"
 #include "instrument_model.h"
+#include "mbira_buzz.h"
 #include "../midi/midi_event.h"
 
 namespace pocketpan::dsp {
@@ -39,11 +40,9 @@ public:
     const VoiceAllocator& getVoiceAllocator() const { return allocator_; }
 
     void setMasterVolume(float vol);
+    void setMbiraBuzzEnabled(bool enabled) { mbiraBuzzEnabled_=enabled; mbiraBuzz_.reset(); }
     // Qualification controls; one phase shared by the entire instrument.
     void setVibraphoneMotor(bool enabled, float rateHz = 4.5f, float depth = .32f);
-    #ifdef POCKETPAN_M751_LISTENING_REFERENCE
-    void setOldMotorReferenceForTest(bool enabled) { oldMotorReference_ = enabled; }
-#endif
     uint32_t getMotorPhaseForTest() const { return motorPhase_; }
     uint32_t getNonfiniteCount() const { return nonfiniteCount_; }
     // Compatibility names retained for host reports; this is limiter activity,
@@ -139,14 +138,14 @@ private:
     PeakLimiter limiter_;
 
     VoiceAllocator allocator_;
+    MbiraBuzz mbiraBuzz_;
+    bool mbiraBuzzEnabled_ = true;
+    float mbiraDcPole_ = 0.0f, mbiraDcState_ = 0.0f;
     uint32_t motorPhase_ = 0, motorIncrement_ = 0;
     bool motorEnabled_ = true;
     float motorDepth_ = .32f;
     float motorTable_[257]{};
-    float tubeBuffer_[kMaxBlockFrames]{};
-#ifdef POCKETPAN_M751_LISTENING_REFERENCE
-    bool oldMotorReference_ = false;
-#endif
+    float fanResponseBuffer_[kMaxBlockFrames]{};
     uint32_t nonfiniteCount_ = 0;
     BodyResonator preparedBodies_[static_cast<size_t>(InstrumentModel::Count)]{};
     BodyResonator body_; InstrumentModelConfig modelConfig_{};
@@ -157,7 +156,7 @@ private:
     InstrumentModel model_ = InstrumentModel::Pan;
 
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Exactly eight shared tables (not one per voice), prepared before I2S is
+    // Exactly nine shared tables (not one per voice), prepared before I2S is
     // started.  Model selection in the audio callback only swaps a pointer.
     // Phase P diagnostic canaries:
     static constexpr uint32_t kCanaryMagic = 0x50414E32; // "PAN2"
@@ -178,6 +177,8 @@ private:
     uint32_t canaryPostMarimba_ = kCanaryMagic;
     PreparedNoteTable vibraphonePreparedNotes_{};
     uint32_t canaryPostVibraphone_ = kCanaryMagic;
+    PreparedNoteTable mbiraPreparedNotes_{};
+    uint32_t canaryPostMbira_ = kCanaryMagic;
 public:
     bool verifyPreparedNoteCanaries() const {
         return canaryPrePan_ == kCanaryMagic &&
@@ -188,7 +189,8 @@ public:
                canaryMid5_ == kCanaryMagic &&
                canaryMid6_ == kCanaryMagic &&
                canaryPostMarimba_ == kCanaryMagic &&
-               canaryPostVibraphone_ == kCanaryMagic;
+               canaryPostVibraphone_ == kCanaryMagic &&
+               canaryPostMbira_ == kCanaryMagic;
     }
 private:
 #endif

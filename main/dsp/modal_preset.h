@@ -168,4 +168,15 @@ inline constexpr ModalPreset kPresetVibraphone = {"VIBRAPHONE", 6, {
     {22.4f, .025f, .32f, 0.0f}, {29.0f, .010f, .16f, 0.0f}
 }};
 
+// M7.6: two flexural families of a rectangular cantilever. The narrow-axis
+// family has 1:6.267:17.55 spacing; the orthogonal family is 3.12 times higher
+// (effective width/thickness), giving 3.12:19.55:54.76. Omit the inaudible last
+// mode and retain a weak torsional/bridge-coupled colour at 10.8 instead.
+// This is a reduced physical hypothesis, not measured mbira modal data.
+inline constexpr ModalPreset kPresetMbira = {"MBIRA", 6, {
+    {1.0f, 1.0f, 3.60f, 0.0f}, {3.12f, .55f, 1.20f, 0.0f},
+    {6.267f, .38f, .55f, 0.0f}, {10.8f, .16f, .22f, 0.0f},
+    {17.55f, .11f, .11f, 0.0f}, {19.55f, .045f, .065f, 0.0f}
+}};
+
 } // namespace pocketpan::dsp

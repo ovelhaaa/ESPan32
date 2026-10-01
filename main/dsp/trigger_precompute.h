@@ -62,4 +62,18 @@ inline const float* vibraphoneStrikePowTable() {
     }
     return table;
 }
+// M7.6 canonical Mbira knee/slope; shared once, never per note/model table.
+inline const float* mbiraStrikePowTable() {
+    static float table[kMidiVelocityCount];
+    static bool ready=false;
+    if (!ready) {
+        for(int i=0;i<kMidiVelocityCount;++i) {
+            const float v=std::clamp(float(i)/127.0f,.01f,1.0f);
+            const float energy=v<=.90f ? v : .90f+(v-.90f)*.55f;
+            table[i]=std::pow(energy,1.25f);
+        }
+        ready=true;
+    }
+    return table;
+}
 } // namespace pocketpan::dsp

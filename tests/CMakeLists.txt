@@ -18,7 +18,7 @@ set(POCKETPAN_DSP_CANDIDATE 25 CACHE STRING "DSP candidates: 0 scalar, 4 fixed, 
 # bit-exact for both.
 set(POCKETPAN_PROCESS6_MICROKERNEL 1 CACHE STRING "M7.0.2: enable the unrolled 6-mode modal microkernel")
 add_compile_definitions(POCKETPAN_PROCESS6_MICROKERNEL=${POCKETPAN_PROCESS6_MICROKERNEL})
-target_compile_definitions(test_dsp PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE} POCKETPAN_M751_LISTENING_REFERENCE=1)
+target_compile_definitions(test_dsp PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
 add_test(NAME dsp COMMAND test_dsp)
 add_executable(test_prepared_note test_prepared_note.cpp
  ${ROOT}/main/dsp/modal_resonator.cpp ${ROOT}/main/dsp/body_resonator.cpp ${ROOT}/main/dsp/exciter.cpp ${ROOT}/main/dsp/modal_voice.cpp
@@ -88,3 +88,14 @@ target_include_directories(test_vibraphone_runtime PRIVATE ${ROOT}/main)
 target_compile_definitions(test_vibraphone_runtime PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
 target_compile_options(test_vibraphone_runtime PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
 add_test(NAME vibraphone_runtime COMMAND test_vibraphone_runtime)
+
+add_executable(test_mbira test_mbira.cpp
+ ${ROOT}/main/dsp/modal_resonator.cpp ${ROOT}/main/dsp/body_resonator.cpp
+ ${ROOT}/main/dsp/exciter.cpp ${ROOT}/main/dsp/modal_voice.cpp
+ ${ROOT}/main/dsp/voice_allocator.cpp ${ROOT}/main/dsp/synth_engine.cpp
+ ${ROOT}/main/dsp/instrument_model.cpp ${ROOT}/main/dsp/peak_limiter.cpp
+ ${ROOT}/main/midi/midi_mapping.cpp)
+target_include_directories(test_mbira PRIVATE ${ROOT}/main)
+target_compile_definitions(test_mbira PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
+target_compile_options(test_mbira PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
+add_test(NAME mbira COMMAND test_mbira)

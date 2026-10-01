@@ -13,13 +13,16 @@ float vibraphoneMidiHz[128];
 
 void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
+    mbiraBuzz_.init(sampleRate_);
+    mbiraDcPole_ = std::exp(-6.283185307f * 20.0f / sampleRate_);
     (void)velocityPow115Table();
     (void)vibraphoneStrikePowTable();
+    (void)mbiraStrikePowTable();
     for (unsigned note=0; note<128; ++note)
         vibraphoneMidiHz[note]=midi::MidiMapping::noteToHz(uint8_t(note));
     allocator_.init(sampleRate_);
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Model changes are applied by the audio callback.  Build all eight fixed
+    // Model changes are applied by the audio callback.  Build all nine fixed
     // tables now, before the callback/I2S transport exists, so no coefficient
     // table generation or heap work can occur at a realtime boundary.
     assert(verifyPreparedNoteCanaries());
@@ -37,6 +40,7 @@ void SynthEngine::init(float sampleRate) {
     assert(verifyPreparedNoteCanaries());
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Marimba), marimbaPreparedNotes_);
     allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Vibraphone), vibraphonePreparedNotes_);
+    allocator_.preparePreparedNoteTable(getInstrumentModelConfig(InstrumentModel::Mbira), mbiraPreparedNotes_);
     assert(verifyPreparedNoteCanaries());
 #endif
     for (unsigned m = 0; m < unsigned(InstrumentModel::Count); ++m) {
@@ -75,6 +79,8 @@ void SynthEngine::init(float sampleRate) {
 }
 
 void SynthEngine::reset() {
+    mbiraBuzz_.reset();
+    mbiraDcState_ = 0.0f;
     motorPhase_ = 0;
     nonfiniteCount_ = 0;
     allocator_.reset();
@@ -112,12 +118,15 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
         table = &marimbaPreparedNotes_;
     } else if (model_ == InstrumentModel::Vibraphone) {
         table = &vibraphonePreparedNotes_;
+    } else if (model_ == InstrumentModel::Mbira) {
+        table = &mbiraPreparedNotes_;
     }
     allocator_.setPreparedNoteTable(table);
 #endif
     body_ = preparedBodies_[static_cast<size_t>(model_)];
     setVibraphoneMotor(true);
     bodyStrategy_ = modelConfig_.bodyStrategy;
+    mbiraBuzzEnabled_ = true;
     reset();
 }
 
@@ -168,11 +177,12 @@ void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
                     // Keep MIDI mapping/normalization separate from allocator
                     // and trigger work in the profile breakdown.
                     DSP_PROFILE_SCOPE(MidiDispatch);
-                    freqHz = model_ == InstrumentModel::Vibraphone && event.data1 < 128
+                    freqHz = (model_ == InstrumentModel::Vibraphone || model_ == InstrumentModel::Mbira) && event.data1 < 128
                         ? vibraphoneMidiHz[event.data1] : midi::MidiMapping::noteToHz(event.data1);
                     vel = midi::MidiMapping::toNormalizedFloat(event.data2);
                 }
                 allocator_.noteOn(event.data1, vel, freqHz);
+                if (model_ == InstrumentModel::Mbira && mbiraBuzzEnabled_) mbiraBuzz_.strike(vel);
             }
             break;
         }
@@ -207,27 +217,15 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
     { DSP_PROFILE_SCOPE(Allocator);
     if (model_ == InstrumentModel::Vibraphone && motorEnabled_ && motorDepth_ > 0.0f) {
         uint32_t phase = motorPhase_;
-        const float coupling = modelConfig_.tubeCoupling * (motorDepth_ / .32f);
         for (size_t i = 0; i < frames; ++i) {
             const unsigned index = phase >> 24;
             const float fraction = float(phase & 0x00ffffffU) * (1.0f / 16777216.0f);
-            const float openness = 1.0f - (motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]));
-            const bool phaseTube = modelConfig_.tubePhaseLagDegrees > 0.0f;
-            const float response = phaseTube
-                ? (modelConfig_.tubeSoftCoupling ? openness * openness : openness)
-                : .10f + .90f * openness;
-            const float phaseMix = phaseTube ? openness : 0.0f;
-            tubeBuffer_[i] = coupling * response * (1.0f - phaseMix);
-            strikeBuffer_[i] = coupling * response * phaseMix;
+            const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
+            fanResponseBuffer_[i] = .10f + .90f * (1.0f - shutter);
             phase += motorIncrement_;
         }
-#ifdef POCKETPAN_M751_LISTENING_REFERENCE
-        if (oldMotorReference_) allocator_.renderBlock(monoBuffer_, frames);
-        else if (modelConfig_.tubePhaseLagDegrees == 0.0f)
-            allocator_.renderVibraphoneBlock(monoBuffer_, tubeBuffer_, frames);
-        else
-#endif
-        allocator_.renderVibraphoneBlock(monoBuffer_, nullptr, frames, tubeBuffer_, strikeBuffer_);
+        allocator_.renderVibraphoneBlock(monoBuffer_, frames, fanResponseBuffer_,
+                                         modelConfig_.tubeCoupling, motorDepth_ / .32f);
     }
     else if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, modelConfig_.sympathetic);
     else if (modelConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, modelConfig_.sympathetic);
@@ -262,23 +260,15 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
         { DSP_PROFILE_SCOPE(Body); bodySample=body_.processSample(bodyExcitation); }
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
         float mixed = monoBuffer_[i] + bodySample;
+        if (model_ == InstrumentModel::Mbira) {
+            if (mbiraBuzzEnabled_)
+                mixed += mbiraBuzz_.process(monoBuffer_[i], modelConfig_.mbiraBuzzGain);
+            // Remove the unipolar pluck/bridge impulse area as well as contact
+            // DC; retain this guard with buzz off. Other instruments are exact.
+            mbiraDcState_ = (1.0f-mbiraDcPole_)*mixed + mbiraDcPole_*mbiraDcState_;
+            mixed -= mbiraDcState_;
+        }
         if (model_ == InstrumentModel::Vibraphone) {
-            if (motorEnabled_ && motorDepth_ > 0.0f) {
-#ifdef POCKETPAN_M751_LISTENING_REFERENCE
-                if (oldMotorReference_) {
-                    const unsigned index = motorPhase_ >> 24;
-                    const float fraction = float(motorPhase_ & 0x00ffffffU) * (1.0f / 16777216.0f);
-                    const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
-                    mixed *= 1.0f - motorDepth_ * shutter;
-                } else if (modelConfig_.tubePhaseLagDegrees == 0.0f) {
-                    const unsigned index = motorPhase_ >> 24;
-                    const float fraction = float(motorPhase_ & 0x00ffffffU) * (1.0f / 16777216.0f);
-                    const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
-                    const float response = .10f + .90f * (1.0f - shutter);
-                    mixed += tubeBuffer_[i] * modelConfig_.tubeCoupling * (motorDepth_ / .32f) * response;
-                }
-#endif
-            }
             motorPhase_ += motorIncrement_;
         }
         sample = mixed * masterGain_ * polyHeadroomGain_;

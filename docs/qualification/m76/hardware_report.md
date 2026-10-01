@@ -1,0 +1,19 @@
+# M7.6 physical ESP32-S3 qualification
+
+COM10, 240 MHz, 48 kHz/128 frames, candidate 25, Process6 ON, BLE MIDI ready at 11.25 ms, UI and I2S running. Seven fixtures of 8192 blocks, captured in three memory-bounded batches. Full callbacks include event, restrike, pressure-free rendering and model transition work.
+
+| Fixture | Avg us | p95 us | p99 us | Max us | CPU % | Deadline misses | I2S timeout/error/short |
+|---|---:|---:|---:|---:|---:|---:|---|
+| single buzz OFF | 429 | 465 | 525 | 932 | 16.09 | 0 | 0 / 0 / 0 |
+| chord4 | 867 | 925 | 1125 | 1785 | 32.51 | 0 | 0 / 0 / 0 |
+| cluster8 | 1397 | 1450 | 1575 | 2286 | 52.38 | 0 | 0 / 0 / 0 |
+| roll | 471 | 520 | 950 | 1308 | 17.66 | 0 | 0 / 0 / 0 |
+| groove | 1276 | 1345 | 1700 | 1962 | 47.84 | 0 | 0 / 0 / 0 |
+| model switching | 460 | 495 | 525 | 1392 | 17.25 | 0 | 0 / 0 / 0 |
+| single buzz ON | 460 | 490 | 550 | 1136 | 17.25 | 0 | 0 / 0 / 0 |
+
+Cluster8 margin: 380.7 us. All fixtures have zero hard clamps, modal saturation, invalid voice counts and BLE losses. p95 uses 5 us callback histogram upper edges; p99 uses AudioStats 75 us bins. The callback histogram excludes the final callback; reported averages/maxima/deadlines include all 8192.
+
+Qualification internal free SRAM minimum: 34695 bytes; largest free internal block minimum: 14848 bytes.
+
+The initial seven-fixture diagnostic build exceeded BSS by 46,368 bytes. Limiting the diagnostics to three concurrent fixture records fixes that measurement-only problem. The cache itself is unchanged. The earlier development batch is retained separately and is not evidence for the final source.

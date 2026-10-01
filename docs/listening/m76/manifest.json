@@ -1,0 +1,128 @@
+[
+  {
+    "file": "mbira_D3_v70_A.wav",
+    "sha256": "00626d318a268f22e670149a376e8585d48f2aeb8cd70fd27f974bb1ab480a50",
+    "rms": 0.005040927067380043,
+    "peak": 0.03369140625
+  },
+  {
+    "file": "mbira_D3_v70_B.wav",
+    "sha256": "af6405d06ce613b66c87730c992e401ecbd173f3fdf5b799832cd385f0d363d2",
+    "rms": 0.005040919492853204,
+    "peak": 0.0391845703125
+  },
+  {
+    "file": "mbira_D3_v70_C.wav",
+    "sha256": "0ea6d813870579aefac6ab514ed993d413f9437904124cfa4331a4583d2283ae",
+    "rms": 0.0050409659373697275,
+    "peak": 0.0472412109375
+  },
+  {
+    "file": "mbira_D4_v70_A.wav",
+    "sha256": "7139898f3f04c13b6d717a171048d940bed07a07d94145840952ed6938b78a9f",
+    "rms": 0.004264384624848253,
+    "peak": 0.0335693359375
+  },
+  {
+    "file": "mbira_D4_v70_B.wav",
+    "sha256": "1b9cf9d1721816028d40d1db4d02a4f030b39145103af50b56d84dd3ee2d409f",
+    "rms": 0.004264375129181683,
+    "peak": 0.03955078125
+  },
+  {
+    "file": "mbira_D4_v70_C.wav",
+    "sha256": "3104c262d6b9a0e6fb59d84edba0015d107a096f41080f7aa2c3ca4e8b15f7e9",
+    "rms": 0.004264385472647514,
+    "peak": 0.047271728515625
+  },
+  {
+    "file": "mbira_D4_v110_A.wav",
+    "sha256": "b16f9a9fdde7c37b4de7ca7d00ab717fc6ba22d5da3f2b9a457d62647062e713",
+    "rms": 0.007269170434584678,
+    "peak": 0.06341552734375
+  },
+  {
+    "file": "mbira_D4_v110_B.wav",
+    "sha256": "42b4611148aa4eabb11a59082a7f12248044553897805ff1585c406f0e7daa8d",
+    "rms": 0.007269185007719793,
+    "peak": 0.080596923828125
+  },
+  {
+    "file": "mbira_D4_v110_C.wav",
+    "sha256": "6c63f207016641b15a121519587cc75aaaea32cf4f4317d3c14d4af44d45afc3",
+    "rms": 0.007269190480144911,
+    "peak": 0.112945556640625
+  },
+  {
+    "file": "mbira_chord_A.wav",
+    "sha256": "511570f5c419628accb1b74eb5e6f4483a877de8fa78171e0062e58af6f3ef8a",
+    "rms": 0.011200590767933475,
+    "peak": 0.15899658203125
+  },
+  {
+    "file": "mbira_chord_B.wav",
+    "sha256": "18d9b3b35947699f55095f194ebb76460cd6246313043f6664758c039eae3a00",
+    "rms": 0.01120059342077484,
+    "peak": 0.187957763671875
+  },
+  {
+    "file": "mbira_chord_C.wav",
+    "sha256": "a2edb7818d55ee3f6b7a888acb359f4ea1dd5310edc3e345c72b46e4f3cfe8bb",
+    "rms": 0.01120056381810728,
+    "peak": 0.292938232421875
+  },
+  {
+    "file": "mbira_groove_A.wav",
+    "sha256": "17e6e59cd2d0c2f6fdc81cff23756f795a01ba969b2ac6e1b50329134d5fb060",
+    "rms": 0.023068539763574987,
+    "peak": 0.077667236328125
+  },
+  {
+    "file": "mbira_groove_B.wav",
+    "sha256": "152b065a06fe69684b8de076e5722c1547cbc9fd7bc01e168ae41f7ce0c4db81",
+    "rms": 0.023068562632817164,
+    "peak": 0.077789306640625
+  },
+  {
+    "file": "mbira_groove_C.wav",
+    "sha256": "0097515f836e9dbae49dc293c4f1a874c631c7db1bd25df6d5d113e7947f26e9",
+    "rms": 0.023068565763885013,
+    "peak": 0.099395751953125
+  },
+  {
+    "file": "mbira_D4_v70_buzz_off.wav",
+    "sha256": "fd8fdc34d1ab711b91a575b1a95c472269599c0fc0ddf732114452731b2f7730",
+    "rms": 0.008183215277873461,
+    "peak": 0.075836181640625
+  },
+  {
+    "file": "mbira_D4_v70_buzz_on.wav",
+    "sha256": "cbc2b91c103b3308066f38b24ba8566b68d54fae326ac6a529e5079ac3c8a850",
+    "rms": 0.008183182918743708,
+    "peak": 0.075927734375
+  },
+  {
+    "file": "mbira_D4_v110_buzz_off.wav",
+    "sha256": "37c7fb2141d2521e4ca2236b8f04a7cae37a56935123270a92e6f4d0ca7ff78c",
+    "rms": 0.013076356697899184,
+    "peak": 0.14404296875
+  },
+  {
+    "file": "mbira_D4_v110_buzz_on.wav",
+    "sha256": "2999d4b5c6635be885d9a66b6bdab9db2707f1a03c97be56e567acf145735450",
+    "rms": 0.013076394817123766,
+    "peak": 0.144989013671875
+  },
+  {
+    "file": "mbira_groove_buzz_off.wav",
+    "sha256": "8c49060b3a8ea6b8babd82978ef256c96aff7b680babd3add26afc114999472b",
+    "rms": 0.0423996093057372,
+    "peak": 0.14227294921875
+  },
+  {
+    "file": "mbira_groove_buzz_on.wav",
+    "sha256": "51418a7f8c6c25ba8e04299c2bd739a1f9865e10629ca3206076d81cf75c70fb",
+    "rms": 0.042399602392941195,
+    "peak": 0.142974853515625
+  }
+]

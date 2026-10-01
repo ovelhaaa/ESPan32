@@ -25,8 +25,7 @@ struct PreparedNote {
     uint16_t activeMask = 0;
 
     float fundamentalFrequencyHz = 0.0f;
-    float tubePhaseCoefficient = 0.0f;
-    float tubeRegisterPosition = 0.0f;
+    float registerPosition = 0.0f;
 
     float a1[kMaxModesPerVoice]{};
     float a2[kMaxModesPerVoice]{};

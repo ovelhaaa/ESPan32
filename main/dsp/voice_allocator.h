@@ -32,8 +32,8 @@ public:
 
     // Render polyphonic sum of all active voices into outBuffer
     void renderBlock(float* outBuffer, size_t frames);
-    void renderVibraphoneBlock(float* bar, float* tube, size_t frames,
-                              const float* directGain = nullptr, const float* phaseGain = nullptr);
+    void renderVibraphoneBlock(float* out, size_t frames, const float* fanResponse,
+                              float tubeCoupling, float depthScale);
     void renderBlock(float* outBuffer, size_t frames, const SympatheticConfig& config);
     // Renders the normal dry mix and, in the same voice pass, a sum of local
     // exciter taps. The latter is a body input bus, never a sympathetic bus.

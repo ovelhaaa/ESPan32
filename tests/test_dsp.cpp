@@ -2736,7 +2736,7 @@ GlassQualificationRender renderGlassQualification(const std::vector<ScheduledEve
 
 GlassQualificationRender renderMarimbaQualification(const std::vector<ScheduledEvent>& events,
                                                   size_t totalFrames, const dsp::InstrumentModelConfig& config,
-                                                  bool motor = false, float rate = 4.5f, float depth = .32f, bool oldMotor = false) {
+                                                  bool motor = false, float rate = 4.5f, float depth = .32f) {
     constexpr size_t kBlock = 128;
     GlassQualificationRender result;
     result.rendered.audio.resize(totalFrames * 2);
@@ -2745,7 +2745,6 @@ GlassQualificationRender renderMarimbaQualification(const std::vector<ScheduledE
     engine.setInstrumentModel(config.id);
     engine.setModelConfigForTest(config);
     engine.setVibraphoneMotor(motor, rate, depth);
-    engine.setOldMotorReferenceForTest(oldMotor);
     size_t eventIndex = 0;
     int32_t previous = 0;
     size_t count = 0;
@@ -2865,15 +2864,10 @@ void testM75VibraphoneModel() {
     const auto& base=dsp::getInstrumentModelConfig(dsp::InstrumentModel::Vibraphone);
     assert(base.modalPreset->modeCount==6);
     assert(std::string(dsp::instrumentModelName(base.id))=="VIBRAPHONE");
-    assert(dsp::nextInstrumentModel(base.id)==dsp::InstrumentModel::Pan);
-    // The selected C bar is fixed; only modulation is compared.
-    auto legacy=base, stronger=base;
-    legacy.tubePhaseLagDegrees=0; legacy.tubeSoftCoupling=false;
-    stronger.tubePhaseLagDegrees=110;
-    std::array<dsp::InstrumentModelConfig,4> configs{base,legacy,base,stronger};
-    std::ofstream report("vibraphone_m752_metrics.md");
+    assert(dsp::nextInstrumentModel(base.id)==dsp::InstrumentModel::Mbira);
+    std::ofstream report("vibraphone_m753_metrics.md");
     report<<std::fixed<<std::setprecision(7)
-          <<"# M7.5.2 C modulation safety\n\n| Fixture | State | Peak | RMS | Pre peak | Max GR dB | Avg GR dB | Clamps | Saturation | Nonfinite |\n|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n";
+          <<"# Frozen Vibraphone V1: C + M1\n\n| Fixture | Motor | FNV64 | Exact M1/dry | Peak | RMS | Pre peak | Max GR dB | Avg GR dB | Clamps | Saturation | Nonfinite |\n|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n";
     struct Fixture {std::string name; std::vector<ScheduledEvent> events;};
     std::vector<Fixture> fixtures;
     fixtures.push_back({"D4_v70",{{0,note(62,70)}}});
@@ -2902,36 +2896,16 @@ void testM75VibraphoneModel() {
         assert(q.rendered.metrics.rms>0 && std::isfinite(q.rendered.metrics.rms));
         assert(std::abs(q.rendered.metrics.maxGainReductionDb)<.1f);
     };
-    for(const auto& f:fixtures) {
-        std::array<GlassQualificationRender,4> results;
-        float target=1;
-        for(unsigned i=0;i<4;++i) {
-            results[i]=renderMarimbaQualification(f.events,frames,configs[i],i>0);
-            safe(results[i]); target=std::min(target,results[i].rendered.metrics.rms);
-            // Unmatched PCM retained in the build directory for cross-version
-            // dry and M7.5.1 oracles; the delivered pack contains only 16 WAVs.
-            if(i<2) {
-                uint64_t hash=14695981039346656037ULL;
-                for(int32_t sample:results[i].rendered.audio) for(unsigned shift=0;shift<32;shift+=8) {
-                    hash^=(uint32_t(sample)>>shift)&255u; hash*=1099511628211ULL;
-                }
-                assert(hash==cReference[&f-fixtures.data()][i]);
-                std::ofstream pcm("vibra_C_"+f.name+"_M"+std::to_string(i)+".pcm",std::ios::binary);
-                pcm.write(reinterpret_cast<const char*>(results[i].rendered.audio.data()),
-                          results[i].rendered.audio.size()*sizeof(int32_t));
-            }
-            const auto& m=results[i].rendered.metrics;
-            report<<"| "<<f.name<<" | M"<<i<<" | "<<m.peak<<" | "<<m.rms<<" | "<<m.preLimiterPeak<<" | "<<m.maxGainReductionDb<<" | "<<m.averageGainReductionDb<<" | 0 | 0 | 0 |\n";
+    for(const auto& f:fixtures) for(unsigned motor=0;motor<2;++motor) {
+        const auto q=renderMarimbaQualification(f.events,frames,base,motor!=0);
+        safe(q);
+        uint64_t hash=14695981039346656037ULL;
+        for(int32_t sample:q.rendered.audio) for(unsigned shift=0;shift<32;shift+=8) {
+            hash^=(uint32_t(sample)>>shift)&255u; hash*=1099511628211ULL;
         }
-        if(f.name!="cluster8" && f.name!="roll") for(unsigned i=0;i<4;++i)
-            writeRmsMatchedWav(("vibra_C_"+f.name+"_M"+std::to_string(i)+"_matched.wav").c_str(),results[i].rendered.audio,target);
-        // Two monotonic aperture curves and three fixed phase relationships:
-        // safety only; no additional listening matrix or automatic winner.
-        for(float lag:{30.0f,60.0f,110.0f}) for(bool soft:{false,true}) {
-            auto experiment=base; experiment.tubePhaseLagDegrees=lag; experiment.tubeSoftCoupling=soft;
-            auto q=renderMarimbaQualification(f.events,frames,experiment,true); safe(q);
-            report<<"| "<<f.name<<" | P"<<lag<<(soft?" quadratic":" linear")<<" | "<<q.rendered.metrics.peak<<" | "<<q.rendered.metrics.rms<<" | "<<q.rendered.metrics.preLimiterPeak<<" | "<<q.rendered.metrics.maxGainReductionDb<<" | "<<q.rendered.metrics.averageGainReductionDb<<" | 0 | 0 | 0 |\n";
-        }
+        assert(hash==cReference[&f-fixtures.data()][motor]);
+        const auto& m=q.rendered.metrics;
+        report<<"| "<<f.name<<" | "<<(motor?"ON":"OFF")<<" | "<<std::hex<<hash<<std::dec<<" | exact | "<<m.peak<<" | "<<m.rms<<" | "<<m.preLimiterPeak<<" | "<<m.maxGainReductionDb<<" | "<<m.averageGainReductionDb<<" | 0 | 0 | 0 |\n";
     }
     // Phase advances through silence and MIDI strikes never reset the motor.
     dsp::SynthEngine engine; engine.init(48000); engine.setInstrumentModel(base.id);

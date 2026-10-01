@@ -332,11 +332,12 @@ void uiTaskLoop(void* param) {
             if (rel >= 1 && rel <= 4) btnPressed = true;
             else if (rel >= 15 && rel <= 18) btnPressed = true;
             else if (rel >= 29 && rel <= 32) btnPressed = true;
-            // Two complete eight-model cycles; one extended hold checks latching.
-            else if (rel >= 50 && rel < 850) {
+            // Two complete model cycles; one extended hold checks latching.
+            else if (rel >= 50 && rel < 50 + 100 * unsigned(pocketpan::dsp::InstrumentModel::Count)) {
                 const uint32_t phase = (rel - 50) % 50;
                 btnPressed = phase <= 33;
-            } else if (rel >= 870 && rel <= 945) btnPressed = true;
+            } else if (rel >= 70 + 100 * unsigned(pocketpan::dsp::InstrumentModel::Count) &&
+                       rel <= 145 + 100 * unsigned(pocketpan::dsp::InstrumentModel::Count)) btnPressed = true;
 
             static pocketpan::dsp::InstrumentModel sPrevModel = pocketpan::dsp::InstrumentModel::Pan;
             static pocketpan::ui::UiScreenMode sPrevMode = pocketpan::ui::UiScreenMode::Status;
@@ -354,8 +355,9 @@ void uiTaskLoop(void* param) {
                          pocketpan::dsp::instrumentModelName(curModel), (unsigned)rel);
                 sPrevMode = sUiState.mode;
             }
-            if (rel == 950) {
-                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: schedule finished (3 short, 16 long, 1 extended hold)");
+            if (rel == 150 + 100 * unsigned(pocketpan::dsp::InstrumentModel::Count)) {
+                ESP_LOGI(kTag, "[BOOT_QUAL] COMPLETE: schedule finished (3 short, %u long, 1 extended hold)",
+                         2 * unsigned(pocketpan::dsp::InstrumentModel::Count));
             }
         }
 #endif
@@ -666,6 +668,29 @@ extern "C" void app_main(void) {
 #endif
     // 1. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
+#if POCKETPAN_FORENSICS_M76
+    // Isolate the added contact DSP cost at 240 MHz before I2S starts. Keep the
+    // contact envelope active for every measured block (worst-case arithmetic).
+    {
+        pocketpan::dsp::MbiraBuzz contact;
+        contact.init(float(pocketpan::board::audio::kSampleRate));
+        uint64_t totalCycles=0; uint32_t maxCycles=0;
+        volatile float checksum=0.0f;
+        float probe[128];
+        for(unsigned i=0;i<128;++i) probe[i]=float(int(i%31)-15)*.012f;
+        for(unsigned b=0;b<1024;++b) {
+            contact.strike(1.0f);
+            float sum=0.0f;
+            const uint32_t start=esp_cpu_get_cycle_count();
+            for(unsigned i=0;i<128;++i)
+                sum+=contact.process(probe[i],1.0f);
+            const uint32_t elapsed=esp_cpu_get_cycle_count()-start;
+            totalCycles+=elapsed; maxCycles=std::max(maxCycles,elapsed); checksum=sum;
+        }
+        ESP_LOGI(kTag,"[MBIRA_BUZZ_COST] blocks=1024 avg_us=%.3f max_us=%.3f checksum=%.6f",
+                 double(totalCycles)/(1024.0*240.0),double(maxCycles)/240.0,double(checksum));
+    }
+#endif
 #if defined(POCKETPAN_TONGUE_SMOKE) && POCKETPAN_TONGUE_SMOKE
     sSynth.setInstrumentModel(pocketpan::dsp::InstrumentModel::Tongue);
 #elif defined(POCKETPAN_BOWL_SMOKE) && POCKETPAN_BOWL_SMOKE

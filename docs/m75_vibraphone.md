@@ -1,5 +1,7 @@
 # M7.5 — VIBRAPHONE listening candidate
 
+Historical milestone snapshot. Production is now [frozen VIBRAPHONE V1: BAR=C, MOTOR/TUBE=M1](m753_vibraphone_v1_freeze.md).
+
 Status: implementation and host qualification complete; listening selection and V1 freeze OPEN. All seven hardware timing fixtures pass both disconnected and BLE MIDI connected. No candidate was selected automatically. The runtime uses provisional A with the motor ON.
 
 ## Implementation and files

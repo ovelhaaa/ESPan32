@@ -1,5 +1,7 @@
 # M7.5.2 — Vibraphone tube phase and modulation refinement
 
+Historical milestone snapshot. Production is now [frozen VIBRAPHONE V1: BAR=C, MOTOR/TUBE=M1](m753_vibraphone_v1_freeze.md).
+
 VIBRAPHONE BAR = C. The bar selection is final; the motor/tube model remains provisional pending the [16-file listening comparison](listening/m752/README.md). The qualified cluster8 maximum is 2382 us, giving **284.7 us worst-case margin**, compared with M7.5.1's 2658 us/8.7 us margin: **276 us recovered**. Cluster average is 1248 us versus 1210 us historically; average CPU is slightly higher despite the improved measured maximum. All six final connected fixtures passed with zero deadline misses, I2S timeouts/errors/short writes, hard clamps, modal saturation, invalid voice counts or BLE event loss. Hardware acceptance and measurements are recorded in [the complete report](qualification/m752/hardware_report.md), including unsuccessful development captures.
 
 ## Selected C production values

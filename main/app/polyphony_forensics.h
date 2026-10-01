@@ -233,7 +233,10 @@ inline CallbackBlockContext sCurrentBlockContext;
 inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
-#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+// Keep diagnostic histograms at the existing three-fixture memory footprint.
+inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M76_BATCH == 2 ? 1 : 3;
+#elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
 // M7.5.1 focused qualification: three fixtures per batch.
 // Retain the existing timing instrumentation and fixed cache architecture.
 inline constexpr unsigned fixtureCount = 3;
@@ -252,7 +255,10 @@ inline hardware::AudioStats fixtureAudioStats[fixtureCount]{};
 inline CallbackOverheadStats gCallbackOverhead[fixtureCount]{};
 
 inline dsp::InstrumentModel modelOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+    (void)id;
+    return dsp::InstrumentModel::Mbira;
+#elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
     (void)id;
     return dsp::InstrumentModel::Vibraphone;
 #elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
@@ -272,7 +278,10 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 }
 
 inline unsigned kindOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+    constexpr unsigned kinds[] = {1, 6, 5, 7, 1, 1, 1};
+    return kinds[id % 7];
+#elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
     constexpr unsigned kinds[] = {1, 6, 5, 7, 6, 1, 1};
     return kinds[id % 7];
 #elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
@@ -294,7 +303,9 @@ inline unsigned kindOf(unsigned id) {
 inline bool isPan(unsigned id) { return modelOf(id) == dsp::InstrumentModel::Pan; }
 
 inline unsigned fixtureId(unsigned index) {
-#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+    return index + 3 * POCKETPAN_FORENSICS_M76_BATCH;
+#elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
     constexpr unsigned focused[] = {0, 1, 2, 4, 5, 6};
     return focused[index + (POCKETPAN_FORENSICS_M75_BATCH ? 3 : 0)];
 #elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
@@ -360,14 +371,15 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     const unsigned id = fixtureId(fixture);
     const unsigned kind = kindOf(id);
     const bool roll = kind == 7;
-#if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
+#if (defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75) || POCKETPAN_FORENSICS_M76
     const bool phrase = id == 4;
     const bool switchProbe = id == 5;
 #else
     const bool phrase = false, switchProbe = false;
 #endif
     const bool isTransition = (block == 0);
-    const bool event = !isTransition && (roll ? ((block - 1) % 38 == 0) : ((block - 1) % (phrase ? 282 : 188) == 0));
+    constexpr unsigned phraseBlocks = POCKETPAN_FORENSICS_M76 ? 56 : 282;
+    const bool event = !isTransition && (roll ? ((block - 1) % 38 == 0) : ((block - 1) % (phrase ? phraseBlocks : 188) == 0));
 
     ForensicsBlockClass currentClass;
     if (isTransition) {
@@ -392,6 +404,9 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     if (isTransition) {
         const uint32_t start = esp_cpu_get_cycle_count();
         synth.setInstrumentModel(modelOf(id));
+#if POCKETPAN_FORENSICS_M76
+        synth.setMbiraBuzzEnabled(id != 0);
+#endif
 #if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
         // M7.5.1: single OFF, chord/cluster/phrase/switch/single ON.
         synth.setVibraphoneMotor(id != 0);
@@ -434,8 +449,15 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
         const uint32_t start = esp_cpu_get_cycle_count();
         if (event && switchProbe) {
+#if POCKETPAN_FORENSICS_M76
+            synth.setInstrumentModel(dsp::InstrumentModel::Vibraphone);
+            synth.setInstrumentModel(dsp::InstrumentModel::Mbira);
+            synth.setInstrumentModel(dsp::InstrumentModel::Pan);
+            synth.setInstrumentModel(dsp::InstrumentModel::Mbira);
+#else
             synth.setInstrumentModel(dsp::InstrumentModel::Marimba);
             synth.setInstrumentModel(dsp::InstrumentModel::Vibraphone);
+#endif
         }
         if (event) {
             for (unsigned v = 0; v < (phrase ? 1u : counts[kind]); ++v) {
@@ -443,6 +465,14 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
                 note.data1 = kind == 6 ? chord[v] : counts[kind] == 1 ? 62 : cluster[v];
                 if (phrase) note.data1 = chord[((block - 1) / 282) % 4];
                 note.data2 = kind == 6 || counts[kind] == 1 ? 90 : 100;
+#if POCKETPAN_FORENSICS_M76
+                if (phrase) {
+                    constexpr uint8_t interlocking[] = {50,69,57,65,62,74,57,69,50,65,60,62};
+                    constexpr uint8_t velocities[] = {110,62,70,100,70,62,110,62,70,100,70,62};
+                    const unsigned step = ((block-1)/phraseBlocks)%12;
+                    note.data1=interlocking[step]; note.data2=velocities[step];
+                }
+#endif
                 synth.handleMidiEvent(note);
             }
         }
@@ -452,7 +482,8 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 
     auto& r = results[fixture];
     r.timing(timingClass).add(elapsed);
-    const unsigned expectedVoices = phrase ? std::min(4u, 1u + (block - 1) / 282) : counts[kind];
+    const unsigned expectedVoices = phrase ? std::min(POCKETPAN_FORENSICS_M76 ? 7u : 4u,
+        1u + (block - 1) / phraseBlocks) : counts[kind];
     const unsigned observedVoices = synth.getVoiceAllocator().getActiveVoiceCount();
     r.maxObservedVoices = std::max<uint32_t>(r.maxObservedVoices, observedVoices);
     // Phrase tails expire naturally; restrikes can also cancel existing energy.

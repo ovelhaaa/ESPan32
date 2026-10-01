@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <type_traits>
 
 namespace pocketpan::dsp {
 
@@ -197,14 +198,14 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
 
 // Vibraphone has no body or sympathetic feedback. Keep the normal modal
 // kernels and voice order; tap mode 0 immediately after each recurrence.
-__attribute__((optimize("O3"))) DSP_HOT void VoiceAllocator::renderVibraphoneBlock(float* bar, float* tube, size_t frames,
-                                               const float* directGain, const float* phaseGain) {
-    std::fill(bar, bar + frames, 0.0f);
-    if (tube) std::fill(tube, tube + frames, 0.0f);
+// Frozen M1: retain historical voice and multiplication order. Only the
+// traversal is sample-first; no tube/phase buffers are accumulated per voice.
+__attribute__((optimize("O3"))) DSP_HOT void VoiceAllocator::renderVibraphoneBlock(
+    float* out, size_t frames, const float* fanResponse, float tubeCoupling, float depthScale) {
 #if POCKETPAN_SUSTAIN_FASTPATH && POCKETPAN_ATTACK_VOICE_FASTPATH
     // Stable voices (unrolled 0..7), including the strike block. Sum while the modal tap
     // is hot, then apply the common shaft gains once, rather than eight times.
-    bool stable = directGain && phaseGain && getActiveStealTailCount() == 0;
+    bool stable = getActiveStealTailCount() == 0;
     bool sustain[kMaxVoices]{};
     bool sixSafety = true;
     for (size_t v=0; v<kMaxVoices && stable; ++v) {
@@ -213,7 +214,6 @@ __attribute__((optimize("O3"))) DSP_HOT void VoiceAllocator::renderVibraphoneBlo
         sixSafety = sixSafety && voice.resonators_.canProcessSixSafety();
         sustain[v] = voice.sustainFastPathEnabled_ && voice.isSustainSafe();
         stable = sustain[v] || (voice.attackFastPathEnabled_ && voice.isAttackSafe());
-        stable = stable && voice.tubeLagDegrees_ > 0.0f;
     }
     if (stable) {
         for (size_t v=0; v<kMaxVoices; ++v) if (voices_[v].active_) {
@@ -222,88 +222,83 @@ __attribute__((optimize("O3"))) DSP_HOT void VoiceAllocator::renderVibraphoneBlo
 #if POCKETPAN_PAN_STABLE8_FASTPATH
         if (getActiveVoiceCount()==8) ++panStable8Blocks_;
 #endif
-        for (size_t i=0; i<frames; ++i) {
-            float drySum=0, directSum=0, phaseSum=0;
-            auto advance = [&](size_t v) {
-                auto& voice = voices_[v];
-                if (!voice.active_) return;
-                float dry;
-                if (sustain[v]) {
-                    ++voice.age_;
-                    dry = sixSafety ? voice.resonators_.processSampleSixSafety(0.0f)
-                                    : voice.resonators_.processSample(0.0f);
-                    voice.lastSample_ = dry;
-                    if ((voice.age_ & 0x7fu) == 0u) {
-                        voice.estimatedEnergy_ = voice.resonators_.getEnergy();
-                        if (voice.estimatedEnergy_ < voice.voicingConfig_.silenceThreshold) {
-                            voice.active_=false; voice.estimatedEnergy_=0;
-                        }
-                    }
-                } else {
-                    // Inline the accepted attack operations here, avoiding an
-                    // extra per-voice sample call. The modal kernel is unchanged.
-                    ++voice.age_;
-                    float strike;
-                    { DSP_PROFILE_SCOPE(Exciter); strike=voice.exciter_.processSample(); }
-                    dry=sixSafety ? voice.resonators_.processSampleSixSafety(strike + 0.0f)
-                                  : voice.resonators_.processSample(strike + 0.0f);
-                    voice.lastSample_=dry;
-                    if ((voice.age_ & 0x7fu) == 0u) {
-                        voice.estimatedEnergy_=voice.resonators_.getEnergy();
-                        if (!voice.exciter_.isActive() && voice.estimatedEnergy_ < voice.voicingConfig_.silenceThreshold) {
-                            voice.active_=false; voice.estimatedEnergy_=0;
-                        }
-                    }
-                    sustain[v] = !voice.exciter_.isActive();
-                }
-                const float direct = voice.resonators_.fundamentalSample();
-                const float shifted = processTubePhase(direct, voice.tubeCoefficient_, voice.tubeState_);
-                drySum += dry; directSum += direct; phaseSum += shifted;
+        size_t done=0;
+        while (done<frames) {
+            // No age/active-state transition can occur inside this segment.
+            // End exactly at the earliest lifetime check or exciter boundary.
+            size_t segment=frames-done;
+            bool active[kMaxVoices]{};
+            float last[kMaxVoices]{};
+            bool allActive=true, allSustain=true;
+            for (size_t v=0;v<kMaxVoices;++v) {
+                auto& voice=voices_[v];
+                active[v]=voice.active_;
+                allActive=allActive && active[v];
+                if (!active[v]) continue;
+                sustain[v]=!voice.exciter_.isActive();
+                allSustain=allSustain && sustain[v];
+                segment=std::min(segment,size_t(128u-(voice.age_&0x7fu)));
+                if (!sustain[v]) segment=std::min(segment,size_t(voice.exciter_.samplesUntilInactive()));
+            }
+            // Specialize the common stable-eight segment once, outside the
+            // sample loop. Mixed/partial voices retain the same general path.
+            auto renderSegment=[&](auto full, auto quiet) {
+              for (size_t i=done;i<done+segment;++i) {
+                float drySum=0, fundamentalSum=0;
+                auto advance=[&](size_t v) {
+                    if constexpr (!decltype(full)::value) { if (!active[v]) return; }
+                    auto& voice=voices_[v];
+                    float excitation=0;
+                    if constexpr (!decltype(quiet)::value) { if (!sustain[v]) {
+                        DSP_PROFILE_SCOPE(Exciter);
+                        excitation=voice.exciter_.processSample()+0.0f;
+                    } }
+                    last[v]=sixSafety ? voice.resonators_.processSampleSixSafety(excitation)
+                                      : voice.resonators_.processSample(excitation);
+                    drySum+=last[v];
+                    fundamentalSum+=voice.resonators_.fundamentalSample();
+                };
+                advance(0); advance(1); advance(2); advance(3);
+                advance(4); advance(5); advance(6); advance(7);
+                out[i]=drySum + fundamentalSum*tubeCoupling*depthScale*fanResponse[i];
+              }
             };
-            advance(0); advance(1); advance(2); advance(3);
-            advance(4); advance(5); advance(6); advance(7);
-            bar[i] = drySum + directSum * directGain[i] + phaseSum * phaseGain[i];
+            if (allActive && allSustain) renderSegment(std::true_type{},std::true_type{});
+            else if (allActive) renderSegment(std::true_type{},std::false_type{});
+            else renderSegment(std::false_type{},std::false_type{});
+            for (size_t v=0;v<kMaxVoices;++v) if (active[v]) {
+                auto& voice=voices_[v];
+                voice.age_+=uint32_t(segment);
+                voice.lastSample_=last[v];
+                if ((voice.age_&0x7fu)==0u) {
+                    voice.estimatedEnergy_=voice.resonators_.getEnergy();
+                    if (!voice.exciter_.isActive() && voice.estimatedEnergy_<voice.voicingConfig_.silenceThreshold) {
+                        voice.active_=false; voice.estimatedEnergy_=0;
+                    }
+                }
+            }
+            done+=segment;
         }
         return;
     }
 #endif
-    if (directGain) {
-        // State/pressure/steal fallback uses the same three-sum topology as
-        // stable8, so toggling optimization cannot change floating addition.
-        for (size_t i=0; i<frames; ++i) {
-            float drySum=0, directSum=0, phaseSum=0;
-            for (auto& voice : voices_) {
-                if (!voice.active_) continue;
-                const float fade=voice.tubeFadeGain();
-                drySum += voice.processSample();
-                const float direct=voice.resonators_.fundamentalSample();
-                const float shifted=voice.tubeLagDegrees_ > 0
-                    ? processTubePhase(direct,voice.tubeCoefficient_,voice.tubeState_) : direct;
-                directSum += direct * fade; phaseSum += shifted * fade;
-            }
-            bar[i]=drySum + directSum*directGain[i] + phaseSum*phaseGain[i];
+    // Pressure/steal/reference path. Captured tails are added to dry before
+    // the tube mix, exactly as in the retained M1 reference.
+    for (size_t i=0; i<frames; ++i) {
+        float drySum=0, fundamentalSum=0;
+        for (auto& voice : voices_) {
+            if (!voice.active_) continue;
+            const float fade=voice.tubeFadeGain();
+            drySum += voice.processSample();
+            fundamentalSum += voice.resonators_.fundamentalSample() * fade;
         }
-    } else
-    for (auto& voice : voices_) {
-        if (!voice.isActive()) continue;
-#if POCKETPAN_SUSTAIN_FASTPATH
-        const bool sustain = voice.isSustainFastPathEnabledForTest() && voice.isSustainSafe();
-        if (sustain) ++sustainFastPathBlocks_;
-#endif
-#if POCKETPAN_ATTACK_VOICE_FASTPATH
-        const bool attack = voice.isAttackFastPathEnabledForTest() && voice.isAttackSafe();
-        if (attack) ++attackFastPathBlocks_;
-#endif
-        voice.renderTubeBlock(bar, tube, frames, directGain, phaseGain);
-    }
-    // Existing captured steal tails remain in the dry bus only.
-    for (auto& tail : stealTails_) {
-        if (!tail.active) continue;
-        for (size_t i = 0; i < frames && tail.samplesLeft; ++i) {
-            bar[i] += tail.currentSample;
+        for (auto& tail : stealTails_) {
+            if (!tail.active || !tail.samplesLeft) continue;
+            drySum += tail.currentSample;
             tail.currentSample -= tail.step;
-            if (--tail.samplesLeft == 0) tail.active = false;
+            if (--tail.samplesLeft == 0) tail.active=false;
         }
+        out[i]=drySum + fundamentalSum * tubeCoupling * depthScale * fanResponse[i];
     }
 }
 

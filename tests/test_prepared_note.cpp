@@ -179,6 +179,7 @@ const char* modelName(InstrumentModel model) {
         case InstrumentModel::Glass: return "GLASS";
         case InstrumentModel::Marimba: return "MARIMBA";
         case InstrumentModel::Vibraphone: return "VIBRAPHONE";
+        case InstrumentModel::Mbira: return "MBIRA";
         case InstrumentModel::Pan:
         default: return "PAN";
     }
@@ -186,7 +187,7 @@ const char* modelName(InstrumentModel model) {
 
 void testPreparedTableCoverage() {
     std::cout << "[PreparedNote] table coverage...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
         pocketpan::dsp::VoiceAllocator allocator;
         allocator.init(static_cast<float>(kSampleRate));
         pocketpan::dsp::PreparedNoteTable table{};
@@ -215,7 +216,7 @@ void testPreparedTableCoverage() {
 void testGrid() {
     std::cout << "[PreparedNote] PCM/FNV grid: 24--96 x 30/70/110/127...\n";
     constexpr std::array<uint8_t, 4> velocities = {30, 70, 110, 127};
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
         uint64_t aggregate = 14695981039346656037ULL;
         size_t caseCount = 0;
         for (uint16_t note = pocketpan::dsp::kPreparedNoteFirst;
@@ -233,8 +234,10 @@ void testGrid() {
         constexpr uint64_t baseline[] = {
             0x9e9801244165101dULL, 0x7c2dc6f37fb99f4bULL,
             0x83f75567fb47ebafULL, 0x14772092e35bc4a7ULL,
-            0xe9bcabdd0b6e3bd2ULL, 0x14e0dd6ba566e1cfULL, 0x236d684f05f5f1d2ULL};
-        if (static_cast<unsigned>(model) < 7) assert(aggregate == baseline[static_cast<unsigned>(model)]);
+            0xe9bcabdd0b6e3bd2ULL, 0x14e0dd6ba566e1cfULL, 0x236d684f05f5f1d2ULL,
+            0x3cea893644aa0283ULL}; // Frozen VIBRAPHONE V1: C + M1.
+        if (model != InstrumentModel::Mbira)
+            assert(aggregate == baseline[static_cast<unsigned>(model)]);
         std::cout << "  " << modelName(model) << " " << caseCount << " exact cases, aggregate FNV 0x"
                   << std::hex << aggregate << std::dec << '\n';
     }
@@ -242,7 +245,7 @@ void testGrid() {
 
 void testFallbacks() {
     std::cout << "[PreparedNote] below/above-table fallback...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
         for (const uint8_t note : {uint8_t(23), uint8_t(97)}) {
             const std::string name = std::string(modelName(model)) +
                 (note < pocketpan::dsp::kPreparedNoteFirst ? " low fallback" : " high fallback") +
@@ -254,7 +257,7 @@ void testFallbacks() {
 
 void testSameNoteRestrike() {
     std::cout << "[PreparedNote] same-note restrike...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
         expectExactPcm(std::string(modelName(model)) + " same-note restrike", model,
                        {{0, noteOn(60, 70)}, {512, noteOn(60, 127)}}, kGridFrames);
     }
@@ -262,7 +265,7 @@ void testSameNoteRestrike() {
 
 void testPolyPressure() {
     std::cout << "[PreparedNote] PolyPressure after cached trigger...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
         expectExactPcm(std::string(modelName(model)) + " PolyPressure", model,
                        {{0, noteOn(60, 110)}, {512, polyPressure(60, 96)}}, kPressureFrames);
     }
@@ -270,7 +273,7 @@ void testPolyPressure() {
 
 void testChannelPressure() {
     std::cout << "[PreparedNote] ChannelPressure after cached triggers...\n";
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
         expectExactPcm(std::string(modelName(model)) + " ChannelPressure", model,
                        {{0, noteOn(55, 70)}, {0, noteOn(64, 110)},
                         {512, channelPressure(88)}}, kPressureFrames);
@@ -461,6 +464,10 @@ SwitchRender renderAllModelCycle(bool cacheEnabled) {
     engine.handleMidiEvent(noteOn(62, 110));
     appendRender(engine, 512, result.whole.samples);
 
+    engine.setInstrumentModel(InstrumentModel::Mbira);
+    engine.handleMidiEvent(noteOn(62, 110));
+    appendRender(engine, 512, result.whole.samples);
+
     engine.setInstrumentModel(InstrumentModel::Pan);
     engine.handleMidiEvent(noteOn(50, 70));
     appendRender(engine, kGridFrames, result.whole.samples);
@@ -472,17 +479,17 @@ SwitchRender renderAllModelCycle(bool cacheEnabled) {
 }
 
 void testAllModelCycle() {
-    std::cout << "[PreparedNote] PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> MARIMBA -> VIBRAPHONE -> PAN...\n";
+    std::cout << "[PreparedNote] PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> MARIMBA -> VIBRAPHONE -> MBIRA -> PAN...\n";
     const SwitchRender cached = renderAllModelCycle(true);
     const SwitchRender uncached = renderAllModelCycle(false);
     if (cached.whole.fnv != uncached.whole.fnv || cached.whole.samples != uncached.whole.samples) {
-        failPcmComparison("PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> MARIMBA -> VIBRAPHONE -> PAN", cached.whole, uncached.whole);
+        failPcmComparison("PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> MARIMBA -> VIBRAPHONE -> MBIRA -> PAN", cached.whole, uncached.whole);
     }
 
     const RenderedPcm directPan = renderEvents(InstrumentModel::Pan, true,
                                                 {{0, noteOn(50, 70)}}, kGridFrames);
     if (cached.finalPan.fnv != directPan.fnv || cached.finalPan.samples != directPan.samples) {
-        failPcmComparison("PAN after VIBRAPHONE switch versus direct PAN", cached.finalPan, directPan);
+        failPcmComparison("PAN after MBIRA switch versus direct PAN", cached.finalPan, directPan);
     }
 }
 
@@ -540,7 +547,7 @@ void testPreparedTableResetAndSwitch() {
 }
 
 void testAllModelSwitchBoundaries() {
-    std::cout << "[PreparedNote] all 64 model boundaries versus cold selection...\n";
+    std::cout << "[PreparedNote] all 81 model boundaries versus cold selection...\n";
     for (unsigned from=0;from<unsigned(InstrumentModel::Count);++from)
         for (unsigned to=0;to<unsigned(InstrumentModel::Count);++to) {
             const auto target=static_cast<InstrumentModel>(to);
@@ -567,7 +574,7 @@ void testPreparedNoteMemoryFootprint() {
               << static_cast<int>(pocketpan::dsp::kPreparedNoteFirst) << ".."
               << static_cast<int>(pocketpan::dsp::kPreparedNoteLast) << ")\n";
 
-    static_assert(sizeof(pocketpan::dsp::PreparedNote) == 136, "PreparedNote size unexpected");
+    static_assert(sizeof(pocketpan::dsp::PreparedNote) == 132, "PreparedNote size unexpected");
     static_assert(sizeof(pocketpan::dsp::PreparedNoteTable) == (sizeof(pocketpan::dsp::PreparedNote) * pocketpan::dsp::kPreparedNoteCount + 4),
                   "PreparedNoteTable size mismatch");
 }

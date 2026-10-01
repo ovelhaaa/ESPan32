@@ -1,0 +1,25 @@
+Test project C:/progs/ESPan/build-m76-host
+      Start  1: ble_midi_parser
+ 1/10 Test  #1: ble_midi_parser ..................   Passed    0.25 sec
+      Start  2: dsp
+ 2/10 Test  #2: dsp ..............................   Passed   20.74 sec
+      Start  3: prepared_note
+ 3/10 Test  #3: prepared_note ....................   Passed    3.99 sec
+      Start  4: telemetry
+ 4/10 Test  #4: telemetry ........................   Passed    0.17 sec
+      Start  5: modal_kernel
+ 5/10 Test  #5: modal_kernel .....................   Passed    0.24 sec
+      Start  6: fastpath
+ 6/10 Test  #6: fastpath .........................   Passed    1.55 sec
+      Start  7: exciter_fastpath
+ 7/10 Test  #7: exciter_fastpath .................   Passed    0.27 sec
+      Start  8: m635_fastpath
+ 8/10 Test  #8: m635_fastpath ....................   Passed    3.07 sec
+      Start  9: m637_trigger
+ 9/10 Test  #9: m637_trigger .....................   Passed    0.17 sec
+      Start 10: vibraphone_runtime
+10/10 Test #10: vibraphone_runtime ...............   Passed    1.28 sec
+
+100% tests passed, 0 tests failed out of 10
+
+Total Test time (real) =  31.81 sec
