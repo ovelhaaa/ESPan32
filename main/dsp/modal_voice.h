@@ -6,6 +6,7 @@
 #include "modal_resonator.h"
 #include "pan_calibration.h"
 #include "instrument_model.h"
+#include "udu.h"
 
 namespace pocketpan::dsp {
 
@@ -73,7 +74,7 @@ public:
 
     // Query state for voice allocator
     bool isActive() const { return active_; }
-    bool hasActiveExciter() const { return active_ && exciter_.isActive(); }
+    bool hasActiveExciter() const { return active_ && (uduModel_ ? udu_.hasExciter() : exciter_.isActive()); }
     bool isReleased() const { return released_; }
     uint8_t getMidiNote() const { return midiNote_; }
     float getFundamentalFrequencyHz() const { return fundamentalFrequencyHz_; }
@@ -83,7 +84,9 @@ public:
     float getLastSample() const { return lastSample_; }
     float fundamentalSample() const { return resonators_.fundamentalSample(); }
     float tubeFadeGain() const { return isStealing_ ? stealGain_ : 1.0f; }
-    uint32_t getInternalSaturationCount() const { return resonators_.getInternalSaturationCount(); }
+    uint32_t getInternalSaturationCount() const { return uduModel_ ? 0 : resonators_.getInternalSaturationCount(); }
+    uint32_t getUduNonfiniteCount() const { return uduModel_ ? udu_.faults() : 0; }
+    void setUduCache(const UduCache* cache) { udu_.setCache(cache); }
     void setInternalSafetySaturation(bool enabled);
     void setModelConfig(const InstrumentModelConfig& config);
     // Host qualification only. Defaults remain the frozen PAN calibration.
@@ -137,6 +140,8 @@ private:
     float stealDecr_ = 0.0f;
 
     Exciter exciter_;
+    UduVoice udu_;
+    bool uduModel_ = false;
     ModalResonatorBank resonators_;
     ExciterConfig exciterConfig_ = kPanExciterConfig;
     ResonatorConfig resonatorConfig_ = kPanResonatorConfig;

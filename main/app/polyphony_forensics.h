@@ -118,7 +118,7 @@ struct Timing {
 struct Result {
     std::array<Timing, kClassCount> innerTiming{};
     std::array<Timing, kClassCount> callbackTiming{};
-    uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0;
+    uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0, nonfinite = 0;
     uint32_t maxObservedVoices = 0;
     // Diagnostic counters for the M6.3.5 fast paths.  Read from the allocator at
     // fixture completion only; never touched by DSP processing.
@@ -233,7 +233,9 @@ inline CallbackBlockContext sCurrentBlockContext;
 inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
-#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M77_BATCH ? 2 : 3;
+#elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
 // Keep diagnostic histograms at the existing three-fixture memory footprint.
 inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M76_BATCH == 2 ? 1 : 3;
 #elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
@@ -255,7 +257,9 @@ inline hardware::AudioStats fixtureAudioStats[fixtureCount]{};
 inline CallbackOverheadStats gCallbackOverhead[fixtureCount]{};
 
 inline dsp::InstrumentModel modelOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+    (void)id; return dsp::InstrumentModel::Udu;
+#elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
     (void)id;
     return dsp::InstrumentModel::Mbira;
 #elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
@@ -278,7 +282,9 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 }
 
 inline unsigned kindOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+    constexpr unsigned kinds[]={1,6,5,1,1}; return kinds[id%5];
+#elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
     constexpr unsigned kinds[] = {1, 6, 5, 7, 1, 1, 1};
     return kinds[id % 7];
 #elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
@@ -303,7 +309,9 @@ inline unsigned kindOf(unsigned id) {
 inline bool isPan(unsigned id) { return modelOf(id) == dsp::InstrumentModel::Pan; }
 
 inline unsigned fixtureId(unsigned index) {
-#if defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
+#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+    return index+3*POCKETPAN_FORENSICS_M77_BATCH;
+#elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
     return index + 3 * POCKETPAN_FORENSICS_M76_BATCH;
 #elif defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
     constexpr unsigned focused[] = {0, 1, 2, 4, 5, 6};
@@ -371,14 +379,16 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     const unsigned id = fixtureId(fixture);
     const unsigned kind = kindOf(id);
     const bool roll = kind == 7;
-#if (defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75) || POCKETPAN_FORENSICS_M76
+#if POCKETPAN_FORENSICS_M77
+    const bool phrase=id==3, switchProbe=id==4;
+#elif (defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75) || POCKETPAN_FORENSICS_M76
     const bool phrase = id == 4;
     const bool switchProbe = id == 5;
 #else
     const bool phrase = false, switchProbe = false;
 #endif
     const bool isTransition = (block == 0);
-    constexpr unsigned phraseBlocks = POCKETPAN_FORENSICS_M76 ? 56 : 282;
+    constexpr unsigned phraseBlocks = POCKETPAN_FORENSICS_M77 ? 94 : POCKETPAN_FORENSICS_M76 ? 56 : 282;
     const bool event = !isTransition && (roll ? ((block - 1) % 38 == 0) : ((block - 1) % (phrase ? phraseBlocks : 188) == 0));
 
     ForensicsBlockClass currentClass;
@@ -437,6 +447,8 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     } else {
         if (event && !roll && !phrase && !switchProbe) {
             results[fixture].hardClamp += synth.getHardClampCount();
+            results[fixture].modalSat += synth.getModalInternalSaturationCount();
+            results[fixture].nonfinite += synth.getNonfiniteCount();
             synth.reset(); // Reset cost deliberately excluded from event timing.
         }
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
@@ -449,7 +461,15 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
         const uint32_t start = esp_cpu_get_cycle_count();
         if (event && switchProbe) {
-#if POCKETPAN_FORENSICS_M76
+#if POCKETPAN_FORENSICS_M77
+            results[fixture].hardClamp+=synth.getHardClampCount();
+            results[fixture].modalSat+=synth.getModalInternalSaturationCount();
+            results[fixture].nonfinite+=synth.getNonfiniteCount();
+            synth.setInstrumentModel(dsp::InstrumentModel::Mbira);
+            synth.setInstrumentModel(dsp::InstrumentModel::Udu);
+            synth.setInstrumentModel(dsp::InstrumentModel::Pan);
+            synth.setInstrumentModel(dsp::InstrumentModel::Udu);
+#elif POCKETPAN_FORENSICS_M76
             synth.setInstrumentModel(dsp::InstrumentModel::Vibraphone);
             synth.setInstrumentModel(dsp::InstrumentModel::Mbira);
             synth.setInstrumentModel(dsp::InstrumentModel::Pan);
@@ -465,6 +485,19 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
                 note.data1 = kind == 6 ? chord[v] : counts[kind] == 1 ? 62 : cluster[v];
                 if (phrase) note.data1 = chord[((block - 1) / 282) % 4];
                 note.data2 = kind == 6 || counts[kind] == 1 ? 90 : 100;
+#if POCKETPAN_FORENSICS_M77
+                // Match the hand-percussion pack's virtual sizes and accents.
+                constexpr uint8_t potCluster[]={36,42,48,54,60,66,72,78};
+                constexpr uint8_t potChord[]={36,48,60,84};
+                note.data1=kind==6?potChord[v]:counts[kind]==1?60:potCluster[v];
+                note.data2=127; // Headroom stress for chords and clusters too.
+                if(phrase) {
+                    constexpr uint8_t potNotes[]={36,84,60,84,36,60,84,60,36,84,60,84,36,60,84,60};
+                    constexpr uint8_t potVelocities[]={110,45,85,60,100,70,50,95,115,50,80,55,100,70,45,90};
+                    const unsigned step=((block-1)/phraseBlocks)%16;
+                    note.data1=potNotes[step];note.data2=potVelocities[step];
+                }
+#endif
 #if POCKETPAN_FORENSICS_M76
                 if (phrase) {
                     constexpr uint8_t interlocking[] = {50,69,57,65,62,74,57,69,50,65,60,62};
@@ -510,7 +543,8 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
 
     if (++block == CONFIG_POCKETPAN_FORENSICS_BLOCKS) {
-        r.hardClamp += synth.getHardClampCount(); r.modalSat = synth.getModalInternalSaturationCount();
+        r.hardClamp += synth.getHardClampCount(); r.modalSat += synth.getModalInternalSaturationCount();
+        r.nonfinite += synth.getNonfiniteCount();
 #if POCKETPAN_PAN_STABLE8_FASTPATH
         r.stable8 = synth.getVoiceAllocator().getPanStable8BlocksForTest();
 #endif
@@ -548,6 +582,8 @@ inline void logCompleted() {
         const unsigned id = fixtureId(logged);
         const auto& r = results[logged];
         const auto& io = fixtureAudioStats[logged];
+        ESP_LOGI("forensics", "[SAFETY] fixture=%u hard=%u sat=%u nonfinite=%u ble_lost=%u",
+            id, (unsigned)r.hardClamp, (unsigned)r.modalSat, (unsigned)r.nonfinite, (unsigned)r.bleLost);
         ESP_LOGI("forensics", "[FIXTURE_IO] model=%s fixture=%u avg_us=%u p99_us=%u max_us=%u cpu_pct=%.2f deadline=%u timeouts=%u tx_errors=%u short_writes=%u",
             dsp::instrumentModelName(modelOf(id)), id, (unsigned)io.avgBlockTimeUs,
             (unsigned)io.p99BlockTimeUs, (unsigned)io.maxBlockTimeUs, double(io.cpuLoadPercent),

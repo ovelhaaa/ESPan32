@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "mbira_frozen": "B + Buzz ON",
+  "udu_status": "technically qualified listening candidate; not frozen",
+  "production_restored": true,
+  "production_boot_model": "PAN",
+  "production_free_internal_min": 40303,
+  "production_largest_internal_min": 23552,
+  "synth_engine_device_bytes": 105272,
+  "prepared_note_total_bytes": 86760,
+  "udu_cache_bytes": 3576,
+  "production_io_faults": 0,
+  "udu_cluster_margin_us": 716.666667,
+  "mbira_cluster_margin_us": 406.66666699999996,
+  "production_firmware_sha256": "0f82f1482d04c959c9bb176620601b9ccd8af1649d96794bb2e2ab798fdd08f8",
+  "production_log_sha256": "8688cdb4602a23979c4e39f2f95e826b645bab3edd9afea86a58473e7d854735"
+}

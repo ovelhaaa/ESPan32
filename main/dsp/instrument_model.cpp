@@ -122,7 +122,7 @@ constexpr ModalVoicingConfig kMbiraVoicing{
     1.25f, .65f, 0.0f, 146.83f, 587.33f, false,
     {1.0f, .10f, .025f, .006f, .002f, .001f},
     {1.0f, 1.0f, .90f, .70f, .55f, .42f}, 1.0e-8f};
-// Balanced B is provisional, not a listening winner or frozen instrument.
+// MBIRA V1 FROZEN: Candidate B + Buzz ON. Preserve this accepted voicing.
 constexpr InstrumentModelConfig kMbiraModelConfig{
     InstrumentModel::Mbira, &kPresetMbira,
     {.15f, .06f, 1800.0f, 15500.0f, .90f, .55f, ExciterShape::Pluck},
@@ -134,7 +134,16 @@ constexpr InstrumentModelConfig kMbiraModelConfig{
 }
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model) {
+    // Registry shell metadata only: UDU uses its independent hybrid air/body DSP.
+    static constexpr ModalPreset shell={"UDU",4,{
+        {4.38095f,.12f,.085f,0},{7.52381f,.075f,.055f,0},
+        {11.71429f,.045f,.038f,0},{18.76190f,.025f,.025f,0}}};
+    static constexpr InstrumentModelConfig udu={InstrumentModel::Udu,&shell,
+        {.0016f,.045f,700,4200,1,1,ExciterShape::Strike},
+        {1,.95f,false},{},{{},0,0,0,1500,false},
+        {false,0,0,1500,0},BodyExcitationStrategy::FullMix,0};
     switch (model) {
+        case InstrumentModel::Udu: return udu;
         case InstrumentModel::Bell: return kBellModelConfig;
         case InstrumentModel::Tongue: return kTongueModelConfig;
         case InstrumentModel::Bowl: return kBowlModelConfig;

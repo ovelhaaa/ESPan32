@@ -44,7 +44,9 @@ public:
     // Qualification controls; one phase shared by the entire instrument.
     void setVibraphoneMotor(bool enabled, float rateHz = 4.5f, float depth = .32f);
     uint32_t getMotorPhaseForTest() const { return motorPhase_; }
-    uint32_t getNonfiniteCount() const { return nonfiniteCount_; }
+    uint32_t getNonfiniteCount() const { return nonfiniteCount_ + allocator_.getUduNonfiniteCount(); }
+    // Host-only candidate preparation; never called by firmware controls.
+    void setUduConfigForTest(const UduConfig& config) { allocator_.prepareUduForTest(config); }
     // Compatibility names retained for host reports; this is limiter activity,
     // not nonlinear clipping. Resetting diagnostics must not flush lookahead.
     uint32_t getSoftClipCount() const { return limiter_.getActiveSampleCount(); }

@@ -10,8 +10,10 @@ namespace pocketpan::dsp {
 
 void VoiceAllocator::init(float sampleRate) {
     sampleRate_ = sampleRate;
+    uduCache_.prepare(sampleRate_);
     for (size_t i = 0; i < kMaxVoices; ++i) {
         voices_[i].init(sampleRate_);
+        voices_[i].setUduCache(&uduCache_);
     }
 #if POCKETPAN_PREPARED_NOTE_CACHE
     preparedNoteTable_ = nullptr;

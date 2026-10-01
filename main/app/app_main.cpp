@@ -743,9 +743,10 @@ extern "C" void app_main(void) {
 #ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
     ESP_LOGI(kTag, "[M75_MEMORY] table_bytes=%u cache_bytes=%u synth_bytes=%u internal_free=%u largest_internal=%u",
         (unsigned)pocketpan::dsp::PreparedNoteTable::bytesPerModel(),
-        (unsigned)(pocketpan::dsp::PreparedNoteTable::bytesPerModel() * unsigned(pocketpan::dsp::InstrumentModel::Count)),
+        (unsigned)(pocketpan::dsp::PreparedNoteTable::bytesPerModel() * 9),
         (unsigned)sizeof(sSynth), (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
         (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
+    ESP_LOGI(kTag, "[UDU_CACHE] compact_bytes=%u full_tables=9", (unsigned)sizeof(pocketpan::dsp::UduCache));
 #endif
 
     // 6. Start UI Task on Core 1

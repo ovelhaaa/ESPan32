@@ -1,0 +1,16 @@
+{
+  "host_fixtures": 120,
+  "wav_count": 21,
+  "peak_max": 0.4349285662,
+  "pre_limiter_max": 0.4349285662,
+  "dc_abs_max": 4.752431199e-05,
+  "max_voices": 8,
+  "max_steals": 8,
+  "all_required_faults_zero": true,
+  "limiter_gr_zero": true,
+  "mid_v110_first_50ms_high_low_band_db": {
+    "A": -29.9881976368696,
+    "B": -16.01939597526283,
+    "C": -2.8823986610621994
+  }
+}

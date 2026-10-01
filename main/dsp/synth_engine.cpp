@@ -120,6 +120,8 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
         table = &vibraphonePreparedNotes_;
     } else if (model_ == InstrumentModel::Mbira) {
         table = &mbiraPreparedNotes_;
+    } else if (model_ == InstrumentModel::Udu) {
+        table = nullptr; // Compact independent cavity/shell cache, no tenth full table.
     }
     allocator_.setPreparedNoteTable(table);
 #endif
@@ -177,7 +179,7 @@ void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
                     // Keep MIDI mapping/normalization separate from allocator
                     // and trigger work in the profile breakdown.
                     DSP_PROFILE_SCOPE(MidiDispatch);
-                    freqHz = (model_ == InstrumentModel::Vibraphone || model_ == InstrumentModel::Mbira) && event.data1 < 128
+                    freqHz = (model_ == InstrumentModel::Vibraphone || model_ == InstrumentModel::Mbira || model_ == InstrumentModel::Udu) && event.data1 < 128
                         ? vibraphoneMidiHz[event.data1] : midi::MidiMapping::noteToHz(event.data1);
                     vel = midi::MidiMapping::toNormalizedFloat(event.data2);
                 }
@@ -265,6 +267,10 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
                 mixed += mbiraBuzz_.process(monoBuffer_[i], modelConfig_.mbiraBuzzGain);
             // Remove the unipolar pluck/bridge impulse area as well as contact
             // DC; retain this guard with buzz off. Other instruments are exact.
+            mbiraDcState_ = (1.0f-mbiraDcPole_)*mixed + mbiraDcPole_*mbiraDcState_;
+            mixed -= mbiraDcState_;
+        } else if (model_ == InstrumentModel::Udu) {
+            // A shared output guard also covers the removed DC state of stolen pots.
             mbiraDcState_ = (1.0f-mbiraDcPole_)*mixed + mbiraDcPole_*mbiraDcState_;
             mixed -= mbiraDcState_;
         }

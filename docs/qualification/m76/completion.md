@@ -1,6 +1,6 @@
 # M7.6 completion evidence
 
-All eleven host suites pass with Process6 ON and OFF; all eight frozen aggregates and twelve frozen Vibraphone dry/M1 fixtures remain exact. MBIRA is provisional. The listening pack contains 21 verified RMS-matched A/B/C and buzz off/on files.
+All eleven host suites pass with Process6 ON and OFF; all eight frozen aggregates and twelve frozen Vibraphone dry/M1 fixtures remain exact. MBIRA V1 FROZEN = Candidate B + Buzz ON (M7.6.1 acceptance). The listening pack contains 21 verified RMS-matched A/B/C and buzz off/on files.
 
 Physical qualification passes all seven BLE-connected fixtures with zero deadline misses, I2S timeouts/errors/short writes, hard clamps and modal saturation. Cluster8 maximum is 2286 us, with 380.7 us of deadline margin. Full timings are in [hardware report](hardware_report.md).
 
@@ -14,4 +14,4 @@ Restored production internal free SRAM: 45687–45687 bytes. Largest free intern
 
 The unsuccessful event capture (one cluster8 deadline miss at 2,932 us) is retained as `development_event_batch0_raw.log` with its flashed binary. Exact Mbira trigger precomputation reduced event work; qualification was repeated for the final source. Earlier contact probes are retained too. No failed run is substituted for a passing final capture.
 
-Remaining decision: listen to A/B/C and the two-velocity/groove buzz comparisons, then explicitly choose tine/contact/body balance before a freeze. No automatic winner is selected.
+Superseded by the explicit M7.6.1 listening decision: MBIRA V1 = Candidate B + Buzz ON. See [final freeze report](../../m761_mbira_freeze.md); the measurements above are the historical M7.6 capture.

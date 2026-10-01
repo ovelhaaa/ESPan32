@@ -37,6 +37,7 @@ void ModalVoice::setInternalSafetySaturation(bool enabled) {
 }
 
 void ModalVoice::setModelConfig(const InstrumentModelConfig& config) {
+    uduModel_ = config.id == InstrumentModel::Udu;
     vibraphoneTriggerCache_ = config.id == InstrumentModel::Vibraphone;
     mbiraTriggerCache_ = config.id == InstrumentModel::Mbira;
     modalPreset_ = config.modalPreset;
@@ -64,6 +65,7 @@ void ModalVoice::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoi
 }
 
 void ModalVoice::reset() {
+    udu_.reset();
     active_ = false;
     released_ = true;
     midiNote_ = 0;
@@ -87,6 +89,13 @@ void ModalVoice::reset() {
 
 void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity,
                          const PreparedNote* prepared) {
+    if(uduModel_) {
+        midiNote_=midiNote; fundamentalFrequencyHz_=fundamentalFrequencyHz;
+        velocity_=velocity; age_=0; released_=false; active_=true;
+        lastSample_=estimatedEnergy_=0; isStealing_=false; stealGain_=1;
+        currentDamping_=targetDamping_=0;
+        udu_.strike(midiNote,velocity,true); return;
+    }
     {
         DSP_PROFILE_SCOPE(TriggerOther);
         midiNote_ = midiNote;
@@ -116,6 +125,11 @@ void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float v
 }
 
 void ModalVoice::restrike(float velocity) {
+    if(uduModel_) {
+        velocity_=velocity; age_=0; released_=false; active_=true;
+        isStealing_=false; stealGain_=1;
+        udu_.strike(midiNote_,velocity,false); return;
+    }
     // Physical restrike on the same vibrating metal note:
     // Retrigger exciter with new velocity WITHOUT zeroing modal resonator energy!
     velocity_ = velocity;
@@ -258,6 +272,23 @@ void ModalVoice::prepareSteal(float fadeDurationMs) {
 
 DSP_HOT float ModalVoice::processSample(float externalExcitation, float* strikeTap) {
     if (!active_) return 0.0f;
+    if(uduModel_) {
+        ++age_;
+        currentDamping_+=dampingSmoothCoeff_*(targetDamping_-currentDamping_);
+        float output=udu_.process(currentDamping_);
+        if(strikeTap) *strikeTap=0;
+        if(isStealing_) {
+            output*=stealGain_; stealGain_-=stealDecr_;
+            if(stealGain_<=0) { kill(); return 0; }
+        }
+        if((age_&127)==0) {
+            estimatedEnergy_=udu_.energy();
+            if(!udu_.hasExciter() && estimatedEnergy_<1e-9f) {
+                active_=false; estimatedEnergy_=0;
+            }
+        }
+        lastSample_=output; return output;
+    }
 
     age_++;
 
@@ -318,7 +349,7 @@ bool ModalVoice::isAttackSafe() const {
     // must be running at the block boundary to select the attack specialization;
     // the path stays exact after it finishes because it shares the exciter's
     // exact active transition.
-    return active_ && exciter_.isActive() && !isStealing_ &&
+    return !uduModel_ && active_ && exciter_.isActive() && !isStealing_ &&
            std::abs(targetDamping_ - currentDamping_) <= 0.0001f;
 }
 
@@ -385,7 +416,7 @@ bool ModalVoice::isSustainSafe() const {
     // The exact epsilon used by the historical damping update branch: while the
     // smoothed damping is within it, that branch is not taken, so currentDamping_
     // cannot move and targetDamping_ cannot change inside a render block.
-    return active_ && !exciter_.isActive() && !isStealing_ &&
+    return !uduModel_ && active_ && !exciter_.isActive() && !isStealing_ &&
            std::abs(targetDamping_ - currentDamping_) <= 0.0001f;
 }
 

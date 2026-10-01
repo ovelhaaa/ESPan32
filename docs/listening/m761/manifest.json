@@ -1,0 +1,44 @@
+{
+  "mbira_frozen_buzz_on_reference.pcm": {
+    "sha256": "da29325bb2c4332076a7b8ccef689d4c6665a9ca3cda8826c6c5861ac6b4e83a",
+    "bytes": 2304000,
+    "frames": 288000,
+    "format": "int32-le stereo 48000Hz"
+  },
+  "mbira_frozen_chord.pcm": {
+    "sha256": "e2af1a4e1389892d746510fb6525fdfb39f1b62fdf8bb7b11956a05f4cbc2619",
+    "bytes": 2304000,
+    "frames": 288000,
+    "format": "int32-le stereo 48000Hz"
+  },
+  "mbira_frozen_cluster8.pcm": {
+    "sha256": "abfdb0fc5b6ee63b5a210ce8f48068b833daba6cdb271021a5214bb6acd46328",
+    "bytes": 2304000,
+    "frames": 288000,
+    "format": "int32-le stereo 48000Hz"
+  },
+  "mbira_frozen_D4_v110.pcm": {
+    "sha256": "e8ce16a97c50c7146a4c8c88264233c8f740f1da4c7c657652e377b721c30bf2",
+    "bytes": 2304000,
+    "frames": 288000,
+    "format": "int32-le stereo 48000Hz"
+  },
+  "mbira_frozen_D4_v70.pcm": {
+    "sha256": "214553fcc15575efe994f30b5d6476f7dd244a29bcf1c07a6eee7bc755a6e8eb",
+    "bytes": 2304000,
+    "frames": 288000,
+    "format": "int32-le stereo 48000Hz"
+  },
+  "mbira_frozen_groove.pcm": {
+    "sha256": "54bef23bf4c0cdd82ea77525d416485e09ca25038217c241d3bbb3124d2c20c0",
+    "bytes": 2304000,
+    "frames": 288000,
+    "format": "int32-le stereo 48000Hz"
+  },
+  "mbira_frozen_roll.pcm": {
+    "sha256": "6fcd8d14f55470e070810c9707f9d5b05393239b5dafb8ca3f7fc449d2b833f2",
+    "bytes": 2304000,
+    "frames": 288000,
+    "format": "int32-le stereo 48000Hz"
+  }
+}

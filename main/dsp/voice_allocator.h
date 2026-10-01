@@ -16,6 +16,14 @@ public:
     VoiceAllocator() = default;
 
     void init(float sampleRate);
+    // Startup/host-only preparation. Production model switching only selects state.
+    void prepareUduForTest(const UduConfig& config) {
+        reset(); uduCache_.prepare(sampleRate_,config);
+    }
+    uint32_t getUduNonfiniteCount() const {
+        uint32_t n=0; for(const auto& voice:voices_) n+=voice.getUduNonfiniteCount();
+        return n;
+    }
     void reset();
 
     // Note On: allocate voice or steal lowest energy voice
@@ -103,6 +111,7 @@ public:
     const ModalVoice& getVoice(size_t index) const { return voices_[index]; }
 
 private:
+    UduCache uduCache_;
     int findVoiceToSteal() const;
 #if POCKETPAN_PAN_STABLE8_FASTPATH
     // True when every voice is sustain-safe for the whole block and no steal

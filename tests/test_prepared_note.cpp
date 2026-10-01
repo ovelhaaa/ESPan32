@@ -235,9 +235,8 @@ void testGrid() {
             0x9e9801244165101dULL, 0x7c2dc6f37fb99f4bULL,
             0x83f75567fb47ebafULL, 0x14772092e35bc4a7ULL,
             0xe9bcabdd0b6e3bd2ULL, 0x14e0dd6ba566e1cfULL, 0x236d684f05f5f1d2ULL,
-            0x3cea893644aa0283ULL}; // Frozen VIBRAPHONE V1: C + M1.
-        if (model != InstrumentModel::Mbira)
-            assert(aggregate == baseline[static_cast<unsigned>(model)]);
+            0x3cea893644aa0283ULL, 0xf5ee8755af2fa270ULL}; // MBIRA V1: B + Buzz ON.
+        assert(aggregate == baseline[static_cast<unsigned>(model)]);
         std::cout << "  " << modelName(model) << " " << caseCount << " exact cases, aggregate FNV 0x"
                   << std::hex << aggregate << std::dec << '\n';
     }
@@ -468,6 +467,10 @@ SwitchRender renderAllModelCycle(bool cacheEnabled) {
     engine.handleMidiEvent(noteOn(62, 110));
     appendRender(engine, 512, result.whole.samples);
 
+    engine.setInstrumentModel(InstrumentModel::Udu);
+    engine.handleMidiEvent(noteOn(60, 110));
+    appendRender(engine, 512, result.whole.samples);
+
     engine.setInstrumentModel(InstrumentModel::Pan);
     engine.handleMidiEvent(noteOn(50, 70));
     appendRender(engine, kGridFrames, result.whole.samples);
@@ -479,17 +482,17 @@ SwitchRender renderAllModelCycle(bool cacheEnabled) {
 }
 
 void testAllModelCycle() {
-    std::cout << "[PreparedNote] PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> MARIMBA -> VIBRAPHONE -> MBIRA -> PAN...\n";
+    std::cout << "[PreparedNote] PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> MARIMBA -> VIBRAPHONE -> MBIRA -> UDU -> PAN...\n";
     const SwitchRender cached = renderAllModelCycle(true);
     const SwitchRender uncached = renderAllModelCycle(false);
     if (cached.whole.fnv != uncached.whole.fnv || cached.whole.samples != uncached.whole.samples) {
-        failPcmComparison("PAN -> BELL -> TONGUE -> BOWL -> KALIMBA -> GLASS -> MARIMBA -> VIBRAPHONE -> MBIRA -> PAN", cached.whole, uncached.whole);
+        failPcmComparison("Ten-model cycle including UDU", cached.whole, uncached.whole);
     }
 
     const RenderedPcm directPan = renderEvents(InstrumentModel::Pan, true,
                                                 {{0, noteOn(50, 70)}}, kGridFrames);
     if (cached.finalPan.fnv != directPan.fnv || cached.finalPan.samples != directPan.samples) {
-        failPcmComparison("PAN after MBIRA switch versus direct PAN", cached.finalPan, directPan);
+        failPcmComparison("PAN after UDU switch versus direct PAN", cached.finalPan, directPan);
     }
 }
 

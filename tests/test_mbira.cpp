@@ -30,7 +30,8 @@ static Result render(const dsp::InstrumentModelConfig& config,
         if(referenceTrigger) override.id=InstrumentModel::Pan;
         engine.setModelConfigForTest(override);
     }
-    engine.setMbiraBuzzEnabled(buzz);
+    // ON exercises the production model-selection default; OFF is historical.
+    if(!buzz) engine.setMbiraBuzzEnabled(false);
 #if POCKETPAN_PREPARED_NOTE_CACHE
     engine.setPreparedNoteCacheEnabledForTest(cache);
 #else
@@ -94,6 +95,14 @@ static double differenceRms(const Result& a,const Result& b) {
         double d=(double(a.pcm[i])-double(b.pcm[i]))/2147483648.0;sum+=d*d;
     }return std::sqrt(sum/duration);
 }
+// Exact stereo int32 PCM, byte order fixed explicitly for portable FNV64.
+static uint64_t pcmHash(const Result& r) {
+    uint64_t hash=14695981039346656037ULL;
+    for(int32_t sample:r.pcm) for(unsigned shift=0;shift<32;shift+=8) {
+        hash^=(uint32_t(sample)>>shift)&255; hash*=1099511628211ULL;
+    }
+    return hash;
+}
 static double upperEnergyDb(const Result& r,const dsp::InstrumentModelConfig& config,uint8_t note) {
     const double fundamental=midi::MidiMapping::noteToHz(note);
     double energy[6]={};
@@ -120,7 +129,7 @@ int main(int argc,char** argv) {
     assert(std::string(dsp::instrumentModelName(base.id))=="MBIRA");
     for(unsigned cycle=0;cycle<2;++cycle) {
         auto model=InstrumentModel::Pan;
-        for(unsigned i=0;i<9;++i) {
+        for(unsigned i=0;i<unsigned(InstrumentModel::Count);++i) {
             assert(unsigned(model)==i); model=dsp::nextInstrumentModel(model);
         }
         assert(model==InstrumentModel::Pan);
@@ -212,6 +221,24 @@ int main(int argc,char** argv) {
         stress[3].events.push_back({frame,62,uint8_t(70+(i%3)*20)});frame+=spacing;
     }
     for(unsigned i=0;i<16;++i) stress[4].events.push_back({i*240, uint8_t(50+i),110});
+    // MBIRA V1 FROZEN: canonical B + default Buzz ON, never RMS matched.
+    const std::array<Fixture,7> frozen={listening[1],listening[2],listening[3],
+        listening[4],stress[0],stress[3],Fixture{"buzz_on_reference",{{0,62,127}}}};
+    constexpr uint64_t hashes[]={0xd2d22bb4f0527a91ULL,0xfd0dee33bee22f45ULL,
+        0x87754361a1eb13a9ULL,0x085e26a7f14868c9ULL,0xbe6481b0ed7d647dULL,
+        0xfb46dbb9d58783e1ULL,0xd63800af5cdb96ddULL};
+    unsigned frozenIndex=0;
+    for(const auto& f:frozen) {
+        const auto r=render(base,f.events,true,true);
+        assert(pcmHash(r)==hashes[frozenIndex++]);
+        std::cout<<"FROZEN "<<f.name<<" 0x"<<std::hex<<pcmHash(r)<<std::dec<<'\n';
+        if(output) {
+            std::ofstream pcm(directory/("mbira_frozen_"+f.name+".pcm"),std::ios::binary);
+            for(int32_t sample:r.pcm) for(unsigned shift=0;shift<32;shift+=8)
+                pcm.put(char((uint32_t(sample)>>shift)&255));
+            assert(pcm.good());
+        }
+    }
     for(const auto& f:stress) for(unsigned i=0;i<3;++i) {
         const auto r=render(configs[i],f.events);
         record(f.name,char('A'+i),r);

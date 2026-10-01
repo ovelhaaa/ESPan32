@@ -1,6 +1,6 @@
-# M7.6 — provisional MBIRA instrument model
+# M7.6.1 — MBIRA V1 FROZEN
 
-MBIRA is the ninth instrument, after frozen VIBRAPHONE V1 and before PAN. The existing registry, BOOT handler, UI name, allocator, limiter and startup PreparedNote tables remain in use. B is the provisional runtime configuration; A and C are host qualification overrides. MBIRA is not frozen and no automatic listening winner is selected.
+MBIRA is the ninth instrument, after frozen VIBRAPHONE V1 and before PAN. The existing registry, BOOT handler, UI name, allocator, limiter and startup PreparedNote tables remain in use. MBIRA V1 = Candidate B + Buzz ON, explicitly accepted by listening. A and C remain historical host experiments only; no further voicing exploration is authorized.
 
 ## KALIMBA inspected before implementation
 
@@ -10,7 +10,7 @@ The current Kalimba has five modes with ratios `[1,2.7,5.4,8.9,13]`, gains `[1,.
 
 MBIRA uses six existing modal recurrences and Process6 where all six modes survive the established Nyquist pruning. The coefficients are prepared through the existing ModalVoice routine at startup; pressure and restrikes retain the existing dynamic paths. No new rendering architecture, allocation, coefficient generation or transcendental math is introduced in the Mbira sample path. The existing exact MIDI-frequency and v^1.15 lookup infrastructure now also serves Mbira, and cached strikes reuse PreparedNote's register position. One shared 128-entry/512-byte table stores the exact .90/.55 velocity-knee power curve, warmed before audio starts. Non-MIDI float velocities and alternate knee/slope configurations keep the libm fallback. A separate host render forces all original trigger math and asserts exact PCM equality.
 
-For an ideal uniform cantilever, frequency is proportional to the squared modal wavenumber. The first roots 1.875, 4.694 and 7.855 give frequency ratios approximately 1:6.267:17.55. [TU Graz's cantilever derivation](https://lampz.tugraz.at/~hadley/memm/mechanics/cbeam.php) provides this physical reference. A rectangular tine can bend on two axes; the ratio of their flexural frequencies depends on section aspect ratio. The reduced B hypothesis places a second coupled flexural family at 3.12 and 3.12×6.267 ≈19.55, and includes a weak torsional/bridge colour at 10.8. The latter placement and effective second-family factor are design assumptions, not measured Mbira data. A/C deliberately perturb upper spacing and coupling for listening. Listening may reject this hypothesis.
+For an ideal uniform cantilever, frequency is proportional to the squared modal wavenumber. The first roots 1.875, 4.694 and 7.855 give frequency ratios approximately 1:6.267:17.55. [TU Graz's cantilever derivation](https://lampz.tugraz.at/~hadley/memm/mechanics/cbeam.php) provides this physical reference. A rectangular tine can bend on two axes; the ratio of their flexural frequencies depends on section aspect ratio. The reduced B hypothesis places a second coupled flexural family at 3.12 and 3.12×6.267 ≈19.55, and includes a weak torsional/bridge colour at 10.8. The latter placement and effective second-family factor are design assumptions, not measured Mbira data. A/C deliberately perturb upper spacing and coupling for listening. The accepted reduced model is frozen.
 
 | Mode | B ratio | Preset gain | Base T60 s | D3 T60 s | D5 T60 s |
 |---|---:|---:|---:|---:|---:|
@@ -33,7 +33,7 @@ One shared bridge contact is driven by the already-rendered tine mix: a 700 Hz o
 
 The restrained strike-bus body uses two weak, short resonances: 310 Hz/gain .065/T60 .25 and 730 Hz/gain .035/T60 .12. Excitation/output gains are .08/.055, bus gain 20 and lowpass 1500 Hz. There is no sympathetic feedback or box simulation. A Mbira-only 20 Hz output DC guard also removes the unipolar pluck/bridge impulse area when buzz is off. Fixed contact and DC coefficients are prepared once; no buzz/body coefficients are added to PreparedNote.
 
-## Candidate differences
+## Historical candidate differences
 
 | Parameter | A: traditional/warm | B: balanced/runtime | C: raw/metallic |
 |---|---|---|---|
@@ -59,7 +59,7 @@ Every reported host fixture has zero NaN/Inf, hard clamps, modal saturation, max
 
 ## Frozen regression
 
-All eight existing aggregate FNV64 hashes remain mandatory assertions over MIDI 24–96 × v30/70/110/127. Vibraphone additionally retains twelve exact dry/M1 fixture hashes. [Hash and memory evidence](qualification/m76/regression_hashes.log).
+All nine production aggregate FNV64 hashes remain mandatory assertions over MIDI 24–96 × v30/70/110/127. Vibraphone additionally retains twelve exact dry/M1 fixture hashes. [Hash and memory evidence](qualification/m76/regression_hashes.log).
 
 | Instrument | Frozen FNV64 |
 |---|---|
@@ -71,8 +71,9 @@ All eight existing aggregate FNV64 hashes remain mandatory assertions over MIDI 
 | GLASS | 14e0dd6ba566e1cf |
 | MARIMBA | 236d684f05f5f1d2 |
 | VIBRAPHONE V1 | 3cea893644aa0283 |
+| MBIRA V1 | f5ee8755af2fa270 |
 
-The pre-existing uncommitted Vibraphone V1 work was retained as the frozen baseline. MBIRA's recorded aggregate is informational and deliberately not a freeze assertion.
+MBIRA V1 aggregate `f5ee8755af2fa270` is now a mandatory assertion, alongside all eight earlier models. Seven canonical B + Buzz ON exact stereo int32 PCM fixtures and their FNV64 assertions are retained in M7.6.1.
 
 ## Hardware and memory
 
@@ -82,6 +83,6 @@ PreparedNote remains 132 bytes; each 73-note model table is 9,640 bytes. Nine ta
 
 The cache remains linear in model count. There is enough measured memory for this milestone, but another instrument will consume about 9.6 KB more before other state; immutable table placement or a bounded active-model cache is a plausible later infrastructure milestone. No cache redesign is included here.
 
-## Remaining listening decisions
+## Final listening decision
 
-Acoustic identity remains a listening decision. Compare A/B/C, buzz off/on at two velocities and the interlocking groove. Select a candidate and contact/body balance explicitly before freezing. No effects, sequencer, MIDI layout or VIBRAPHONE V1 parameter changes are included.
+The user accepted MBIRA V1 = Candidate B + Buzz ON. Modal, exciter, register, contact and bridge values above are immutable for M7.7. See [freeze report](m761_mbira_freeze.md) for the final checks. No effects, sequencer, MIDI layout or VIBRAPHONE V1 parameter changes are included.

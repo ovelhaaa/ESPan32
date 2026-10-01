@@ -99,3 +99,14 @@ target_include_directories(test_mbira PRIVATE ${ROOT}/main)
 target_compile_definitions(test_mbira PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
 target_compile_options(test_mbira PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
 add_test(NAME mbira COMMAND test_mbira)
+
+add_executable(test_udu test_udu.cpp
+ ${ROOT}/main/dsp/modal_resonator.cpp ${ROOT}/main/dsp/body_resonator.cpp
+ ${ROOT}/main/dsp/exciter.cpp ${ROOT}/main/dsp/modal_voice.cpp
+ ${ROOT}/main/dsp/voice_allocator.cpp ${ROOT}/main/dsp/synth_engine.cpp
+ ${ROOT}/main/dsp/instrument_model.cpp ${ROOT}/main/dsp/peak_limiter.cpp
+ ${ROOT}/main/midi/midi_mapping.cpp)
+target_include_directories(test_udu PRIVATE ${ROOT}/main)
+target_compile_definitions(test_udu PRIVATE POCKETPAN_DSP_CANDIDATE=${POCKETPAN_DSP_CANDIDATE})
+target_compile_options(test_udu PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
+add_test(NAME udu COMMAND test_udu)

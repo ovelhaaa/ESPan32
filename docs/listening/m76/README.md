@@ -1,6 +1,6 @@
-# M7.6 Mbira listening decision
+# M7.6 historical Mbira listening experiments
 
-MBIRA remains provisional. B is the runtime baseline for qualification; it has not won a listening vote. No Mbira freeze hash is asserted.
+MBIRA V1 FROZEN = Candidate B + Buzz ON, accepted explicitly by the user. This A/C and buzz-off pack is retained as historical evidence. Aggregate FNV64 `f5ee8755af2fa270` and seven exact PCM fixtures are mandatory freeze assertions.
 
 Compare these five RMS-matched A/B/C groups:
 
@@ -24,6 +24,6 @@ Every file is six seconds, 48 kHz/16 bit stereo with duplicated mono. Each group
 
 The groove alternates two six-pulse hands at 150 ms offsets, using D3/A3/C4/D4 and F4/A4/D5. The chord is D3/A3/D4/F4. Tests additionally render D3/A3/D4/A4/D5 at v30/70/110/127, cluster8 at v127, 100/250 ms restrikes, rolls at 250/125/50 ms and intentional stealing without adding these to the listening pack.
 
-Remaining decisions: which candidate best resembles the intended Mbira, whether hard-note buzz is sufficient or excessive, whether the bridge warmth is audible enough, and how the groove feels during repeated listening. Acoustic plausibility and identity require listening; passing numeric tests does not settle them.
+Final decision: Candidate B + Buzz ON. No further Mbira voicing exploration. [Freeze report](../../m761_mbira_freeze.md).
 
 Regenerate with `build-m76-host/test_mbira.exe docs/listening/m76`, then `python tests/summarize_m76.py`. This focused listening pack is versioned explicitly despite the repository's general generated-WAV ignore rule.

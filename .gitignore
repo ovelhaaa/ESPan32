@@ -12,6 +12,7 @@ managed_components/
 # Test binaries & generated audio
 *.exe
 *.wav
+!docs/listening/m77/*.wav
 test_runner
 
 # Host qualification reports are generated artifacts; design documentation
