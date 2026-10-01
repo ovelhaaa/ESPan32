@@ -668,6 +668,11 @@ extern "C" void app_main(void) {
 #endif
     // 1. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
+#if POCKETPAN_UDU_FIXED_REFERENCE && POCKETPAN_FORENSICS_M77
+    pocketpan::dsp::UduConfig uduReference;
+    uduReference.curve=pocketpan::dsp::UduOpeningCurve::Fixed;
+    sSynth.setUduConfigForTest(uduReference);
+#endif
 #if POCKETPAN_FORENSICS_M76
     // Isolate the added contact DSP cost at 240 MHz before I2S starts. Keep the
     // contact envelope active for every measured block (worst-case arithmetic).
@@ -747,6 +752,7 @@ extern "C" void app_main(void) {
         (unsigned)sizeof(sSynth), (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
         (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
     ESP_LOGI(kTag, "[UDU_CACHE] compact_bytes=%u full_tables=9", (unsigned)sizeof(pocketpan::dsp::UduCache));
+    ESP_LOGI(kTag, "[UDU_STATE] voice_bytes=%u fixed_reference=%u", (unsigned)sizeof(pocketpan::dsp::UduVoice), POCKETPAN_UDU_FIXED_REFERENCE);
 #endif
 
     // 6. Start UI Task on Core 1

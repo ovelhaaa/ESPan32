@@ -13,6 +13,7 @@ managed_components/
 *.exe
 *.wav
 !docs/listening/m77/*.wav
+!docs/listening/m771/*.wav
 test_runner
 
 # Host qualification reports are generated artifacts; design documentation

@@ -38,8 +38,10 @@ idf_component_register(
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 set(POCKETPAN_FORENSICS_M76 0 CACHE STRING "M7.6 Mbira connected qualification")
 set(POCKETPAN_FORENSICS_M77 0 CACHE STRING "M7.7 Udu connected qualification")
-set(POCKETPAN_FORENSICS_M77_BATCH 0 CACHE STRING "Udu: 0 single/chord/cluster, 1 groove/switch")
+set(POCKETPAN_FORENSICS_M77_BATCH 0 CACHE STRING "Udu: 0 single/chord/cluster, 1 groove/switch/rapid")
+set(POCKETPAN_UDU_FIXED_REFERENCE 0 CACHE STRING "Diagnostic startup-only fixed PARTIAL timing control")
 target_compile_definitions(${COMPONENT_LIB} PRIVATE POCKETPAN_FORENSICS_M77=${POCKETPAN_FORENSICS_M77}
+    POCKETPAN_UDU_FIXED_REFERENCE=${POCKETPAN_UDU_FIXED_REFERENCE}
     POCKETPAN_FORENSICS_M77_BATCH=${POCKETPAN_FORENSICS_M77_BATCH})
 set(POCKETPAN_FORENSICS_M76_BATCH 0 CACHE STRING "M7.6 qualification batch: 0 single/chord/cluster, 1 roll/groove/switch, 2 buzz-on single")
 target_compile_definitions(${COMPONENT_LIB} PRIVATE POCKETPAN_FORENSICS_M76=${POCKETPAN_FORENSICS_M76}

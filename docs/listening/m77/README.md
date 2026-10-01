@@ -1,5 +1,8 @@
 # M7.7 UDU listening candidates
 
+This is the retained historical fixed-opening pack. The current velocity-opening
+experiment is in [M7.7.1](../m771/README.md); B remains selected and UDU is not frozen.
+
 UDU is technically qualified, not frozen. The user selected character B after
 listening. B / PARTIAL remains the runtime baseline. Velocity-driven transitions
 between CLOSED / PARTIAL / OPEN are deferred to the next implementation round.

@@ -4,3 +4,5 @@ docs/qualification/m761/*_raw.log -text -whitespace
 docs/qualification/m77/**/*_raw.log -text -whitespace
 docs/qualification/m77/*_raw.log -text -whitespace
 docs/qualification/m77/production_memory_initial.log -text -whitespace
+docs/qualification/m771/**/*_raw.log -text -whitespace
+docs/qualification/m771/*_raw.log -text -whitespace

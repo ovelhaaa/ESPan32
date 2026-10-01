@@ -8,11 +8,25 @@ namespace pocketpan::dsp {
 // UDU is a reduced air/body model, independent of the pitched-bar bank.
 enum class UduCandidate : uint8_t { Deep, Balanced, Dry };
 enum class UduOpening : uint8_t { Open, Partial, Closed };
+enum class UduOpeningCurve : uint8_t { Fixed, Linear, Smooth, Centered };
+enum class UduRestrike : uint8_t { Retain, Update };
+inline float uduOpeningForVelocity(float v,UduOpeningCurve curve) {
+    v=std::clamp(v,0.0f,1.0f);
+    if(curve==UduOpeningCurve::Linear) return v;
+    if(curve==UduOpeningCurve::Smooth) return v*v*(3.0f-2.0f*v);
+    if(curve==UduOpeningCurve::Fixed) return .5f;
+    // Musical anchors: (0,0), (.3,.15), (.6,.5), (.8,.75), (1,1).
+    if(v<=.3f) return .5f*v;
+    if(v<=.6f) return .15f+(v-.3f)*( .35f/.3f );
+    return .5f+(v-.6f)*1.25f;
+}
 struct UduConfig {
     float cavityHz=105.0f, cavityT60=.42f, cavityGain=1.0f;
     float shellGain=1.0f, handMs=2.8f, outputGain=.0016f;
     UduOpening opening=UduOpening::Partial;
     bool compressedRange=true;
+    UduOpeningCurve curve=UduOpeningCurve::Centered;
+    UduRestrike restrike=UduRestrike::Retain;
 };
 inline UduConfig uduCandidateConfig(UduCandidate candidate) {
     UduConfig c;
@@ -26,10 +40,12 @@ inline UduConfig uduCandidateConfig(UduCandidate candidate) {
     return c;
 }
 struct UduCoefficients { float a1[6]{}, a2[6]{}, injection[6]{}; };
+struct UduAirCoefficients { float a1[2]{},a2[2]{},injection[2]{}; };
 struct UduCache {
     // 49 virtual sizes, not a tenth 9640-byte PreparedNote table.
     static constexpr unsigned first=36, last=84, count=last-first+1;
     UduCoefficients notes[count]{};
+    UduAirCoefficients closed[count]{},open[count]{};
     UduConfig config{};
     float handSlow=0, handFast=0, clickPole=0, dcPole=0;
     float sampleRate=48000;
@@ -60,10 +76,41 @@ struct UduCache {
                 // Normalized impulse response; excitation is a rounded hand pulse.
                 notes[i].injection[m]=std::sin(angle);
             }
+            for(unsigned m=0;m<2;++m) {
+                const float baseHz=c.cavityHz*size*(m==0?1.0f:2.31f);
+                const float baseT60=c.cavityT60*(m==0?1.0f:.29f);
+                auto endpoint=[&](UduAirCoefficients& dst,float hzScale,float decayScale) {
+                    const float r=std::exp(-6.907755279f/(rate*baseT60*decayScale));
+                    const float angle=6.283185307f*std::min(baseHz*hzScale,rate*.44f)/rate;
+                    dst.a1[m]=2*r*std::cos(angle);dst.a2[m]=-r*r;
+                    dst.injection[m]=std::sin(angle);
+                };
+                endpoint(closed[i],.72f,1.30f);endpoint(open[i],1.18f,.72f);
+            }
         }
     }
     const UduCoefficients& find(uint8_t note) const {
         return notes[std::clamp(unsigned(note),first,last)-first];
+    }
+    UduAirCoefficients airFor(uint8_t note,float opening) const {
+        const unsigned i=std::clamp(unsigned(note),first,last)-first;
+        UduAirCoefficients result;
+        // PARTIAL is an exact knot. Interpolate stable recurrence coefficients
+        // in two segments, including normalized excitation, only at NoteOn.
+        const bool lower=opening<.5f;
+        const float t=lower?opening*2.0f:(opening-.5f)*2.0f;
+        for(unsigned m=0;m<2;++m) {
+            auto lerp=[&](float partial,float shut,float opened) {
+                const float a=lower?shut:partial,b=lower?partial:opened;
+                if(t==0) return a;
+                if(t==1) return b;
+                return a+(b-a)*t;
+            };
+            result.a1[m]=lerp(notes[i].a1[m],closed[i].a1[m],open[i].a1[m]);
+            result.a2[m]=lerp(notes[i].a2[m],closed[i].a2[m],open[i].a2[m]);
+            result.injection[m]=lerp(notes[i].injection[m],closed[i].injection[m],open[i].injection[m]);
+        }
+        return result;
     }
 };
 
@@ -73,12 +120,23 @@ public:
     void reset() {
         std::fill(z1_,z1_+6,0); std::fill(z2_,z2_+6,0);
         slow_=fast_=click_=dc_=0; remaining_=0; fault_=0;
+        coeff_=nullptr;
     }
     void strike(uint8_t note,float velocity,bool clear) {
         if(clear) reset();
         if(!cache_) return;
-        coeff_=&cache_->find(note);
         velocity_=std::clamp(velocity,0.0f,1.0f);
+        if(!coeff_ || cache_->config.curve==UduOpeningCurve::Fixed ||
+           cache_->config.restrike==UduRestrike::Update || cavityEnergy()<1e-9f) {
+            coeff_=&cache_->find(note);
+            opening_=uduOpeningForVelocity(velocity_,cache_->config.curve);
+            if(cache_->config.curve==UduOpeningCurve::Fixed) {
+                for(unsigned m=0;m<2;++m) {
+                    air_.a1[m]=coeff_->a1[m];air_.a2[m]=coeff_->a2[m];
+                    air_.injection[m]=coeff_->injection[m];
+                }
+            } else air_=cache_->airFor(note,opening_);
+        }
         // More shell and a shorter hand pulse at high velocity; air always present.
         cavityDrive_=velocity_*(.72f+.28f*velocity_)*cache_->config.cavityGain;
         shellDrive_=velocity_*(.12f+.88f*velocity_*velocity_)*cache_->config.shellGain;
@@ -87,6 +145,11 @@ public:
     }
     bool hasExciter() const { return remaining_>0; }
     uint32_t faults() const { return fault_; }
+    float opening() const { return opening_; }
+    const UduAirCoefficients& airCoefficients() const { return air_; }
+    float cavityEnergy() const {
+        return z1_[0]*z1_[0]+z2_[0]*z2_[0]+z1_[1]*z1_[1]+z2_[1]*z2_[1];
+    }
     float energy() const {
         float sum=0; for(unsigned m=0;m<6;++m) sum+=z1_[m]*z1_[m]+z2_[m]*z2_[m];
         return sum;
@@ -129,12 +192,17 @@ public:
     }
 private:
     template<unsigned M> float advance(float input,float choke) {
-        const float y=coeff_->injection[M]*input+coeff_->a1[M]*z1_[M]+coeff_->a2[M]*z2_[M];
+        float y;
+        if constexpr(M<2)
+            y=air_.injection[M]*input+air_.a1[M]*z1_[M]+air_.a2[M]*z2_[M];
+        else y=coeff_->injection[M]*input+coeff_->a1[M]*z1_[M]+coeff_->a2[M]*z2_[M];
         z2_[M]=z1_[M]*choke; z1_[M]=y*choke;
         return y;
     }
     const UduCache* cache_=nullptr;
     const UduCoefficients* coeff_=nullptr;
+    UduAirCoefficients air_{};
+    float opening_=.5f;
     float z1_[6]{},z2_[6]{};
     float slow_=0,fast_=0,click_=0,dc_=0,velocity_=0,cavityDrive_=0,shellDrive_=0;
     uint32_t remaining_=0,noise_=1,fault_=0;

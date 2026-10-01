@@ -1,0 +1,9 @@
+Test project C:/progs/ESPan/build-host
+    Start 12: udu
+1/2 Test #12: udu ..............................   Passed    0.92 sec
+    Start 13: udu_dynamic
+2/2 Test #13: udu_dynamic ......................   Passed    0.79 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   1.73 sec

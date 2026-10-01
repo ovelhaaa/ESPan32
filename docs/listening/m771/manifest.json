@@ -1,0 +1,57 @@
+{
+  "udu_B_dynamic_v30.wav": {
+    "sha256": "1573519fdeee5dd00c953fe09720c328284dcc168499908664c9a6d93e8b30ad",
+    "rms": 0.0008460353210991184,
+    "peak": 0.0177001953125
+  },
+  "udu_B_dynamic_v70.wav": {
+    "sha256": "399dea0fcc868f0507c77e5b8fbe56371e4a137903e4f4e4bb4d2c9abde183cb",
+    "rms": 0.0008460412665888997,
+    "peak": 0.020843505859375
+  },
+  "udu_B_dynamic_v110.wav": {
+    "sha256": "2e861afdcfd8a236a72bf0f935bc653f88a66b38d70057c1a1193606e6b2fa0a",
+    "rms": 0.000846018310002193,
+    "peak": 0.026519775390625
+  },
+  "udu_B_dynamic_v127.wav": {
+    "sha256": "75a4f0a242683e75dd486d900cd01c0d926e3e7e647852159d76d24c67a5f5a9",
+    "rms": 0.0008460657857983297,
+    "peak": 0.030364990234375
+  },
+  "udu_B_groove_fixed_partial.wav": {
+    "sha256": "6db3bfac5e8780c71b7eb41628aa9239a73704a50c097e605924beb709562151",
+    "rms": 0.006566202629524427,
+    "peak": 0.068084716796875
+  },
+  "udu_B_groove_dynamic_opening.wav": {
+    "sha256": "ca0f82c8a4dcef3e55cf6fe2a15824e80342d1f712af2f4723300c2e0deeeb23",
+    "rms": 0.006566169859710268,
+    "peak": 0.062957763671875
+  },
+  "udu_B_groove_dynamic_linear.wav": {
+    "sha256": "b8c503dd87dea5934ba865d35302aed95af66b7d9d2cd18f65f4a17ee300f427",
+    "rms": 0.006130272654381475,
+    "peak": 0.060638427734375
+  },
+  "udu_B_groove_dynamic_smooth.wav": {
+    "sha256": "27291b21b35530385de55f16f748ccb97b377fd8ce866b6a6cadead38c19cc86",
+    "rms": 0.006130234890862959,
+    "peak": 0.063446044921875
+  },
+  "udu_B_groove_dynamic_centered.wav": {
+    "sha256": "4069a6ee8872aaf61054f20611ccdd3cace6d99f43ef57c13419075186c037fa",
+    "rms": 0.0061302306383412865,
+    "peak": 0.05877685546875
+  },
+  "udu_B_restrike_R1.wav": {
+    "sha256": "bdd7cbee8078f1f16940e4841088cc4403ffa206ede00599e9e60a6c7722d96a",
+    "rms": 0.005118424155417684,
+    "peak": 0.071624755859375
+  },
+  "udu_B_restrike_R2.wav": {
+    "sha256": "7c245c7e9f3be5d3949e8ff6c688359670565c7272e66b211272fa7bedbfe6bd",
+    "rms": 0.00511841132757814,
+    "peak": 0.094879150390625
+  }
+}

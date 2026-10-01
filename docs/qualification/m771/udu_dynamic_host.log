@@ -1,0 +1,5 @@
+groove_voice_frames fixed=500128 dynamic=493760
+repeating_groove_voice_frames fixed=2501376 dynamic=2542080
+UDU dynamic: B preserved; poles stable/monotonic; R1/R2; safety; partition; allocation PASS
+fixed_partial_raw_fnv64=1a768c0057636a2d
+UduCache=5928 UduVoice=136 SynthEngine=108232 PreparedNote=132

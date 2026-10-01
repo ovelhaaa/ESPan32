@@ -1,0 +1,9 @@
+FROZEN D4_v70 0xd2d22bb4f0527a91
+FROZEN D4_v110 0xfd0dee33bee22f45
+FROZEN chord 0x87754361a1eb13a9
+FROZEN groove 0x85e26a7f14868c9
+FROZEN cluster8 0xbe6481b0ed7d647d
+FROZEN roll 0xfb46dbb9d58783e1
+FROZEN buzz_on_reference 0xd63800af5cdb96dd
+MBIRA: safety, velocity, cache, fast paths, partitioning, two cycles passed.
+PreparedNote=132 table=9640 total tables=86760 engine=108232

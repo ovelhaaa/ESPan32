@@ -120,6 +120,8 @@ struct Result {
     std::array<Timing, kClassCount> callbackTiming{};
     uint32_t badVoices = 0, bleLost = 0, hardClamp = 0, modalSat = 0, nonfinite = 0;
     uint32_t maxObservedVoices = 0;
+    uint64_t eventCycles = 0;
+    uint32_t eventCount = 0,eventMaxUs = 0;
     // Diagnostic counters for the M6.3.5 fast paths.  Read from the allocator at
     // fixture completion only; never touched by DSP processing.
     uint32_t stable8 = 0, attack = 0;
@@ -234,7 +236,7 @@ inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
 #if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
-inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M77_BATCH ? 2 : 3;
+inline constexpr unsigned fixtureCount = 3;
 #elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
 // Keep diagnostic histograms at the existing three-fixture memory footprint.
 inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M76_BATCH == 2 ? 1 : 3;
@@ -283,7 +285,7 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 
 inline unsigned kindOf(unsigned id) {
 #if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
-    constexpr unsigned kinds[]={1,6,5,1,1}; return kinds[id%5];
+    constexpr unsigned kinds[]={1,6,5,1,1,7}; return kinds[id%6];
 #elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
     constexpr unsigned kinds[] = {1, 6, 5, 7, 1, 1, 1};
     return kinds[id % 7];
@@ -389,7 +391,8 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
     const bool isTransition = (block == 0);
     constexpr unsigned phraseBlocks = POCKETPAN_FORENSICS_M77 ? 94 : POCKETPAN_FORENSICS_M76 ? 56 : 282;
-    const bool event = !isTransition && (roll ? ((block - 1) % 38 == 0) : ((block - 1) % (phrase ? phraseBlocks : 188) == 0));
+    constexpr unsigned rollBlocks=POCKETPAN_FORENSICS_M77?8:38;
+    const bool event = !isTransition && (roll ? ((block - 1) % rollBlocks == 0) : ((block - 1) % (phrase ? phraseBlocks : 188) == 0));
 
     ForensicsBlockClass currentClass;
     if (isTransition) {
@@ -497,6 +500,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
                     const unsigned step=((block-1)/phraseBlocks)%16;
                     note.data1=potNotes[step];note.data2=potVelocities[step];
                 }
+                if(roll) note.data2=((block-1)/rollBlocks)%2?127:30;
 #endif
 #if POCKETPAN_FORENSICS_M76
                 if (phrase) {
@@ -508,6 +512,11 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
                 synth.handleMidiEvent(note);
             }
+        }
+        if(event) {
+            const uint32_t cycles=esp_cpu_get_cycle_count()-start;
+            auto& result=results[fixture];result.eventCycles+=cycles;++result.eventCount;
+            result.eventMaxUs=std::max(result.eventMaxUs,(cycles+239)/240);
         }
         synth.renderBlock(output, frames);
         elapsed = esp_cpu_get_cycle_count() - start;
@@ -521,8 +530,12 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     r.maxObservedVoices = std::max<uint32_t>(r.maxObservedVoices, observedVoices);
     // Phrase tails expire naturally; restrikes can also cancel existing energy.
     // Verify the live count is bounded by the notes introduced, not permanently 4.
+    // OPEN decays sooner than the fixed-PARTIAL reference. In UDU steady
+    // tails, fewer live voices are natural; event/attack counts remain exact.
+    const bool naturalUduTail=POCKETPAN_FORENSICS_M77 && currentClass==ForensicsBlockClass::TrueSteady;
     if (!isTransition && (phrase ? (observedVoices == 0 || observedVoices > expectedVoices)
-                                 : observedVoices != expectedVoices)) ++r.badVoices;
+                                 : naturalUduTail ? observedVoices > expectedVoices
+                                                  : observedVoices != expectedVoices)) ++r.badVoices;
     if (!ready.load(std::memory_order_acquire)) ++r.bleLost;
 
     sCurrentBlockContext.internalRenderUs = (elapsed + 239) / 240;
@@ -584,6 +597,9 @@ inline void logCompleted() {
         const auto& io = fixtureAudioStats[logged];
         ESP_LOGI("forensics", "[SAFETY] fixture=%u hard=%u sat=%u nonfinite=%u ble_lost=%u",
             id, (unsigned)r.hardClamp, (unsigned)r.modalSat, (unsigned)r.nonfinite, (unsigned)r.bleLost);
+        ESP_LOGI("forensics", "[EVENT_ONLY] fixture=%u n=%u avg_us=%.2f max_us=%u",id,
+            (unsigned)r.eventCount,r.eventCount?double(r.eventCycles)/r.eventCount/240.0:0.0,
+            (unsigned)r.eventMaxUs);
         ESP_LOGI("forensics", "[FIXTURE_IO] model=%s fixture=%u avg_us=%u p99_us=%u max_us=%u cpu_pct=%.2f deadline=%u timeouts=%u tx_errors=%u short_writes=%u",
             dsp::instrumentModelName(modelOf(id)), id, (unsigned)io.avgBlockTimeUs,
             (unsigned)io.p99BlockTimeUs, (unsigned)io.maxBlockTimeUs, double(io.cpuLoadPercent),

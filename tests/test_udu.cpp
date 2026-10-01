@@ -21,6 +21,7 @@ struct Result {
     std::vector<int32_t> pcm;
     double peak=0,rms=0,dc=0,pre=0,maxGr=0,avgGr=0;
     unsigned gr01=0,gr1=0,hard=0,sat=0,nonfinite=0,voices=0,steals=0;
+    uint64_t voiceFrames=0;
 };
 static Result render(const dsp::UduConfig& config,const std::vector<Event>& events,
                      size_t partition=128,bool fast=true) {
@@ -82,7 +83,9 @@ static Result measured(const dsp::UduConfig& config,const std::vector<Event>& ev
         }
         size_t n=std::min(partition,duration-frame);
         if(next<events.size()) n=std::min(n,events[next].frame-frame);
-        assert(n>0);engine.renderBlock(r.pcm.data()+2*frame,n);frame+=n;
+        assert(n>0);
+        r.voiceFrames+=n*engine.getVoiceAllocator().getActiveVoiceCount();
+        engine.renderBlock(r.pcm.data()+2*frame,n);frame+=n;
         r.voices=std::max(r.voices,unsigned(engine.getVoiceAllocator().getActiveVoiceCount()));
     }
     forbidAllocation=false;
@@ -123,12 +126,15 @@ static void wav(const std::filesystem::path& path,const Result& r,double target)
     for(auto x:r.pcm) u16(uint16_t(int16_t(std::lround(double(x)/65536.0*gain))));
     assert(out.good());
 }
+#ifndef UDU_DYNAMIC_TEST
 int main(int argc,char** argv) {
     const bool output=argc>1;const std::filesystem::path directory=output?argv[1]:".";
     if(output) std::filesystem::create_directories(directory);
-    const auto base=dsp::uduCandidateConfig(dsp::UduCandidate::Balanced);
+    auto base=dsp::uduCandidateConfig(dsp::UduCandidate::Balanced);
+    base.curve=dsp::UduOpeningCurve::Fixed;
     std::array<dsp::UduConfig,3> configs={dsp::uduCandidateConfig(dsp::UduCandidate::Deep),
         base,dsp::uduCandidateConfig(dsp::UduCandidate::Dry)};
+    for(auto& c:configs) c.curve=dsp::UduOpeningCurve::Fixed;
     assert(std::string(dsp::instrumentModelName(dsp::InstrumentModel::Udu))=="UDU");
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Mbira)==dsp::InstrumentModel::Udu);
     assert(dsp::nextInstrumentModel(dsp::InstrumentModel::Udu)==dsp::InstrumentModel::Pan);
@@ -203,3 +209,4 @@ int main(int argc,char** argv) {
         <<" SynthEngine="<<sizeof(dsp::SynthEngine)<<" PreparedNote="<<sizeof(dsp::PreparedNote)
         <<" full tables="<<9*sizeof(dsp::PreparedNoteTable)<<'\n';
 }
+#endif
