@@ -41,6 +41,9 @@ public:
     void setMasterVolume(float vol);
     // Qualification controls; one phase shared by the entire instrument.
     void setVibraphoneMotor(bool enabled, float rateHz = 4.5f, float depth = .32f);
+    #ifdef POCKETPAN_M751_LISTENING_REFERENCE
+    void setOldMotorReferenceForTest(bool enabled) { oldMotorReference_ = enabled; }
+#endif
     uint32_t getMotorPhaseForTest() const { return motorPhase_; }
     uint32_t getNonfiniteCount() const { return nonfiniteCount_; }
     // Compatibility names retained for host reports; this is limiter activity,
@@ -140,6 +143,10 @@ private:
     bool motorEnabled_ = true;
     float motorDepth_ = .32f;
     float motorTable_[257]{};
+    float tubeBuffer_[kMaxBlockFrames]{};
+#ifdef POCKETPAN_M751_LISTENING_REFERENCE
+    bool oldMotorReference_ = false;
+#endif
     uint32_t nonfiniteCount_ = 0;
     BodyResonator preparedBodies_[static_cast<size_t>(InstrumentModel::Count)]{};
     BodyResonator body_; InstrumentModelConfig modelConfig_{};

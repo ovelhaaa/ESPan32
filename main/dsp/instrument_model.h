@@ -84,6 +84,7 @@ struct InstrumentModelConfig {
     SympatheticConfig sympathetic;
     BodyExcitationStrategy bodyStrategy;
     float strikeBusGain;
+    float tubeCoupling = 0.0f;
 };
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model);

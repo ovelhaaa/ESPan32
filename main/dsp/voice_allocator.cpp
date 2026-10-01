@@ -195,6 +195,34 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames) {
     }
 }
 
+// Vibraphone has no body or sympathetic feedback. Keep the normal modal
+// kernels and voice order; tap mode 0 immediately after each recurrence.
+DSP_HOT void VoiceAllocator::renderVibraphoneBlock(float* bar, float* tube, size_t frames) {
+    std::fill(bar, bar + frames, 0.0f);
+    std::fill(tube, tube + frames, 0.0f);
+    for (auto& voice : voices_) {
+        if (!voice.isActive()) continue;
+#if POCKETPAN_SUSTAIN_FASTPATH
+        const bool sustain = voice.isSustainFastPathEnabledForTest() && voice.isSustainSafe();
+        if (sustain) ++sustainFastPathBlocks_;
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+        const bool attack = voice.isAttackFastPathEnabledForTest() && voice.isAttackSafe();
+        if (attack) ++attackFastPathBlocks_;
+#endif
+        voice.renderTubeBlock(bar, tube, frames);
+    }
+    // Existing captured steal tails remain in the dry bus only.
+    for (auto& tail : stealTails_) {
+        if (!tail.active) continue;
+        for (size_t i = 0; i < frames && tail.samplesLeft; ++i) {
+            bar[i] += tail.currentSample;
+            tail.currentSample -= tail.step;
+            if (--tail.samplesLeft == 0) tail.active = false;
+        }
+    }
+}
+
 size_t VoiceAllocator::getActiveStealTailCount() const {
     size_t count = 0;
     for (const auto& tail : stealTails_) if (tail.active) ++count;

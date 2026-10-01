@@ -1,0 +1,68 @@
+{
+  "restored_normal_firmware": true,
+  "default_model": "PAN",
+  "log_sha256": "1a3bc0ca15e88a5a697152a237d6d8cd8a965c00f6671becdbc7f9158fb8c5cc",
+  "firmware_sha256": "40c0a26d343ef55c3cb7e7b83c8c0837eca6defa1d307e325685c685f70f71fe",
+  "audio": [
+    {
+      "model": "PAN",
+      "blocks": "1836",
+      "avg_us": "341",
+      "p99_us": "0",
+      "max_us": "521",
+      "cpu_load": "12.8",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "3713",
+      "avg_us": "342",
+      "p99_us": "425",
+      "max_us": "521",
+      "cpu_load": "12.8",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "5594",
+      "avg_us": "342",
+      "p99_us": "350",
+      "max_us": "521",
+      "cpu_load": "12.8",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "7476",
+      "avg_us": "342",
+      "p99_us": "375",
+      "max_us": "521",
+      "cpu_load": "12.8",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "9358",
+      "avg_us": "342",
+      "p99_us": "375",
+      "max_us": "521",
+      "cpu_load": "12.8",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    }
+  ]
+}

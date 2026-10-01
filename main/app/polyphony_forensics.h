@@ -234,9 +234,9 @@ inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
 #if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
-// Keep the M7.4 four-fixture SRAM footprint and timing instrumentation.
-// Batch 1 covers the remaining three fixtures; no cache/PSRAM redesign.
-inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M75_BATCH ? 3 : 4;
+// M7.5.1 focused qualification: three fixtures per batch.
+// Retain the existing timing instrumentation and fixed cache architecture.
+inline constexpr unsigned fixtureCount = 3;
 #elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
 inline constexpr unsigned fixtureCount = 4;
 #elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
@@ -295,7 +295,8 @@ inline bool isPan(unsigned id) { return modelOf(id) == dsp::InstrumentModel::Pan
 
 inline unsigned fixtureId(unsigned index) {
 #if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
-    return index + (POCKETPAN_FORENSICS_M75_BATCH ? 4 : 0);
+    constexpr unsigned focused[] = {0, 1, 2, 4, 5, 6};
+    return focused[index + (POCKETPAN_FORENSICS_M75_BATCH ? 3 : 0)];
 #elif defined(POCKETPAN_FORENSICS_M74) && POCKETPAN_FORENSICS_M74
     return index;
 #elif defined(POCKETPAN_FORENSICS_M7) && POCKETPAN_FORENSICS_M7
@@ -392,8 +393,8 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         const uint32_t start = esp_cpu_get_cycle_count();
         synth.setInstrumentModel(modelOf(id));
 #if defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75
-        // Fixture 0/1/2 dry, 3/4/5 motor ON. Same six-mode architecture.
-        synth.setVibraphoneMotor(id >= 3);
+        // M7.5.1: single OFF, chord/cluster/phrase/switch/single ON.
+        synth.setVibraphoneMotor(id != 0);
 #endif
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
         if (id == 16) synth.setBodyEnabled(false); // Diagnostic PAN isolation only.

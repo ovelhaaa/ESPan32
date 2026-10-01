@@ -81,6 +81,9 @@ public:
     uint32_t getAge() const { return age_; }
     float getEstimatedEnergy() const { return estimatedEnergy_; }
     float getLastSample() const { return lastSample_; }
+    void renderTubeBlock(float* bar, float* tube, size_t frames);
+    float fundamentalSample() const { return resonators_.fundamentalSample(); }
+    float tubeFadeGain() const { return isStealing_ ? stealGain_ : 1.0f; }
     uint32_t getInternalSaturationCount() const { return resonators_.getInternalSaturationCount(); }
     void setInternalSafetySaturation(bool enabled);
     void setModelConfig(const InstrumentModelConfig& config);

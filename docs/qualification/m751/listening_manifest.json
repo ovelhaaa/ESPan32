@@ -1,0 +1,143 @@
+[
+  {
+    "file": "vibra_D3_v70_A_matched.wav",
+    "sha256": "b232b2680469cd5a6765d9b16867deeb85fd2be587296424d74fe04155ca9746",
+    "rms": 0.01287485358195045,
+    "peak": 0.08203125
+  },
+  {
+    "file": "vibra_D3_v70_B_matched.wav",
+    "sha256": "578c00b5fc5ebd16bedfdf3cbf048d5964dd95909e57adbb830d4f4fc973eafd",
+    "rms": 0.012874866201659365,
+    "peak": 0.094970703125
+  },
+  {
+    "file": "vibra_D3_v70_C_matched.wav",
+    "sha256": "32ff3dd07cd85a5f1e116bbf8ecd7ba41913e332142ea7498b571fe36256a3b7",
+    "rms": 0.012874838386555188,
+    "peak": 0.110198974609375
+  },
+  {
+    "file": "vibra_D4_v70_A_matched.wav",
+    "sha256": "8a4f7bfebc1f8f73cb2dc2448f0413702923ccd4b0549387b70584e92e8799e6",
+    "rms": 0.01122206410287549,
+    "peak": 0.076812744140625,
+    "mode_energy_db_relative_fundamental": [
+      0.0,
+      -19.871681529883706,
+      -45.11017691237044
+    ]
+  },
+  {
+    "file": "vibra_D4_v70_B_matched.wav",
+    "sha256": "b86b5a2c24f69abb333158a99e0b5eec836bd0f52b17b0ca0f079a8708587301",
+    "rms": 0.011222051433338582,
+    "peak": 0.088134765625,
+    "mode_energy_db_relative_fundamental": [
+      0.0,
+      -12.55515791547155,
+      -35.18383353809766
+    ]
+  },
+  {
+    "file": "vibra_D4_v70_C_matched.wav",
+    "sha256": "956017922094d7948706896e604f37a0043c24286641809bac3d064f3ac8903b",
+    "rms": 0.011222079429705592,
+    "peak": 0.10113525390625,
+    "mode_energy_db_relative_fundamental": [
+      0.0,
+      -6.961238987576328,
+      -28.956683532496022
+    ]
+  },
+  {
+    "file": "vibra_D4_v110_A_matched.wav",
+    "sha256": "e07b87697e39fb44503623f676c23809dab472c4c88cad35a42200aa83462e20",
+    "rms": 0.017774466912134024,
+    "peak": 0.123687744140625
+  },
+  {
+    "file": "vibra_D4_v110_B_matched.wav",
+    "sha256": "c096c27c30c30aca4519db7436871ba22cb3e92813a2a6ae765bf7e0b1609f39",
+    "rms": 0.017774446434514164,
+    "peak": 0.145233154296875
+  },
+  {
+    "file": "vibra_D4_v110_C_matched.wav",
+    "sha256": "10493a776f80ccc90ff7a818c6cd753460e3b30810122dd5801cdf137589527b",
+    "rms": 0.017774469356492295,
+    "peak": 0.166290283203125
+  },
+  {
+    "file": "vibra_chord_A_matched.wav",
+    "sha256": "6f492b918757bfc753437e0f6596f30ef744d548df451400f4bdb7499be11a98",
+    "rms": 0.026324400612887686,
+    "peak": 0.32037353515625
+  },
+  {
+    "file": "vibra_chord_B_matched.wav",
+    "sha256": "12792f2f59da1d13eb971ac05052358c83fc4a91e116a257b8e08a2aeb340eda",
+    "rms": 0.026324433029643806,
+    "peak": 0.34637451171875
+  },
+  {
+    "file": "vibra_chord_C_matched.wav",
+    "sha256": "4fd2cbc94b482c2b77de15db7864c35e01d4baab3517952b2a85bd49098cc253",
+    "rms": 0.026324419368326787,
+    "peak": 0.35809326171875
+  },
+  {
+    "file": "vibra_phrase_A_matched.wav",
+    "sha256": "4fd15fd66c2ca0e934e1cd1df0ea82ff8a86c8c09b88713e2cf2f139ecbd8d47",
+    "rms": 0.02738354124257391,
+    "peak": 0.14996337890625
+  },
+  {
+    "file": "vibra_phrase_B_matched.wav",
+    "sha256": "f943f8017948a69eab639b7cbeef6e8729cea3172378f1bd91ebd329822103e6",
+    "rms": 0.027383581554586114,
+    "peak": 0.169586181640625
+  },
+  {
+    "file": "vibra_phrase_C_matched.wav",
+    "sha256": "09b275c9f40b3fbf6ff27430bb6d9d8191099a5768d84b116e5b8a76db5de3f1",
+    "rms": 0.027383592210820425,
+    "peak": 0.189849853515625
+  },
+  {
+    "file": "vibra_D4_motor_off.wav",
+    "sha256": "b0d159ef6732a321672176e54d5eee996018bd4b3f8b508a9d0cbf2569e0c8ee",
+    "rms": 0.008577399344379127,
+    "peak": 0.073272705078125
+  },
+  {
+    "file": "vibra_D4_motor_old_global_tremolo.wav",
+    "sha256": "53cd7f3156868ec22e9a66830bc1045c3ccb5ec5a170b3501d36f21c7d78c8e3",
+    "rms": 0.008577369160446649,
+    "peak": 0.072662353515625
+  },
+  {
+    "file": "vibra_D4_motor_new_tube_coupling.wav",
+    "sha256": "96261a203e9f4a18c86784822358b139fbb0a0a5528c37c8f2c5b74f8c924626",
+    "rms": 0.008577383019391574,
+    "peak": 0.0673828125
+  },
+  {
+    "file": "vibra_phrase_motor_off.wav",
+    "sha256": "898742463208513bbd1009606bf2b0d2b22785785e8920bf60a4c6fe4e033a6c",
+    "rms": 0.02071478755738266,
+    "peak": 0.1180419921875
+  },
+  {
+    "file": "vibra_phrase_motor_old_global_tremolo.wav",
+    "sha256": "446a11749e5f96df7ac5885ce03154f25a45b3290f4fdd70b533317358a2749b",
+    "rms": 0.020714806030324006,
+    "peak": 0.135589599609375
+  },
+  {
+    "file": "vibra_phrase_motor_new_tube_coupling.wav",
+    "sha256": "e6cf686639b1e9f1aa1f30487e360e4c1a2abd9f7663deb6167b05bf6dce6380",
+    "rms": 0.020714785796534782,
+    "peak": 0.1282958984375
+  }
+]

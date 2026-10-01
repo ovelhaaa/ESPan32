@@ -295,6 +295,48 @@ DSP_HOT float ModalVoice::processSample(float externalExcitation, float* strikeT
     return output;
 }
 
+// Fused bar/tube renderer: segment sustain at the existing lifetime checks.
+// Tap z1 directly inside this hot loop; no extra recurrence or voice call.
+DSP_HOT void ModalVoice::renderTubeBlock(float* bar, float* tube, size_t frames) {
+    size_t done = 0;
+    while (done < frames && active_) {
+#if POCKETPAN_SUSTAIN_FASTPATH
+        if (sustainFastPathEnabled_ && isSustainSafe()) {
+            const size_t segment = std::min(size_t(128u - (age_ & 0x7fu)), frames - done);
+            float last = lastSample_;
+            for (size_t k=0; k<segment; ++k) {
+                ++age_;
+                last = resonators_.processSample(0.0f);
+                bar[done+k] += last;
+                tube[done+k] += resonators_.fundamentalSample();
+            }
+            lastSample_ = last; done += segment;
+            if ((age_ & 0x7fu) == 0u) {
+                estimatedEnergy_ = resonators_.getEnergy();
+                if (estimatedEnergy_ < voicingConfig_.silenceThreshold) {
+                    active_ = false; estimatedEnergy_ = 0.0f;
+                }
+            }
+            continue;
+        }
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+        if (attackFastPathEnabled_ && isAttackSafe()) {
+            const size_t segment = std::min(size_t(exciter_.samplesUntilInactive()), frames - done);
+            for (size_t k=0; k<segment; ++k) {
+                bar[done+k] += processSampleAttackStable();
+                tube[done+k] += resonators_.fundamentalSample();
+            }
+            if (segment) { done += segment; continue; }
+        }
+#endif
+        const float fade = tubeFadeGain();
+        bar[done] += processSample();
+        tube[done] += resonators_.fundamentalSample() * fade;
+        ++done;
+    }
+}
+
 void ModalVoice::processBlock(float* outBuffer, size_t frames) {
     for (size_t i = 0; i < frames; ++i) {
         outBuffer[i] = processSample();

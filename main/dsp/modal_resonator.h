@@ -38,6 +38,8 @@ public:
 
     // Process a single sample through the resonator bank
     float processSample(float excitation);
+    // Read after processing: mode 0 was computed once by the unchanged kernel.
+    float fundamentalSample() const { return modeCount_ && modes_[0].active ? modes_[0].z1 : 0.0f; }
 
     // Exact scalar recurrence accepted in M6.3.1, independent of the selected
     // fast kernel.  It is the definition of correctness for the fast paths and

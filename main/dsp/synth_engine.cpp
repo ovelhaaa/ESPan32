@@ -197,7 +197,9 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
     // 1. Synthesize 8-voice polyphony into mono buffer
     const bool useStrikeBus = modelConfig_.body.enabled && bodyStrategy_ == BodyExcitationStrategy::StrikeBus;
     { DSP_PROFILE_SCOPE(Allocator);
-    if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, modelConfig_.sympathetic);
+    if (model_ == InstrumentModel::Vibraphone && motorEnabled_ && motorDepth_ > 0.0f)
+        allocator_.renderVibraphoneBlock(monoBuffer_, tubeBuffer_, frames);
+    else if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, modelConfig_.sympathetic);
     else if (modelConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, modelConfig_.sympathetic);
     else allocator_.renderBlock(monoBuffer_, frames);
 
@@ -229,18 +231,24 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
         float bodySample;
         { DSP_PROFILE_SCOPE(Body); bodySample=body_.processSample(bodyExcitation); }
         bodyPeak_=std::max(bodyPeak_,std::abs(bodySample)); bodySumSquares_+=bodySample*bodySample; ++bodySamples_;
-        sample = (monoBuffer_[i] + bodySample) * masterGain_ * polyHeadroomGain_;
+        float mixed = monoBuffer_[i] + bodySample;
         if (model_ == InstrumentModel::Vibraphone) {
-            // Model resonator radiation as attenuation of the coherent mix.
-            // Never boost; no pitch modulation, note-local phase or coefficients.
-            if (motorEnabled_) {
+            if (motorEnabled_ && motorDepth_ > 0.0f) {
                 const unsigned index = motorPhase_ >> 24;
                 const float fraction = float(motorPhase_ & 0x00ffffffU) * (1.0f / 16777216.0f);
                 const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
-                sample *= 1.0f - motorDepth_ * shutter;
+                // Depth controls only added tube energy. Dry bar is continuous.
+                // .10 closed / 1.0 open, unity depth at historical default .32.
+                const float fanResponse = .10f + .90f * (1.0f - shutter);
+                #ifdef POCKETPAN_M751_LISTENING_REFERENCE
+                if (oldMotorReference_) mixed *= 1.0f - motorDepth_ * shutter;
+                else
+#endif
+                mixed += tubeBuffer_[i] * modelConfig_.tubeCoupling * (motorDepth_ / .32f) * fanResponse;
             }
             motorPhase_ += motorIncrement_;
         }
+        sample = mixed * masterGain_ * polyHeadroomGain_;
 
         }
         { DSP_PROFILE_SCOPE(Limiter);

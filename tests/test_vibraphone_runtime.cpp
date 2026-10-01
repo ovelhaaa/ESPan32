@@ -29,6 +29,45 @@ static void strike(dsp::SynthEngine& e, uint8_t note) {
 }
 
 int main() {
+    // Extraction leaves the modal sum bit-identical, including Nyquist-pruned
+    // banks, safety modes, and reset. A bank excited only in mode 0 is an independent oracle.
+    const auto& config = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Vibraphone);
+    for (bool safety : {false, true}) for (float hz : {146.83f, 293.66f, 440.0f, 14000.0f}) {
+        dsp::ModalResonatorBank full, reference, fundamental;
+        for (auto* bank : {&full, &reference, &fundamental}) {
+            bank->init(48000);
+            auto rc = config.resonator; rc.internalSafetySaturation = safety;
+            bank->setConfig(rc);
+        }
+        full.setPreset(*config.modalPreset); reference.setPreset(*config.modalPreset);
+        fundamental.setPreset(*config.modalPreset);
+        const float coupling[dsp::kMaxModesPerVoice] = {1.0f};
+        fundamental.setExcitationCoupling(coupling, dsp::kMaxModesPerVoice);
+        for (auto* bank : {&full, &reference, &fundamental}) bank->updatePitchAndDamping(hz, 0);
+        for (unsigned i=0; i<8192; ++i) {
+            const float excitation = i % 997 == 0 ? .0005f : 0.0f;
+            assert(full.processSample(excitation) == reference.processSampleReference(excitation));
+            assert(full.fundamentalSample() == fundamental.processSample(excitation));
+        }
+        full.reset(); assert(full.fundamentalSample() == 0);
+    }
+    // The new allocator preserves the complete dry bar byte-for-byte while
+    // accumulating a separate tube bus, including pressure, steals and tails.
+    dsp::VoiceAllocator dryAllocator, tubeAllocator;
+    dryAllocator.init(48000); tubeAllocator.init(48000);
+    dryAllocator.setModelConfig(config); tubeAllocator.setModelConfig(config);
+    float dryBar[128], bar[128], tube[128];
+    for (unsigned b=0; b<256; ++b) {
+        if (b % 3 == 0) {
+            const uint8_t note = uint8_t(50 + (b / 3) % 14);
+            const float hz = 146.8324f * std::pow(2.0f, float(note-50)/12.0f);
+            dryAllocator.noteOn(note, .8f, hz); tubeAllocator.noteOn(note, .8f, hz);
+        }
+        if (b == 140) { dryAllocator.setChannelPressure(.5f); tubeAllocator.setChannelPressure(.5f); }
+        dryAllocator.renderBlock(dryBar, 128);
+        tubeAllocator.renderVibraphoneBlock(bar, tube, 128);
+        for (unsigned i=0; i<128; ++i) { assert(dryBar[i] == bar[i]); assert(std::isfinite(tube[i])); }
+    }
     dsp::SynthEngine engine;
     engine.init(48000);
     int32_t block[256]{};
