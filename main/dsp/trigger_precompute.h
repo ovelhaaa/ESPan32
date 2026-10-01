@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 
@@ -47,4 +48,18 @@ inline const float* velocityPow115Table() {
     return table;
 }
 
+// Canonical C exciter knee/slope. Eagerly warmed before audio starts.
+inline const float* vibraphoneStrikePowTable() {
+    static float table[kMidiVelocityCount];
+    static bool ready=false;
+    if (!ready) {
+        for(int i=0;i<kMidiVelocityCount;++i) {
+            const float v=std::clamp(float(i)/127.0f,.01f,1.0f);
+            const float energy=v<=.85f ? v : .85f+(v-.85f)*.38f;
+            table[i]=std::pow(energy,1.25f);
+        }
+        ready=true;
+    }
+    return table;
+}
 } // namespace pocketpan::dsp

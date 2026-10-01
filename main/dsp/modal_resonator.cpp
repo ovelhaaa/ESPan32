@@ -311,6 +311,15 @@ __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMi
 }
 #endif
 
+DSP_HOT float ModalResonatorBank::processSampleSixSafety(float excitation) {
+#if POCKETPAN_MODAL_MICROKERNEL && POCKETPAN_PROCESS6_MICROKERNEL
+    DSP_PROFILE_SCOPE(Modal);
+    return processSampleMicro6<true>(excitation);
+#else
+    return processSample(excitation);
+#endif
+}
+
 DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     DSP_PROFILE_SCOPE(Modal);
 #if POCKETPAN_MODAL_MICROKERNEL

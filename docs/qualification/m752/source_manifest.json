@@ -1,0 +1,87 @@
+{
+  "baseline_commit": "81d054cd375117b7a8a30d98bd8f280a76e68b74",
+  "source": [
+    {
+      "file": "main/dsp/exciter.cpp",
+      "sha256": "38424e358dc9945d84ead07898dd23dd653b66a77236781d63b6d5ab46b385d1"
+    },
+    {
+      "file": "main/dsp/exciter.h",
+      "sha256": "6c4b5d1d631d6ddb72e6df2dd93654e15488121a6c2e62f81a14eead77722db1"
+    },
+    {
+      "file": "main/dsp/instrument_model.cpp",
+      "sha256": "9520c3fb8f0ce1b5217093cf79ce738b2c03c0bbc0be29a6ad3719b4c51a116d"
+    },
+    {
+      "file": "main/dsp/instrument_model.h",
+      "sha256": "5fb638d5392c9e2b9ee56889942b9a677c18211fe59c8e5c93cd756f899fbc30"
+    },
+    {
+      "file": "main/dsp/modal_preset.h",
+      "sha256": "617e37a87573eb2667925aedb93364c0906d375ef1c798b490fe6d2775346f23"
+    },
+    {
+      "file": "main/dsp/modal_resonator.cpp",
+      "sha256": "d43b55258d507b517415fb2519457ff45a3a5c74d7741a5585bf5f5cc07ddfea"
+    },
+    {
+      "file": "main/dsp/modal_resonator.h",
+      "sha256": "4f9e73385fad553a24d0620c808a2ad338c2659a47e7dd5df2d2b5922b3a0991"
+    },
+    {
+      "file": "main/dsp/modal_voice.cpp",
+      "sha256": "18a50d86d0478edaec67138114fe01dc822ba410797e0ab2437e8dafde971c97"
+    },
+    {
+      "file": "main/dsp/modal_voice.h",
+      "sha256": "41ec5e1c4c45af72d3a13992510ac922ea8e003e0bb1c16218ef4d6778b5c0d2"
+    },
+    {
+      "file": "main/dsp/prepared_note.h",
+      "sha256": "0acf3a2ad0e153a97a6fdb769d22b3495ea8c0399be74078db518db7efe1f7fe"
+    },
+    {
+      "file": "main/dsp/synth_engine.cpp",
+      "sha256": "732a430403c3475d572753d20a7319d96411ad30384ddf4527e5cbf59f3390bf"
+    },
+    {
+      "file": "main/dsp/trigger_precompute.h",
+      "sha256": "1a547a3a1f9b189fafe070a5de4f982173e112ec42d638dfaa54c9c730b058eb"
+    },
+    {
+      "file": "main/dsp/voice_allocator.cpp",
+      "sha256": "4e67ef5752c22d9f09724c4e6398fa1cb3ac2497a1f24b7ee36f3ad8f28be7e4"
+    },
+    {
+      "file": "main/dsp/voice_allocator.h",
+      "sha256": "33efdeb8b31a6317cd4b7f737c87a45f146d26c895b0d6bcb0024532041d11ec"
+    },
+    {
+      "file": "main/dsp/tube_phase.h",
+      "sha256": "3d9729016ece19cdfdab5be8502476fd01aff08c40bf888f43fc56bc465728d4"
+    }
+  ],
+  "firmware": [
+    {
+      "file": "batch0_firmware.bin",
+      "sha256": "3ffbf1e7f063645f422eacafe6c19ff6d64e6628d34e47d323f2b6deedcc0073"
+    },
+    {
+      "file": "batch0_inline_firmware.bin",
+      "sha256": "c26ab7f3c12393dfff75092b26e15116774b8a9657f8be3bb422fa4274a087a4"
+    },
+    {
+      "file": "batch0_six_firmware.bin",
+      "sha256": "48bfa5fb1a273f336badd3be0f71d0276a46331645f584787537b9ceda7355c6"
+    },
+    {
+      "file": "batch1_firmware.bin",
+      "sha256": "43fadb37a76f41919b9f45a746a4ca95d39c376dd96e07139f0770e74525562e"
+    },
+    {
+      "file": "production_firmware.bin",
+      "sha256": "85f835e9233cb5a57a182e29eb89e1b3c5d95b5a99a7ec4667b33d12c6c7937e"
+    }
+  ]
+}

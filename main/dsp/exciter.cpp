@@ -60,7 +60,7 @@ void Exciter::buildStrikePow() {
 }
 #endif
 
-void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
+void Exciter::trigger(float velocity, float hardness, float brightnessScale, const float* exactStrikePow) {
     const float v = std::clamp(velocity, 0.01f, 1.0f);
     const float h = std::clamp(hardness, 0.0f, 1.0f);
 
@@ -82,7 +82,9 @@ void Exciter::trigger(float velocity, float hardness, float brightnessScale) {
     }
     const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * strikePow;
 #else
-    const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * std::pow(energyVelocity, 1.25f);
+    const int index = exactStrikePow ? exactMidiVelocityIndex(velocity) : -1;
+    const float strikePow = index >= 0 ? exactStrikePow[index] : std::pow(energyVelocity, 1.25f);
+    const float strikeGain = minStrikeGain + (1.0f - minStrikeGain) * strikePow;
 #endif
     strikeAmplitude_ = strikeGain * config_.gain;
 

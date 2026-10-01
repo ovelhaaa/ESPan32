@@ -38,6 +38,16 @@ public:
 
     // Process a single sample through the resonator bank
     float processSample(float excitation);
+    // Prevalidated fixed-six entry for the stable Vibraphone renderer. Reuses
+    // the existing safety microkernel verbatim, with no per-sample dispatch.
+    bool canProcessSixSafety() const {
+#if POCKETPAN_MODAL_MICROKERNEL && POCKETPAN_PROCESS6_MICROKERNEL
+        return microKernel_ == MicroKernel::Process6Safety;
+#else
+        return false;
+#endif
+    }
+    float processSampleSixSafety(float excitation);
     // Read after processing: mode 0 was computed once by the unchanged kernel.
     float fundamentalSample() const { return modeCount_ && modes_[0].active ? modes_[0].z1 : 0.0f; }
 

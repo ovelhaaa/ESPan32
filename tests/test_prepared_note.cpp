@@ -567,7 +567,7 @@ void testPreparedNoteMemoryFootprint() {
               << static_cast<int>(pocketpan::dsp::kPreparedNoteFirst) << ".."
               << static_cast<int>(pocketpan::dsp::kPreparedNoteLast) << ")\n";
 
-    static_assert(sizeof(pocketpan::dsp::PreparedNote) == 128, "PreparedNote size unexpected");
+    static_assert(sizeof(pocketpan::dsp::PreparedNote) == 136, "PreparedNote size unexpected");
     static_assert(sizeof(pocketpan::dsp::PreparedNoteTable) == (sizeof(pocketpan::dsp::PreparedNote) * pocketpan::dsp::kPreparedNoteCount + 4),
                   "PreparedNoteTable size mismatch");
 }

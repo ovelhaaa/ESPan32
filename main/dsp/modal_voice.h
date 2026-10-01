@@ -6,6 +6,7 @@
 #include "modal_resonator.h"
 #include "pan_calibration.h"
 #include "instrument_model.h"
+#include "tube_phase.h"
 
 namespace pocketpan::dsp {
 
@@ -81,7 +82,8 @@ public:
     uint32_t getAge() const { return age_; }
     float getEstimatedEnergy() const { return estimatedEnergy_; }
     float getLastSample() const { return lastSample_; }
-    void renderTubeBlock(float* bar, float* tube, size_t frames);
+    void renderTubeBlock(float* bar, float* tube, size_t frames,
+                         const float* directGain = nullptr, const float* phaseGain = nullptr);
     float fundamentalSample() const { return resonators_.fundamentalSample(); }
     float tubeFadeGain() const { return isStealing_ ? stealGain_ : 1.0f; }
     uint32_t getInternalSaturationCount() const { return resonators_.getInternalSaturationCount(); }
@@ -103,6 +105,7 @@ public:
 #endif
 
 private:
+    friend class VoiceAllocator;
     void configureStrike(float velocity, const PreparedNote* prepared = nullptr);
     float registerPosition() const;
     float registerPositionFor(float fundamentalFrequencyHz) const;
@@ -122,6 +125,10 @@ private:
     uint32_t age_ = 0;
     float estimatedEnergy_ = 0.0f;
     float lastSample_ = 0.0f;
+    float tubeState_ = 0.0f;
+    float tubeCoefficient_ = 0.0f;
+    float tubeLagDegrees_ = 0.0f;
+    bool vibraphoneTriggerCache_ = false;
 
     // Smooth damping (avoids zipper noise)
     float targetDamping_ = 0.0f;

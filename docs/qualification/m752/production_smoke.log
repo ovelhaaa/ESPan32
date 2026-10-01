@@ -1,0 +1,148 @@
+[0;32mI (123) esp_image: segment 1: paddr=0002fd5c vaddr=3fc9fcESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40384a72
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2810,len:0x178c
+load:0x403c8700,len:0x4
+load:0x403c8704,len:0xcb8
+load:0x403cb700,len:0x2db0
+entry 0x403c8914
+[0;32mI (26) boot: ESP-IDF v5.3-dirty 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Sep 29 2026 19:05:34[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (30) boot: chip revision: v0.2[0m
+[0;32mI (34) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (39) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (43) boot.esp32s3: SPI Flash Size : 4MB[0m
+[0;32mI (48) boot: Enabling RNG early entropy source...[0m
+[0;32mI (54) boot: Partition Table:[0m
+[0;32mI (57) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (64) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (72) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (79) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (87) boot: End of partition table[0m
+[0;32mI (91) esp_image: segment 0: paddr=00010020 vaddr=3c070020 size=1fd34h (130356) map[0m
+[0;32mI (123) esp_image: segment 1: paddr=0002fd5c vaddr=3fc9fc00 size=002bch (   700) load[0m
+[0;32mI (123) esp_image: segment 2: paddr=00030020 vaddr=42000020 size=636c0h (407232) map[0m
+[0;32mI (202) esp_image: segment 3: paddr=000936e8 vaddr=3fc9febc size=04244h ( 16964) load[0m
+[0;32mI (206) esp_image: segment 4: paddr=00097934 vaddr=40374000 size=1bb38h (113464) load[0m
+[0;32mI (243) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (243) boot: Disabling RNG early entropy source...[0m
+[0;32mI (255) esp_psram: Found 2MB PSRAM device[0m
+[0;32mI (255) esp_psram: Speed: 40MHz[0m
+[0;32mI (256) cpu_start: Multicore app[0m
+[0;32mI (675) esp_psram: SPI SRAM memory test OK[0m
+[0;32mI (684) cpu_start: Pro cpu start user code[0m
+[0;32mI (685) cpu_start: cpu freq: 240000000 Hz[0m
+[0;32mI (685) app_init: Application information:[0m
+[0;32mI (687) app_init: Project name:     pocket_pan[0m
+[0;32mI (693) app_init: App version:      81d054c-dirty[0m
+[0;32mI (698) app_init: Compile time:     Sep 30 2026 21:53:09[0m
+[0;32mI (704) app_init: ELF file SHA256:  49427c636...[0m
+[0;32mI (709) app_init: ESP-IDF:          v5.3-dirty[0m
+[0;32mI (714) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (719) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (724) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (729) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (736) heap_init: At 3FCBE100 len 0002B610 (173 KiB): RAM[0m
+[0;32mI (742) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (748) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (755) heap_init: At 600FE100 len 00001EE8 (7 KiB): RTCRAM[0m
+[0;32mI (761) esp_psram: Adding pool of 2048K of PSRAM memory to heap allocator[0m
+[0;32mI (769) spi_flash: detected chip: generic[0m
+[0;32mI (773) spi_flash: flash io: dio[0m
+[0;32mI (777) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (784) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (791) coexist: coex firmware version: dab85ae96[0m
+[0;32mI (796) coexist: coexist rom version e7ae62f[0m
+[0;32mI (802) main_task: Started on CPU0[0m
+[0;32mI (812) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations[0m
+[0;32mI (812) main_task: Calling app_main()[0m
+[0;32mI (822) pocket_pan_main: ===============================================[0m
+[0;32mI (822) pocket_pan_main:   Pocket Pan / Metal Modal Synthesizer v1.0.0[0m
+[0;32mI (832) pocket_pan_main:   Hardware: TENSTAR TS-ESP32-S3 (Feather TFT)[0m
+[0;32mI (842) pocket_pan_main: ===============================================[0m
+[0;32mI (862) gpio: GPIO[10]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 1| Intr:0 [0m
+[0;32mI (872) AudioI2S: I2S TX initialized (48kHz, 32-bit slot, stereo, 6x128 frames DMA = 1024 bytes/buf)[0m
+[0;32mI (882) AudioI2S: Audio task started on Core 0 at priority 12[0m
+[0;32mI (882) Display: [DISP_MEM_PRE] before: int_free=199403 int_largest=102400 psram_free=2094528[0m
+[0;32mI (892) Display: [DISP_MEM] framebuffer=0x3fccf818 (size=64800, align=8, internal=1, dma=1, psram=0)[0m
+[0;32mI (902) Display: [DISP_MEM] scratch=0x3fcdf53c (size=9600, align=12, internal=1, dma=1)[0m
+[0;32mI (912) Display: [DISP_MEM] before: int_free=199403 int_largest=102400 psram_free=2094528[0m
+[0;32mI (922) Display: [DISP_MEM] after:  int_free=124995 int_largest=31744 psram_free=2094528[0m
+[0;32mI (932) gpio: GPIO[39]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (932) gpio: GPIO[40]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (942) gpio: GPIO[21]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (1172) gpio: GPIO[45]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (1172) Display: ST7789 240x135 display initialized successfully (SPI 40MHz, GDMA callback armed)[0m
+[0;32mI (1172) pocket_pan_main: [CANARY] PreparedNote canaries OK=1[0m
+[0;32mI (1182) BLE_INIT: BT controller compile version [ba3b3e3][0m
+[0;32mI (1192) BLE_INIT: Bluetooth MAC: b4:3a:45:ae:6f:2a[0m
+[0;32mI (1192) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10[0m
+[0;33mW (1242) phy_init: saving new calibration data because of checksum failure, mode(0)[0m
+[0;32mI (1312) BleMidi: NimBLE Host task running on Core 1[0m
+[0;32mI (1312) BleMidi: NimBLE BLE MIDI Central initialized and pinned to Core 1[0m
+[0;32mI (1312) pocket_pan_main: [M75_MEMORY] table_bytes=9932 cache_bytes=79456 synth_bytes=93184 internal_free=62295 largest_internal=31744[0m
+[0;32mI (1312) NimBLE: Failed to restore IRKs from store; status=8
+[0m
+[0;32mI (1322) pocket_pan_main: Pocket Pan initialization complete. Realtime audio active.[0m
+[0;32mI (1332) NimBLE: GAP procedure initiated: discovery; [0m
+[0;32mI (1342) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=1 [0m
+[0;32mI (1342) main_task: Returned from app_main()[0m
+[0;32mI (1352) NimBLE: duration=forever[0m
+[0;32mI (1362) NimBLE: 
+[0m
+[0;32mI (1362) BleMidi: Scanning for BLE MIDI devices...[0m
+[0;32mI (1332) gpio: GPIO[0]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 1| Pulldown: 0| Intr:0 [0m
+[0;32mI (1522) BleMidi: BLE MIDI device found (59:FB:B6:B7:BF:0F); connecting[0m
+[0;32mI (1522) NimBLE: GAP procedure initiated: connect; [0m
+[0;32mI (1522) NimBLE: peer_addr_type=0 peer_addr=[0m
+[0;32mI (1532) NimBLE: 59:fb:b6:b7:bf:0f[0m
+[0;32mI (1532) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0[0m
+[0;32mI (1552) NimBLE: 
+[0m
+[0;32mI (1632) BleMidi: BLE Connected! conn_handle=1[0m
+[0;32mI (1632) NimBLE: GAP procedure initiated: [0m
+[0;32mI (1632) NimBLE: connection parameter update; conn_handle=1 itvl_min=6 itvl_max=12 latency=0 supervision_timeout=200 min_ce_len=0 max_ce_len=0[0m
+[0;32mI (1642) NimBLE: 
+[0m
+[0;32mI (1642) BleMidi: Requested connection params 7.5-15ms latency=0 timeout=2s rc=0[0m
+[0;32mI (1652) NimBLE: GATT procedure initiated: discover all services
+[0m
+[0;32mI (1942) BleMidi: Found BLE MIDI Service! start_handle=112 end_handle=115[0m
+[0;32mI (1942) NimBLE: GATT procedure initiated: discover all characteristics; [0m
+[0;32mI (1942) NimBLE: start_handle=112 end_handle=115
+[0m
+[0;32mI (2042) BleMidi: Found BLE MIDI Characteristic! def_handle=113 val_handle=114 props=0x16[0m
+[0;32mI (2042) NimBLE: GATT procedure initiated: discover all descriptors; [0m
+[0;32mI (2042) NimBLE: chr_val_handle=114 end_handle=115
+[0m
+[0;32mI (2142) BleMidi: Discovered CCCD (0x2902) handle=115[0m
+[0;32mI (2142) NimBLE: GATT procedure initiated: write; [0m
+[0;32mI (2142) NimBLE: att_handle=115 len=2
+[0m
+[0;32mI (2192) BleMidi: Negotiated params interval=7.50ms latency=0 timeout=2000ms[0m
+[0;32mI (2202) BleMidi: CCCD subscription successful; BLE MIDI ready[0m
+[0;32mI (2202) NimBLE: GAP procedure initiated: [0m
+[0;32mI (2202) NimBLE: connection parameter update; conn_handle=1 itvl_min=6 itvl_max=9 latency=0 supervision_timeout=100 min_ce_len=0 max_ce_len=0[0m
+[0;32mI (2222) NimBLE: 
+[0m
+[0;32mI (2302) BleMidi: Negotiated params interval=11.25ms latency=0 timeout=1000ms[0m
+[0;32mI (5802) pocket_pan_main: [AUDIO] model=PAN blocks=1835 avg_us=339 p99_us=0 max_us=1287 cpu_load=12.7 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (5802) pocket_pan_main: [MIDI] push=1 pop=1 drop=0 hwm=1 last=(n=50 v=75 t=78 hex=90324B)[0m
+[0;32mI (5812) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-61 reconnects=0 last_disconnect=0[0m
+[0;32mI (5822) pocket_pan_main: [MEM] internal_free=66471 largest_internal=31744[0m
+[0;32mI (5832) pocket_pan_main: [UIREDRAW] urgent=8 telemetry=12 skip=127[0m
+[0;32mI (10812) pocket_pan_main: [AUDIO] model=PAN blocks=3716 avg_us=339 p99_us=525 max_us=1287 cpu_load=12.7 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (10812) pocket_pan_main: [MIDI] push=1 pop=1 drop=0 hwm=1 last=(n=50 v=75 t=78 hex=90324B)[0m
+[0;32mI (10822) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-57 reconnects=0 last_disconnect=0[0m
+[0;32mI (10832) pocket_pan_main: [MEM] internal_free=66471 largest_internal=31744[0m
+[0;32mI (10842) pocket_pan_main: [UIREDRAW] urgent=8 telemetry=27 skip=278[0m
+[0;32mI (15832) pocket_pan_main: [AUDIO] model=PAN blocks=5598 avg_us=338 p99_us=350 max_us=1287 cpu_load=12.7 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (15832) pocket_pan_main: [MIDI] push=1 pop=1 drop=0 hwm=1 last=(n=50 v=75 t=78 hex=90324B)[0m
+[0;32mI (15842) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-61 reconnects=0 last_disconnect=0[0m
+[0;32mI (15852) pocket_pan_main: [MEM] internal_free=66471 largest_internal=31744[0m
+[0;32mI (15862) pocket_pan_main: [UIREDRAW] urgent=8 telemetry=41 skip=430[0m
+[0;32mI (20852) pocket_pan_main: [AUDIO] model=PAN blocks=7480 avg_us=339 p99_us=375 max_us=1287 cpu_load=12.7 deadline=0 timeout=0 tx_error=0 short=0[0m

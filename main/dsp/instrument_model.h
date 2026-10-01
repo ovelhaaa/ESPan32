@@ -85,6 +85,8 @@ struct InstrumentModelConfig {
     BodyExcitationStrategy bodyStrategy;
     float strikeBusGain;
     float tubeCoupling = 0.0f;
+    float tubePhaseLagDegrees = 0.0f;
+    bool tubeSoftCoupling = false;
 };
 
 const InstrumentModelConfig& getInstrumentModelConfig(InstrumentModel model);

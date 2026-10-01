@@ -37,6 +37,8 @@ void ModalVoice::setInternalSafetySaturation(bool enabled) {
 }
 
 void ModalVoice::setModelConfig(const InstrumentModelConfig& config) {
+    tubeLagDegrees_ = config.tubePhaseLagDegrees;
+    vibraphoneTriggerCache_ = config.id == InstrumentModel::Vibraphone;
     modalPreset_ = config.modalPreset;
     exciterConfig_ = config.exciter;
     resonatorConfig_ = config.resonator;
@@ -74,6 +76,7 @@ void ModalVoice::reset() {
     currentDamping_ = 0.0f;
     dampingUpdateCounter_ = 0;
     lastSample_ = 0.0f;
+    tubeState_ = 0.0f;
 
     isStealing_ = false;
     stealGain_ = 1.0f;
@@ -111,6 +114,11 @@ void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float v
         prepared->matches(midiNote_, fundamentalFrequencyHz_) &&
         prepared->modeCount == resonators_.getModeCount();
     configureStrike(velocity_, canUsePrepared ? prepared : nullptr);
+    tubeState_ = 0.0f;
+    tubeCoefficient_ = tubeLagDegrees_ > 0.0f
+        ? (canUsePrepared ? prepared->tubePhaseCoefficient
+                          : tubePhaseCoefficient(fundamentalFrequencyHz_, sampleRate_, tubeLagDegrees_))
+        : 0.0f;
 }
 
 void ModalVoice::restrike(float velocity) {
@@ -148,6 +156,7 @@ bool ModalVoice::prepareNote(uint8_t midiNote, float fundamentalFrequencyHz,
 
     const auto& v = voicingConfig_;
     const float reg = registerPositionFor(fundamentalFrequencyHz);
+    result.tubeRegisterPosition = reg;
     const float t60Scale = v.t60LowRegisterScale +
         (v.t60HighRegisterScale - v.t60LowRegisterScale) * reg;
 
@@ -157,6 +166,8 @@ bool ModalVoice::prepareNote(uint8_t midiNote, float fundamentalFrequencyHz,
     scratch.setRegisterBehavior(t60Scale, v.splitBeatTargetHz, v.fixedHzSplit);
     scratch.updatePitchAndDamping(fundamentalFrequencyHz, 0.0f);
     scratch.capturePreparedNote(result);
+    result.tubePhaseCoefficient = tubeLagDegrees_ > 0.0f
+        ? tubePhaseCoefficient(fundamentalFrequencyHz, sampleRate_, tubeLagDegrees_) : 0.0f;
     prepared = result;
     return result.modeCount == resonators_.getModeCount();
 }
@@ -170,7 +181,7 @@ void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
     float brightness;
     {
         DSP_PROFILE_SCOPE(TriggerRegister);
-        reg = registerPosition();
+        reg = vibraphoneTriggerCache_ && prepared ? prepared->tubeRegisterPosition : registerPosition();
         gain = v.lowRegisterGain + (v.highRegisterGain - v.lowRegisterGain) * reg;
         t60Scale = v.t60LowRegisterScale + (v.t60HighRegisterScale - v.t60LowRegisterScale) * reg;
         brightness = v.lowRegisterBrightness + (v.highRegisterBrightness - v.lowRegisterBrightness) * reg;
@@ -192,8 +203,10 @@ void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
         }
         hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) * powTerm;
 #else
-        hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) *
-            std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
+        const int velIndex = vibraphoneTriggerCache_ ? exactMidiVelocityIndex(velocity) : -1;
+        const float powTerm = velIndex >= 0 ? velocityPow115Table()[velIndex]
+            : std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
+        hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) * powTerm;
 #endif
         blend = std::clamp((velocity - v.upperModeSoftVelocity) /
             (v.upperModeHardVelocity - v.upperModeSoftVelocity), 0.0f, 1.0f);
@@ -223,7 +236,9 @@ void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
     }
     {
         DSP_PROFILE_SCOPE(TriggerExciter);
-        exciter_.trigger(velocity, hardness, brightness);
+        const float* strikePow = vibraphoneTriggerCache_ && exciterConfig_.velocityKnee == .85f &&
+            exciterConfig_.velocityKneeSlope == .38f ? vibraphoneStrikePowTable() : nullptr;
+        exciter_.trigger(velocity, hardness, brightness, strikePow);
     }
 }
 
@@ -297,7 +312,17 @@ DSP_HOT float ModalVoice::processSample(float externalExcitation, float* strikeT
 
 // Fused bar/tube renderer: segment sustain at the existing lifetime checks.
 // Tap z1 directly inside this hot loop; no extra recurrence or voice call.
-DSP_HOT void ModalVoice::renderTubeBlock(float* bar, float* tube, size_t frames) {
+DSP_HOT void ModalVoice::renderTubeBlock(float* bar, float* tube, size_t frames,
+                                       const float* directGain, const float* phaseGain) {
+    // The fused production path touches one output buffer per voice. Fan gains
+    // are shared, prepared once per block; only mode 0 enters the one-state AP.
+    auto accumulate = [&](size_t i, float dry, float fade) {
+        const float direct = resonators_.fundamentalSample();
+        const float shifted = tubeLagDegrees_ > 0.0f
+            ? processTubePhase(direct, tubeCoefficient_, tubeState_) : direct;
+        if (directGain) bar[i] += dry + fade * (direct * directGain[i] + shifted * phaseGain[i]);
+        else { bar[i] += dry; tube[i] += shifted * fade; }
+    };
     size_t done = 0;
     while (done < frames && active_) {
 #if POCKETPAN_SUSTAIN_FASTPATH
@@ -307,8 +332,7 @@ DSP_HOT void ModalVoice::renderTubeBlock(float* bar, float* tube, size_t frames)
             for (size_t k=0; k<segment; ++k) {
                 ++age_;
                 last = resonators_.processSample(0.0f);
-                bar[done+k] += last;
-                tube[done+k] += resonators_.fundamentalSample();
+                accumulate(done+k, last, 1.0f);
             }
             lastSample_ = last; done += segment;
             if ((age_ & 0x7fu) == 0u) {
@@ -324,15 +348,15 @@ DSP_HOT void ModalVoice::renderTubeBlock(float* bar, float* tube, size_t frames)
         if (attackFastPathEnabled_ && isAttackSafe()) {
             const size_t segment = std::min(size_t(exciter_.samplesUntilInactive()), frames - done);
             for (size_t k=0; k<segment; ++k) {
-                bar[done+k] += processSampleAttackStable();
-                tube[done+k] += resonators_.fundamentalSample();
+                const float dry = processSampleAttackStable();
+                accumulate(done+k, dry, 1.0f);
             }
             if (segment) { done += segment; continue; }
         }
 #endif
         const float fade = tubeFadeGain();
-        bar[done] += processSample();
-        tube[done] += resonators_.fundamentalSample() * fade;
+        const float dry = processSample();
+        accumulate(done, dry, fade);
         ++done;
     }
 }

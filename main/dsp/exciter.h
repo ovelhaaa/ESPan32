@@ -33,7 +33,8 @@ public:
     }
 
     // Trigger strike with MIDI normalized velocity (0.0 to 1.0)
-    void trigger(float velocity, float hardness = 1.0f, float brightnessScale = 1.0f);
+    void trigger(float velocity, float hardness = 1.0f, float brightnessScale = 1.0f,
+                 const float* exactStrikePow = nullptr);
 
     // Render single sample of excitation signal.  With the attack fast path
     // (candidate 21) the body is inlined so ModalVoice::processSample can fold

@@ -7,9 +7,16 @@
 #include <cassert>
 
 namespace pocketpan::dsp {
+namespace {
+float vibraphoneMidiHz[128];
+}
 
 void SynthEngine::init(float sampleRate) {
     sampleRate_ = sampleRate;
+    (void)velocityPow115Table();
+    (void)vibraphoneStrikePowTable();
+    for (unsigned note=0; note<128; ++note)
+        vibraphoneMidiHz[note]=midi::MidiMapping::noteToHz(uint8_t(note));
     allocator_.init(sampleRate_);
 #if POCKETPAN_PREPARED_NOTE_CACHE
     // Model changes are applied by the audio callback.  Build all eight fixed
@@ -161,7 +168,8 @@ void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
                     // Keep MIDI mapping/normalization separate from allocator
                     // and trigger work in the profile breakdown.
                     DSP_PROFILE_SCOPE(MidiDispatch);
-                    freqHz = midi::MidiMapping::noteToHz(event.data1);
+                    freqHz = model_ == InstrumentModel::Vibraphone && event.data1 < 128
+                        ? vibraphoneMidiHz[event.data1] : midi::MidiMapping::noteToHz(event.data1);
                     vel = midi::MidiMapping::toNormalizedFloat(event.data2);
                 }
                 allocator_.noteOn(event.data1, vel, freqHz);
@@ -197,8 +205,30 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
     // 1. Synthesize 8-voice polyphony into mono buffer
     const bool useStrikeBus = modelConfig_.body.enabled && bodyStrategy_ == BodyExcitationStrategy::StrikeBus;
     { DSP_PROFILE_SCOPE(Allocator);
-    if (model_ == InstrumentModel::Vibraphone && motorEnabled_ && motorDepth_ > 0.0f)
-        allocator_.renderVibraphoneBlock(monoBuffer_, tubeBuffer_, frames);
+    if (model_ == InstrumentModel::Vibraphone && motorEnabled_ && motorDepth_ > 0.0f) {
+        uint32_t phase = motorPhase_;
+        const float coupling = modelConfig_.tubeCoupling * (motorDepth_ / .32f);
+        for (size_t i = 0; i < frames; ++i) {
+            const unsigned index = phase >> 24;
+            const float fraction = float(phase & 0x00ffffffU) * (1.0f / 16777216.0f);
+            const float openness = 1.0f - (motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]));
+            const bool phaseTube = modelConfig_.tubePhaseLagDegrees > 0.0f;
+            const float response = phaseTube
+                ? (modelConfig_.tubeSoftCoupling ? openness * openness : openness)
+                : .10f + .90f * openness;
+            const float phaseMix = phaseTube ? openness : 0.0f;
+            tubeBuffer_[i] = coupling * response * (1.0f - phaseMix);
+            strikeBuffer_[i] = coupling * response * phaseMix;
+            phase += motorIncrement_;
+        }
+#ifdef POCKETPAN_M751_LISTENING_REFERENCE
+        if (oldMotorReference_) allocator_.renderBlock(monoBuffer_, frames);
+        else if (modelConfig_.tubePhaseLagDegrees == 0.0f)
+            allocator_.renderVibraphoneBlock(monoBuffer_, tubeBuffer_, frames);
+        else
+#endif
+        allocator_.renderVibraphoneBlock(monoBuffer_, nullptr, frames, tubeBuffer_, strikeBuffer_);
+    }
     else if (useStrikeBus) allocator_.renderBlockWithStrikeBus(monoBuffer_, strikeBuffer_, frames, modelConfig_.sympathetic);
     else if (modelConfig_.sympathetic.enabled) allocator_.renderBlock(monoBuffer_, frames, modelConfig_.sympathetic);
     else allocator_.renderBlock(monoBuffer_, frames);
@@ -234,17 +264,20 @@ DSP_IRAM_RENDERBLOCK void SynthEngine::renderBlock(int32_t* outInterleaved, size
         float mixed = monoBuffer_[i] + bodySample;
         if (model_ == InstrumentModel::Vibraphone) {
             if (motorEnabled_ && motorDepth_ > 0.0f) {
-                const unsigned index = motorPhase_ >> 24;
-                const float fraction = float(motorPhase_ & 0x00ffffffU) * (1.0f / 16777216.0f);
-                const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
-                // Depth controls only added tube energy. Dry bar is continuous.
-                // .10 closed / 1.0 open, unity depth at historical default .32.
-                const float fanResponse = .10f + .90f * (1.0f - shutter);
-                #ifdef POCKETPAN_M751_LISTENING_REFERENCE
-                if (oldMotorReference_) mixed *= 1.0f - motorDepth_ * shutter;
-                else
+#ifdef POCKETPAN_M751_LISTENING_REFERENCE
+                if (oldMotorReference_) {
+                    const unsigned index = motorPhase_ >> 24;
+                    const float fraction = float(motorPhase_ & 0x00ffffffU) * (1.0f / 16777216.0f);
+                    const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
+                    mixed *= 1.0f - motorDepth_ * shutter;
+                } else if (modelConfig_.tubePhaseLagDegrees == 0.0f) {
+                    const unsigned index = motorPhase_ >> 24;
+                    const float fraction = float(motorPhase_ & 0x00ffffffU) * (1.0f / 16777216.0f);
+                    const float shutter = motorTable_[index] + fraction * (motorTable_[index+1] - motorTable_[index]);
+                    const float response = .10f + .90f * (1.0f - shutter);
+                    mixed += tubeBuffer_[i] * modelConfig_.tubeCoupling * (motorDepth_ / .32f) * response;
+                }
 #endif
-                mixed += tubeBuffer_[i] * modelConfig_.tubeCoupling * (motorDepth_ / .32f) * fanResponse;
             }
             motorPhase_ += motorIncrement_;
         }

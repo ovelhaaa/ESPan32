@@ -29,6 +29,24 @@ static void strike(dsp::SynthEngine& e, uint8_t note) {
 }
 
 int main() {
+    // Independent sinusoidal oracle: unity magnitude and requested lag at
+    // each note, for all three phase experiments (discard startup transient).
+    for (float hz : {32.703f, 146.83f, 293.66f, 440.0f, 2093.0f, 12543.85f})
+    for (float lag : {30.0f, 60.0f, 110.0f}) {
+        const float a = dsp::tubePhaseCoefficient(hz, 48000, lag);
+        assert(std::abs(a) < 1);
+        float state = 0;
+        double error = 0, energy = 0;
+        for (unsigned i=0; i<48000; ++i) {
+            const double phase = 2 * 3.141592653589793 * hz * i / 48000;
+            const float y = dsp::processTubePhase(float(std::sin(phase)), a, state);
+            if (i > 24000) {
+                const double expected = std::sin(phase - lag * 3.141592653589793 / 180);
+                error += (y-expected)*(y-expected); energy += expected*expected;
+            }
+        }
+        assert(error / energy < 1e-7);
+    }
     // Extraction leaves the modal sum bit-identical, including Nyquist-pruned
     // banks, safety modes, and reset. A bank excited only in mode 0 is an independent oracle.
     const auto& config = dsp::getInstrumentModelConfig(dsp::InstrumentModel::Vibraphone);
@@ -52,6 +70,46 @@ int main() {
         full.reset(); assert(full.fundamentalSample() == 0);
     }
     // The new allocator preserves the complete dry bar byte-for-byte while
+    // Independent sample-by-sample oracle for the stable-eight specialization,
+    // including exciter -> sustain, and exact modal state after bypassing tube.
+    {
+        dsp::VoiceAllocator fused;
+        fused.init(48000); fused.setModelConfig(config);
+        std::array<dsp::ModalVoice,8> reference;
+        float states[8]{}, coefficients[8]{};
+        for(unsigned v=0;v<8;++v) {
+            const uint8_t n=uint8_t(50+v);
+            const float hz=146.8324f*std::pow(2.0f,float(v)/12);
+            fused.noteOn(n,.8f,hz);
+            reference[v].init(48000); reference[v].setModelConfig(config);
+            reference[v].trigger(n,hz,.8f);
+            coefficients[v]=dsp::tubePhaseCoefficient(hz,48000,60);
+        }
+        float output[128], dg[128], pg[128];
+        for(unsigned b=0;b<400;++b) {
+            for(unsigned i=0;i<128;++i) {
+                const float open=float((b*128+i)%997)/997;
+                dg[i]=.75f*open*open*(1-open); pg[i]=.75f*open*open*open;
+            }
+            fused.renderVibraphoneBlock(output,nullptr,128,dg,pg);
+            for(unsigned i=0;i<128;++i) {
+                float dry=0,direct=0,shifted=0;
+                for(unsigned v=0;v<8;++v) {
+                    dry+=reference[v].processSample();
+                    const float tap=reference[v].fundamentalSample();
+                    direct+=tap;
+                    shifted+=dsp::processTubePhase(tap,coefficients[v],states[v]);
+                }
+                assert(output[i]==dry+direct*dg[i]+shifted*pg[i]);
+            }
+        }
+        fused.renderBlock(output,128);
+        for(unsigned i=0;i<128;++i) {
+            float dry=0; for(auto& voice:reference) dry+=voice.processSample();
+            assert(output[i]==dry);
+        }
+    }
+    // The allocator preserves the complete dry bar byte-for-byte while
     // accumulating a separate tube bus, including pressure, steals and tails.
     dsp::VoiceAllocator dryAllocator, tubeAllocator;
     dryAllocator.init(48000); tubeAllocator.init(48000);

@@ -1,0 +1,58 @@
+{
+  "restored_normal_firmware": true,
+  "default_model": "PAN",
+  "forensics": false,
+  "smoke_flags": false,
+  "log_sha256": "1d2ecc0cb653e9879630f2e5c264f6f1e07fc928ef0bb33e4bc411e252c153df",
+  "firmware_sha256": "85f835e9233cb5a57a182e29eb89e1b3c5d95b5a99a7ec4667b33d12c6c7937e",
+  "audio": [
+    {
+      "model": "PAN",
+      "blocks": "1835",
+      "avg_us": "339",
+      "p99_us": "0",
+      "max_us": "1287",
+      "cpu_load": "12.7",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "3716",
+      "avg_us": "339",
+      "p99_us": "525",
+      "max_us": "1287",
+      "cpu_load": "12.7",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "5598",
+      "avg_us": "338",
+      "p99_us": "350",
+      "max_us": "1287",
+      "cpu_load": "12.7",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    },
+    {
+      "model": "PAN",
+      "blocks": "7480",
+      "avg_us": "339",
+      "p99_us": "375",
+      "max_us": "1287",
+      "cpu_load": "12.7",
+      "deadline": "0",
+      "timeout": "0",
+      "tx_error": "0",
+      "short": "0"
+    }
+  ]
+}

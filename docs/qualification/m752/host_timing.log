@@ -1,0 +1,2 @@
+VIBRAPHONE host median us/block: motor_off=2.12886 motor_on=2.48973 delta=0.360867 (host timing only; 7 paired trials, 12800 blocks each)
+No realtime allocations; motor partition/depth-zero checks passed.

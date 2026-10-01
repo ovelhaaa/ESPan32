@@ -1,0 +1,98 @@
+[
+  {
+    "file": "vibra_C_D4_v70_M0_matched.wav",
+    "sha256": "baff6cc5363e06b362fd147f1a7d25027cfe0cdcfac898c278980a06f182c81e",
+    "rms": 0.00848169536714151,
+    "peak": 0.095123291015625
+  },
+  {
+    "file": "vibra_C_D4_v70_M1_matched.wav",
+    "sha256": "45a962753a19257bb9851144200783ce5ae2b6b3bc3a4fe5c8cabc84620c7bfa",
+    "rms": 0.008481682792306905,
+    "peak": 0.076446533203125
+  },
+  {
+    "file": "vibra_C_D4_v70_M2_matched.wav",
+    "sha256": "3a90d3d3e9f86b039efce193f80fe9a79bc5bf189550d49624a0212416653928",
+    "rms": 0.008481678882826603,
+    "peak": 0.083587646484375
+  },
+  {
+    "file": "vibra_C_D4_v70_M3_matched.wav",
+    "sha256": "8624f5f7cf95d68eedd8304c0d597f3b2b6ace781405d8f49fa5c4911a514cff",
+    "rms": 0.008481658779084904,
+    "peak": 0.09326171875
+  },
+  {
+    "file": "vibra_C_D4_v110_M0_matched.wav",
+    "sha256": "396f2dc5f20b25c62a7354606b3918b34072f07ad73f266d3bb5ca10bddca9f0",
+    "rms": 0.013597411326222348,
+    "peak": 0.161468505859375
+  },
+  {
+    "file": "vibra_C_D4_v110_M1_matched.wav",
+    "sha256": "00c66a1e82f41fd69ac6c968778e764e18c4ad87961ef522a4beb924bf80d0bf",
+    "rms": 0.01359741670592561,
+    "peak": 0.127227783203125
+  },
+  {
+    "file": "vibra_C_D4_v110_M2_matched.wav",
+    "sha256": "91413462a346584f138478d0254b206e2e65a118294c952575437eae3a4028a7",
+    "rms": 0.0135974477588169,
+    "peak": 0.1407470703125
+  },
+  {
+    "file": "vibra_C_D4_v110_M3_matched.wav",
+    "sha256": "0047ef31cd725b0b9bc7b39eac1008d6da354d4be61a53fb9510316ec4e8d750",
+    "rms": 0.013597423544572215,
+    "peak": 0.158477783203125
+  },
+  {
+    "file": "vibra_C_chord_M0_matched.wav",
+    "sha256": "cfd48d5b51434e96ef1c0295110e7859b3261ce20a5d4c8eb9db42a1f8598f80",
+    "rms": 0.020169764499499428,
+    "peak": 0.35211181640625
+  },
+  {
+    "file": "vibra_C_chord_M1_matched.wav",
+    "sha256": "1863bc9147b7df079759970bb262d65dbbb203f1aaf117e7996e58d366522c06",
+    "rms": 0.020169755734277147,
+    "peak": 0.27435302734375
+  },
+  {
+    "file": "vibra_C_chord_M2_matched.wav",
+    "sha256": "155466934a73afee48fa96704435940eb6192286e4473ac71830edd52eeb429b",
+    "rms": 0.020169752355382712,
+    "peak": 0.3072509765625
+  },
+  {
+    "file": "vibra_C_chord_M3_matched.wav",
+    "sha256": "80f61dae3ff50c878a7312240232b289f67974dd354a4694d50c89d3d9507300",
+    "rms": 0.02016972304645589,
+    "peak": 0.345672607421875
+  },
+  {
+    "file": "vibra_C_phrase_M0_matched.wav",
+    "sha256": "93eb7832ca080e128f9dcd9d6649680c16a72d9e564953f40783fa2c5e918bbe",
+    "rms": 0.020792402798172537,
+    "peak": 0.138397216796875
+  },
+  {
+    "file": "vibra_C_phrase_M1_matched.wav",
+    "sha256": "d8d7a6ebbf6d12946495611b86b6ee8693a708e1bdcf9f04eea336f02a05e9eb",
+    "rms": 0.020792388829640324,
+    "peak": 0.144134521484375
+  },
+  {
+    "file": "vibra_C_phrase_M2_matched.wav",
+    "sha256": "0a1834ea72abf00bcf2a12e44abdf6a5ec55a04561f239313d7f67e5b9c454fa",
+    "rms": 0.020792399128128327,
+    "peak": 0.154052734375
+  },
+  {
+    "file": "vibra_C_phrase_M3_matched.wav",
+    "sha256": "456453f5a363de1755eb4a1c9f43819927cd33827c351340427d0359cc6fb58d",
+    "rms": 0.020792421803517064,
+    "peak": 0.145721435546875
+  }
+]
