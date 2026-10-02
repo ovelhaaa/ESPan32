@@ -96,6 +96,20 @@ void checkRegisterLogCache() {
 } // namespace
 
 int main() {
+    const auto& pan=getInstrumentModelConfig(InstrumentModel::Pan).exciter;
+    prepareCanonicalStrikePow(pan.velocityKnee,pan.velocityKneeSlope);
+    const auto* shared=canonicalStrikePowTable(pan.velocityKnee,pan.velocityKneeSlope);
+    assert(shared && !canonicalStrikePowTable(pan.velocityKnee,.123f));
+    for(unsigned v=0;v<128;++v) {
+        Exciter cached,reference;
+        cached.init(48000);reference.init(48000);
+        cached.setConfig(pan);reference.setConfig(pan);
+        const float velocity=float(v)/127.0f;
+        cached.trigger(velocity,.7f,.9f,shared);
+        reference.trigger(velocity,.7f,.9f);
+        for(unsigned frame=0;frame<512;++frame)
+            assert(sameFloatBits(cached.processSample(),reference.processSample()));
+    }
     checkVelocityTables();
     checkRegisterLogCache();
     std::fprintf(stderr, "m637 trigger precompute: all exact\n");

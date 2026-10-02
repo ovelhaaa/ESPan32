@@ -2,6 +2,9 @@
 #ifndef POCKETPAN_DSP_CANDIDATE
 #define POCKETPAN_DSP_CANDIDATE 25
 #endif
+#ifndef POCKETPAN_PACKED_NOTE_CACHE
+#define POCKETPAN_PACKED_NOTE_CACHE 1
+#endif
 #ifndef POCKETPAN_FORENSICS_CRITICAL_ONLY
 #define POCKETPAN_FORENSICS_CRITICAL_ONLY 0
 #endif
@@ -113,7 +116,8 @@
 // body cost more than the exciter samples they save, and the event block itself
 // never reaches the exciter end (noise burst >= 144 samples > 128-frame block).
 // It is kept behind this opt-in macro only as a documented negative result.
-#define POCKETPAN_HEADROOM_TABLE (POCKETPAN_DSP_CANDIDATE == 26)
+#define POCKETPAN_HEADROOM_TABLE (POCKETPAN_DSP_CANDIDATE == 26 || \
+    (POCKETPAN_DSP_CANDIDATE == 25 && POCKETPAN_PACKED_NOTE_CACHE))
 #define POCKETPAN_ATTACK_SEGMENT 0
 // The exact attack/exciter segment path.  Candidate 21 introduced it and it is
 // reused verbatim by the attack-voice candidates, so candidate 16 stays
@@ -126,6 +130,13 @@
 #define DSP_HOT IRAM_ATTR
 #else
 #define DSP_HOT
+#endif
+
+// M8 bounded event working set; diagnostic legacy uses its original placement.
+#if defined(ESP_PLATFORM) && POCKETPAN_BOUNDED_IRAM && POCKETPAN_PACKED_NOTE_CACHE
+#define DSP_EVENT_HOT IRAM_ATTR
+#else
+#define DSP_EVENT_HOT
 #endif
 
 // Per-function tail placement.  Defined empty on host so the experiment is a

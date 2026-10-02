@@ -1,8 +1,8 @@
 # M7.7 — UDU technically qualified listening model
 
 This is the retained fixed-PARTIAL M7.7 baseline. Velocity opening is now
-implemented and measured in [M7.7.1](m771_udu_dynamic_hole.md), with character B
-preserved and the final listening decision still pending. The evidence below
+implemented and measured in [M7.7.1](m771_udu_dynamic_hole.md), then frozen in
+[M7.7.2](m772_udu_v1_freeze.md) as B + CENTERED + R1. The evidence below
 continues to describe the original M7.7 firmware and reference pack.
 
 UDU follows frozen MBIRA V1 in the ten-model registry. The user selected

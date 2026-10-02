@@ -1,8 +1,8 @@
 # M7.7.1 — UDU Dynamic Hole Morph
 
-Character **B** is preserved. The implementation defaults provisionally to
-the centered velocity curve and conservative R1 restrikes. Listening selection
-is pending, and UDU is **not frozen**. No A/B/C voicing exploration was reopened.
+**UDU V1 FROZEN** in [M7.7.2](m772_udu_v1_freeze.md): Character **B**,
+**Centered Dynamic Opening**, **R1 Restrike**. The listening decision is final.
+This document retains the M7.7.1 implementation and historical comparison evidence.
 
 ## Architecture and velocity formula
 
@@ -12,7 +12,7 @@ OPEN. PARTIAL reuses the original coefficients exactly. At NoteOn, six
 coefficient values are interpolated into the voice's two-air-mode state.
 Four ceramic modes continue using the original shared cache coefficients.
 
-Normalize MIDI velocity as `v = velocity / 127`. For the provisional centered
+Normalize MIDI velocity as `v = velocity / 127`. For the frozen centered
 curve:
 
 ```cpp
@@ -137,8 +137,8 @@ The technical evidence establishes deeper/longer cavity poles on soft fresh
 strikes and higher/shorter poles on hard strikes. It does not decide whether
 ghosts sound natural, accents project, the groove feels more physical, motion
 resembles hand/hole technique, hard hits sound overly tuned, or medium hits
-retain the desired B character. Those six listening questions, the curve choice
-and the R1/R2 tradeoff remain open. No UDU freeze hash is added.
+retain the desired B character. The user finalized that listening decision in
+M7.7.2: B + CENTERED + R1. The frozen hash and fixtures are recorded there.
 
 ## Physical qualification
 

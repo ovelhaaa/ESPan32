@@ -78,7 +78,12 @@ void compare(const char* name, bool fast, InstrumentModel model,
     for (int32_t v : a.pcm) { if (v != 0) { nonzero = true; break; } }
     assert(nonzero && "fixture must produce audio");
 #if POCKETPAN_SUSTAIN_FASTPATH
-    if (fast) assert(a.fastPathBlocks > 0 && "fast path must actually be exercised");
+    if (fast) {
+        // Vibraphone's shared-tap renderer requires the attack-voice kernel.
+        // Candidate 16 deliberately uses its scalar fallback; PCM still matches.
+        const bool available=model!=InstrumentModel::Vibraphone || POCKETPAN_ATTACK_VOICE_FASTPATH;
+        assert(available ? a.fastPathBlocks>0 : a.fastPathBlocks==0);
+    }
     std::fprintf(stderr, "fastpath %-22s exact (%u fast voice-blocks)\n", name, a.fastPathBlocks);
 #else
     (void)fast;

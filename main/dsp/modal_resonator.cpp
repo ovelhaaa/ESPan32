@@ -48,7 +48,7 @@ void ModalResonatorBank::init(float sampleRate) {
     setPreset(kPresetPan);
 }
 
-void ModalResonatorBank::reset() {
+DSP_EVENT_HOT void ModalResonatorBank::reset() {
     for (size_t i = 0; i < kMaxModesPerVoice; ++i) {
         modes_[i].z1 = 0.0f;
         modes_[i].z2 = 0.0f;
@@ -64,7 +64,7 @@ void ModalResonatorBank::setConfig(const ResonatorConfig& config) {
 #endif
 }
 
-void ModalResonatorBank::setExcitationCoupling(const float* coupling, size_t count) {
+DSP_EVENT_HOT void ModalResonatorBank::setExcitationCoupling(const float* coupling, size_t count) {
     for (size_t i = 0; i < modeCount_; ++i) {
         excitationCoupling_[i] = (coupling && i < count) ? std::max(0.0f, coupling[i]) : 1.0f;
         // z1/z2 are intentionally untouched: a restrike changes only newly
@@ -73,7 +73,7 @@ void ModalResonatorBank::setExcitationCoupling(const float* coupling, size_t cou
     }
 }
 
-void ModalResonatorBank::setRegisterBehavior(float t60Scale, float splitBeatTargetHz, bool fixedHzSplit) {
+DSP_EVENT_HOT void ModalResonatorBank::setRegisterBehavior(float t60Scale, float splitBeatTargetHz, bool fixedHzSplit) {
     t60RegisterScale_ = std::clamp(t60Scale, 0.5f, 1.5f);
     splitBeatTargetHz_ = std::max(0.0f, splitBeatTargetHz);
     fixedHzSplit_ = fixedHzSplit;
@@ -186,7 +186,7 @@ void ModalResonatorBank::capturePreparedNote(PreparedNote& note) const {
     }
 }
 
-bool ModalResonatorBank::applyPreparedNote(const PreparedNote& note) {
+DSP_EVENT_HOT bool ModalResonatorBank::applyPreparedNote(const PreparedNote& note) {
     if (note.modeCount != modeCount_) return false;
 
     fundamentalFrequencyHz_ = std::clamp(note.fundamentalFrequencyHz, 10.0f, 15000.0f);
@@ -244,7 +244,7 @@ DSP_HOT float ModalResonatorBank::processSampleFixed(float excitation) {
 #endif
 
 #if POCKETPAN_MODAL_MICROKERNEL
-void ModalResonatorBank::refreshMicroKernel() {
+DSP_EVENT_HOT void ModalResonatorBank::refreshMicroKernel() {
     microKernel_ = MicroKernel::Generic;
     if (activeModeCount_ != modeCount_) return;
 
@@ -384,7 +384,7 @@ void ModalResonatorBank::processBlock(const float* inExcitation, float* outSigna
     }
 }
 
-float ModalResonatorBank::getEnergy() const {
+DSP_EVENT_HOT float ModalResonatorBank::getEnergy() const {
     float energy = 0.0f;
     for (size_t i = 0; i < modeCount_; ++i) {
         if (modes_[i].active) {

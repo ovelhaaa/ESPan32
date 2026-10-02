@@ -1,0 +1,11 @@
+C:/progs/ESPan/main/dsp/synth_engine.h:177:10:bool pocketpan::dsp::SynthEngine::verifyPreparedNoteCanaries() const	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:81:6:void pocketpan::dsp::SynthEngine::reset()	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:14:6:void pocketpan::dsp::SynthEngine::init(float)	128	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:96:6:void pocketpan::dsp::SynthEngine::setInstrumentModel(pocketpan::dsp::InstrumentModel)	112	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:135:6:void pocketpan::dsp::SynthEngine::setVibraphoneMotor(bool, float, float)	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:142:6:void pocketpan::dsp::SynthEngine::resetDiagnostics()	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:150:6:void pocketpan::dsp::SynthEngine::setMasterVolume(float)	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:154:6:void pocketpan::dsp::SynthEngine::setSympatheticEnabled(bool)	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:163:10:uint32_t pocketpan::dsp::SynthEngine::getModalInternalSaturationCount() const	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:169:20:void pocketpan::dsp::SynthEngine::handleMidiEvent(const pocketpan::midi::MidiEvent&)	32	static
+C:/progs/ESPan/main/dsp/synth_engine.cpp:221:27:void pocketpan::dsp::SynthEngine::renderBlock(int32_t*, size_t)	64	static

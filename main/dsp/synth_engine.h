@@ -18,6 +18,11 @@ constexpr size_t kMaxBlockFrames = 128;
 class SynthEngine {
 public:
     SynthEngine() = default;
+    // Views and UDU voice pointers refer to this engine's persistent owners.
+    SynthEngine(const SynthEngine&)=delete;
+    SynthEngine& operator=(const SynthEngine&)=delete;
+    SynthEngine(SynthEngine&&)=delete;
+    SynthEngine& operator=(SynthEngine&&)=delete;
 
     void init(float sampleRate);
     void reset();
@@ -158,41 +163,23 @@ private:
     InstrumentModel model_ = InstrumentModel::Pan;
 
 #if POCKETPAN_PREPARED_NOTE_CACHE
-    // Exactly nine shared tables (not one per voice), prepared before I2S is
-    // started.  Model selection in the audio callback only swaps a pointer.
-    // Phase P diagnostic canaries:
-    static constexpr uint32_t kCanaryMagic = 0x50414E32; // "PAN2"
-    uint32_t canaryPrePan_ = kCanaryMagic;
-    PreparedNoteTable panPreparedNotes_{};
-    uint32_t canaryMid_ = kCanaryMagic;
-    PreparedNoteTable bellPreparedNotes_{};
-    uint32_t canaryMid2_ = kCanaryMagic;
-    PreparedNoteTable tonguePreparedNotes_{};
-    uint32_t canaryMid3_ = kCanaryMagic;
-    PreparedNoteTable bowlPreparedNotes_{};
-    uint32_t canaryMid4_ = kCanaryMagic;
-    PreparedNoteTable kalimbaPreparedNotes_{};
-    uint32_t canaryMid5_ = kCanaryMagic;
-    PreparedNoteTable glassPreparedNotes_{};
-    uint32_t canaryMid6_ = kCanaryMagic;
-    PreparedNoteTable marimbaPreparedNotes_{};
-    uint32_t canaryPostMarimba_ = kCanaryMagic;
-    PreparedNoteTable vibraphonePreparedNotes_{};
-    uint32_t canaryPostVibraphone_ = kCanaryMagic;
-    PreparedNoteTable mbiraPreparedNotes_{};
-    uint32_t canaryPostMbira_ = kCanaryMagic;
+    // M8: model-width SoA owners in internal BSS; no stack/heap table conversion.
+    InstrumentPreparedNotes<8> panPreparedNotes_{};
+    InstrumentPreparedNotes<10> bellPreparedNotes_{};
+    InstrumentPreparedNotes<6> tonguePreparedNotes_{};
+    InstrumentPreparedNotes<7> bowlPreparedNotes_{};
+    InstrumentPreparedNotes<5> kalimbaPreparedNotes_{};
+    InstrumentPreparedNotes<6> glassPreparedNotes_{};
+    InstrumentPreparedNotes<6> marimbaPreparedNotes_{};
+    InstrumentPreparedNotes<6> vibraphonePreparedNotes_{};
+    InstrumentPreparedNotes<6> mbiraPreparedNotes_{};
 public:
     bool verifyPreparedNoteCanaries() const {
-        return canaryPrePan_ == kCanaryMagic &&
-               canaryMid_ == kCanaryMagic &&
-               canaryMid2_ == kCanaryMagic &&
-               canaryMid3_ == kCanaryMagic &&
-               canaryMid4_ == kCanaryMagic &&
-               canaryMid5_ == kCanaryMagic &&
-               canaryMid6_ == kCanaryMagic &&
-               canaryPostMarimba_ == kCanaryMagic &&
-               canaryPostVibraphone_ == kCanaryMagic &&
-               canaryPostMbira_ == kCanaryMagic;
+        return panPreparedNotes_.guarded() && bellPreparedNotes_.guarded() &&
+            tonguePreparedNotes_.guarded() && bowlPreparedNotes_.guarded() &&
+            kalimbaPreparedNotes_.guarded() && glassPreparedNotes_.guarded() &&
+            marimbaPreparedNotes_.guarded() && vibraphonePreparedNotes_.guarded() &&
+            mbiraPreparedNotes_.guarded();
     }
 private:
 #endif

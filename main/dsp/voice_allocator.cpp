@@ -17,10 +17,11 @@ void VoiceAllocator::init(float sampleRate) {
     }
 #if POCKETPAN_PREPARED_NOTE_CACHE
     preparedNoteTable_ = nullptr;
+    packedNoteView_ = {};
 #endif
 }
 
-void VoiceAllocator::reset() {
+DSP_EVENT_HOT void VoiceAllocator::reset() {
     for (size_t i = 0; i < kMaxVoices; ++i) {
         voices_[i].reset();
     }
@@ -69,7 +70,7 @@ int VoiceAllocator::findVoiceToSteal() const {
     return (bestCandidate >= 0) ? bestCandidate : 0;
 }
 
-void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequencyHz) {
+DSP_EVENT_HOT void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequencyHz) {
     // 1. If this note is already active, restrike that voice (accumulate energy physically)
     int sameNoteIndex = -1;
     {
@@ -88,10 +89,12 @@ void VoiceAllocator::noteOn(uint8_t note, float velocity, float fundamentalFrequ
 
     const PreparedNote* prepared = nullptr;
 #if POCKETPAN_PREPARED_NOTE_CACHE
+    PreparedNote unpacked; // 132-byte event-local copy; no large table on stack
     {
         DSP_PROFILE_SCOPE(PreparedLookup);
-        if (preparedNoteCacheEnabled_ && preparedNoteTable_) {
-            prepared = preparedNoteTable_->find(note, fundamentalFrequencyHz);
+        if (preparedNoteCacheEnabled_) {
+            if(packedNoteView_.load(note,fundamentalFrequencyHz,unpacked)) prepared=&unpacked;
+            else if(preparedNoteTable_) prepared=preparedNoteTable_->find(note,fundamentalFrequencyHz);
         }
     }
 #endif
@@ -455,6 +458,11 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
     }
 }
 
+#if POCKETPAN_PACKED_NOTE_CACHE
+// Keep the existing ordered float expressions. O3 only changes code generation
+// (no fast-math); the legacy diagnostic retains its original compiler setting.
+__attribute__((optimize("O3")))
+#endif
 DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* strikeBuffer, size_t frames,
                                               const SympatheticConfig& config) {
     std::fill(outBuffer, outBuffer + frames, 0.0f);
@@ -637,11 +645,29 @@ void VoiceAllocator::setPanConfigsForTest(const ExciterConfig& exciter, const Pa
 #if POCKETPAN_PREPARED_NOTE_CACHE
     // Test-injected voicing is deliberately not one of the two canonical
     // tables prepared at boot.
-    preparedNoteTable_ = nullptr;
+    setPreparedNoteTable(nullptr);
 #endif
 }
 
 #if POCKETPAN_PREPARED_NOTE_CACHE
+bool VoiceAllocator::preparePackedNotes(const InstrumentModelConfig& config,PackedNoteHeader* headers,
+        float* a1,float* a2,float* amplitude,size_t width) const {
+    if(config.modalPreset->modeCount!=width) return false;
+    ModalVoice preparer;
+    preparer.init(sampleRate_);preparer.setModelConfig(config);
+    for(size_t i=0;i<kPreparedNoteCount;++i) {
+        PreparedNote note{};
+        const auto midiNote=uint8_t(kPreparedNoteFirst+i);
+        if(!preparer.prepareNote(midiNote,midi::MidiMapping::noteToHz(midiNote),note) ||
+            note.modeCount!=width) return false;
+        headers[i]={note.midiNote,note.modeCount,note.activeMask,
+            note.fundamentalFrequencyHz,note.registerPosition};
+        for(size_t m=0;m<width;++m) {
+            a1[i*width+m]=note.a1[m];a2[i*width+m]=note.a2[m];amplitude[i*width+m]=note.modalAmplitude[m];
+        }
+    }
+    return true;
+}
 void VoiceAllocator::preparePreparedNoteTable(const InstrumentModelConfig& config,
                                               PreparedNoteTable& table) const {
     table.reset();

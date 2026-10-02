@@ -1,0 +1,129 @@
+{
+  "complete": true,
+  "identity": "UDU V1 = B + CENTERED + R1",
+  "aggregate_fnv64": "552d8d59691b008e",
+  "timing": [
+    {
+      "fixture": "single v127",
+      "avg_us": 270.49,
+      "p95_us": 315,
+      "p99_us": 400,
+      "max_us": 639,
+      "cpu_pct": 10.14,
+      "event_only": {
+        "fixture": "0",
+        "n": "44",
+        "avg_us": "112.78",
+        "max_us": "126"
+      },
+      "deadline": 0,
+      "i2s_faults": 0,
+      "nonfinite": 0,
+      "resonator_faults": 0,
+      "hard_clamps": 0
+    },
+    {
+      "fixture": "chord4",
+      "avg_us": 628.97,
+      "p95_us": 750,
+      "p99_us": 950,
+      "max_us": 1341,
+      "cpu_pct": 23.59,
+      "event_only": {
+        "fixture": "1",
+        "n": "44",
+        "avg_us": "125.29",
+        "max_us": "138"
+      },
+      "deadline": 0,
+      "i2s_faults": 0,
+      "nonfinite": 0,
+      "resonator_faults": 0,
+      "hard_clamps": 0
+    },
+    {
+      "fixture": "cluster8",
+      "avg_us": 1090.91,
+      "p95_us": 1290,
+      "p99_us": 1525,
+      "max_us": 2095,
+      "cpu_pct": 40.91,
+      "event_only": {
+        "fixture": "2",
+        "n": "44",
+        "avg_us": "136.67",
+        "max_us": "146"
+      },
+      "deadline": 0,
+      "i2s_faults": 0,
+      "nonfinite": 0,
+      "resonator_faults": 0,
+      "hard_clamps": 0
+    },
+    {
+      "fixture": "dynamic groove",
+      "avg_us": 443.68,
+      "p95_us": 575,
+      "p99_us": 750,
+      "max_us": 1299,
+      "cpu_pct": 16.64,
+      "event_only": {
+        "fixture": "3",
+        "n": "88",
+        "avg_us": "120.69",
+        "max_us": "258"
+      },
+      "deadline": 0,
+      "i2s_faults": 0,
+      "nonfinite": 0,
+      "resonator_faults": 0,
+      "hard_clamps": 0
+    },
+    {
+      "fixture": "model switching",
+      "avg_us": 278.56,
+      "p95_us": 330,
+      "p99_us": 425,
+      "max_us": 1040,
+      "cpu_pct": 10.45,
+      "event_only": {
+        "fixture": "4",
+        "n": "44",
+        "avg_us": "560.62",
+        "max_us": "593"
+      },
+      "deadline": 0,
+      "i2s_faults": 0,
+      "nonfinite": 0,
+      "resonator_faults": 0,
+      "hard_clamps": 0
+    },
+    {
+      "fixture": "rapid restrike",
+      "avg_us": 310.51,
+      "p95_us": 375,
+      "p99_us": 425,
+      "max_us": 739,
+      "cpu_pct": 11.64,
+      "event_only": {
+        "fixture": "5",
+        "n": "1024",
+        "avg_us": "42.53",
+        "max_us": "159"
+      },
+      "deadline": 0,
+      "i2s_faults": 0,
+      "nonfinite": 0,
+      "resonator_faults": 0,
+      "hard_clamps": 0
+    }
+  ],
+  "internal_free": 37707,
+  "largest_internal": 18432,
+  "udu_cache_bytes": 5928,
+  "udu_voice_bytes": 124,
+  "synth_engine_bytes": 107848,
+  "prepared_note_bytes": 86760,
+  "firmware_bytes": 686608,
+  "firmware_sha256": "cd127e0c8fab09500e5820c98249f8fb2b044cf5c6450f94e3035730563b4982"
+}

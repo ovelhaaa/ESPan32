@@ -1,0 +1,137 @@
+[  0%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[  2%] Built target test_ble_midi_parser
+[  3%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[  4%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[  5%] Built target test_telemetry
+[  6%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[  7%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[  9%] Built target test_modal_kernel
+[  9%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 10%] Linking CXX executable test_dsp.exe
+[ 11%] Linking CXX executable test_prepared_note.exe
+[ 11%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 13%] Built target test_exciter_fastpath
+[ 14%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[ 20%] Built target test_dsp
+[ 21%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 27%] Built target test_prepared_note
+[ 28%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 29%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 30%] Linking CXX executable test_fastpath.exe
+[ 31%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 32%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 33%] Linking CXX executable test_m637_trigger.exe
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[ 39%] Built target test_fastpath
+[ 40%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 40%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 43%] Built target test_m637_trigger
+[ 43%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[ 44%] Linking CXX executable test_m635_fastpath.exe
+[ 45%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 46%] Linking CXX executable test_vibraphone_runtime.exe
+[ 47%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 48%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 54%] Built target test_m635_fastpath
+[ 55%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[ 61%] Built target test_vibraphone_runtime
+[ 62%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 63%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 64%] Linking CXX executable test_mbira.exe
+[ 65%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 66%] Linking CXX executable test_udu.exe
+[ 67%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 72%] Built target test_mbira
+[ 72%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 73%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[ 78%] Built target test_udu
+[ 79%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[ 80%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 81%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 82%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 82%] Linking CXX executable test_udu_dynamic.exe
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:394:22: warning: unused variable 'split' [-Wunused-variable]
+  394 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:526:22: warning: unused variable 'split' [-Wunused-variable]
+  526 |         const size_t split = frames;
+      |                      ^~~~~
+[ 82%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 83%] Linking CXX executable test_udu_frozen.exe
+[ 89%] Built target test_udu_dynamic
+[ 94%] Built target test_udu_frozen
+[ 94%] Linking CXX executable test_cache_layout.exe
+[100%] Built target test_cache_layout

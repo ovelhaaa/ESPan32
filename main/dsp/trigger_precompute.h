@@ -76,4 +76,32 @@ inline const float* mbiraStrikePowTable() {
     }
     return table;
 }
+// M8: one shared canonical PAN/BELL strike curve, never one LUT per voice.
+// Initialize explicitly before audio; lookup cannot generate a table.
+struct CanonicalStrikePowCache {
+    float table[kMidiVelocityCount]{};
+    float knee=0, slope=0;
+    bool ready=false;
+};
+inline CanonicalStrikePowCache& canonicalStrikePowCache() {
+    static CanonicalStrikePowCache cache;
+    return cache;
+}
+inline void prepareCanonicalStrikePow(float configKnee,float configSlope) {
+    auto& cache=canonicalStrikePowCache();
+    cache.ready=false;cache.knee=configKnee;cache.slope=configSlope;
+    const float knee=std::clamp(configKnee,.01f,1.0f);
+    const float slope=std::clamp(configSlope,.01f,1.0f);
+    for(int i=0;i<kMidiVelocityCount;++i) {
+        const float v=std::clamp(float(i)/127.0f,.01f,1.0f);
+        const float energy=v<=knee ? v : knee+(v-knee)*slope;
+        cache.table[i]=std::pow(energy,1.25f);
+    }
+    cache.ready=true;
+}
+inline const float* canonicalStrikePowTable(float knee,float slope) {
+    const auto& cache=canonicalStrikePowCache();
+    return cache.ready && sameFloatBits(knee,cache.knee) && sameFloatBits(slope,cache.slope)
+        ? cache.table : nullptr;
+}
 } // namespace pocketpan::dsp

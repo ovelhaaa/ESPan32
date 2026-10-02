@@ -8,6 +8,7 @@ import re
 p = argparse.ArgumentParser()
 p.add_argument("directory", type=pathlib.Path)
 p.add_argument("--fixtures", type=int, required=True)
+p.add_argument("--allow-deadline-misses",action="store_true",help="Retain a failing diagnostic control; never accepts final qualification")
 args = p.parse_args()
 io, safety, curves, hist = {}, {}, [], {}
 evidence = []
@@ -31,6 +32,8 @@ assert set(io) == set(range(args.fixtures)), "Missing physical fixtures"
 assert set(safety) == set(io), "Missing explicit safety evidence"
 for fixture, fields in io.items():
     for key in ("deadline", "timeouts", "tx_errors", "short_writes"):
+        if key=="deadline" and args.allow_deadline_misses:
+            continue
         assert int(fields[key]) == 0, (fixture, key, fields[key])
     for key in ("hard", "sat", "nonfinite", "ble_lost"):
         assert int(safety[fixture][key]) == 0, (fixture, key, safety[fixture][key])
@@ -49,7 +52,7 @@ sources = {}
 for source in pathlib.Path("main").rglob("*"):
     if source.is_file():
         sources[source.as_posix()] = hashlib.sha256(source.read_bytes()).hexdigest()
-report = {"passed": True, "io": io, "safety": safety, "callback_curves": curves,
+report = {"passed": all(int(r['deadline'])==0 for r in io.values()), "io": io, "safety": safety, "callback_curves": curves,
           "evidence": evidence, "source_sha256": sources}
 (args.directory / "hardware_manifest.json").write_text(json.dumps(report, indent=2) + "\n")
 for fixture, row in sorted(io.items()):

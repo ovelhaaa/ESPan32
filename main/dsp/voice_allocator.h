@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 
 #include <cstdint>
 #include <cstddef>
@@ -97,7 +98,21 @@ public:
     // Tables are prepared outside the callback and shared by all eight voices.
     void preparePreparedNoteTable(const InstrumentModelConfig& config,
                                   PreparedNoteTable& table) const;
-    void setPreparedNoteTable(const PreparedNoteTable* table) { preparedNoteTable_ = table; }
+    void setPreparedNoteTable(const PreparedNoteTable* table) { preparedNoteTable_ = table; packedNoteView_={}; }
+    void setPreparedNoteTable(std::nullptr_t) { preparedNoteTable_=nullptr;packedNoteView_={}; }
+    void setPreparedNoteTable(const GuardedFullPreparedNoteTable* table) { setPreparedNoteTable(&table->table); }
+    void preparePreparedNoteTable(const InstrumentModelConfig& config,GuardedFullPreparedNoteTable& table) const {
+        preparePreparedNoteTable(config,table.table);assert(table.guarded());
+    }
+    template<size_t N> void setPreparedNoteTable(const PackedPreparedNoteTable<N>* table) {
+        preparedNoteTable_=nullptr;packedNoteView_=table->view();
+    }
+    template<size_t N> void preparePreparedNoteTable(const InstrumentModelConfig& config,
+                                                     PackedPreparedNoteTable<N>& table) const {
+        table.reset();
+        table.ready=preparePackedNotes(config,table.headers,table.a1,table.a2,table.amplitude,N);
+        assert(table.ready && table.guarded());
+    }
     // Host qualification hook; it has no UI/MIDI/persisted route.
     void setPreparedNoteCacheEnabledForTest(bool enabled) { preparedNoteCacheEnabled_ = enabled; }
     bool isPreparedNoteCacheEnabledForTest() const { return preparedNoteCacheEnabled_; }
@@ -139,6 +154,9 @@ private:
     float sympatheticBusPeak_ = 0.0f, sympatheticBusSumSquares_ = 0.0f; uint32_t sympatheticBusSamples_ = 0, sympatheticSafetyCount_ = 0;
 #if POCKETPAN_PREPARED_NOTE_CACHE
     const PreparedNoteTable* preparedNoteTable_ = nullptr;
+    PackedNoteView packedNoteView_{};
+    bool preparePackedNotes(const InstrumentModelConfig& config,PackedNoteHeader* headers,
+        float* a1,float* a2,float* amplitude,size_t width) const;
     bool preparedNoteCacheEnabled_ = true;
 #endif
 #if POCKETPAN_SUSTAIN_FASTPATH

@@ -1,0 +1,1 @@
+Repeat qualification stopped after PAN cluster recorded one full-callback deadline miss (2707 us). The subsequent Vibraphone capture was cancelled at a safe serial-capture boundary; its partial rows do not qualify. All evidence is retained. The next owned qualification run restores production in its finally block.

@@ -1,0 +1,21 @@
+[  2%] Built target test_ble_midi_parser
+[ 11%] Built target test_dsp
+[ 20%] Built target test_prepared_note
+[ 21%] Built target test_telemetry
+[ 23%] Building CXX object CMakeFiles/test_fastpath.dir/test_fastpath.cpp.obj
+[ 24%] Built target test_modal_kernel
+[ 26%] Built target test_exciter_fastpath
+C:\progs\ESPan\tests\test_fastpath.cpp: In function 'int main()':
+C:\progs\ESPan\tests\test_fastpath.cpp:129:63: warning: narrowing conversion of 't' from 'size_t' {aka 'long long unsigned int'} to 'uint32_t' {aka 'unsigned int'} [-Wnarrowing]
+  129 |         for (size_t t=4800;t<48000;t+=4800) events.push_back({t,midi::MidiEventType::NoteOn,62,110});
+      |                                                               ^
+[ 35%] Built target test_m635_fastpath
+[ 40%] Built target test_m637_trigger
+[ 49%] Built target test_vibraphone_runtime
+[ 50%] Linking CXX executable test_fastpath.exe
+[ 59%] Built target test_mbira
+[ 68%] Built target test_udu
+[ 76%] Built target test_udu_dynamic
+[ 83%] Built target test_fastpath
+[ 92%] Built target test_udu_frozen
+[100%] Built target test_cache_layout

@@ -64,7 +64,7 @@ void ModalVoice::setPanConfigsForTest(const ExciterConfig& exciter, const PanVoi
     registerLogHi_ = std::log(voicingConfig_.registerHighHz);
 }
 
-void ModalVoice::reset() {
+DSP_EVENT_HOT void ModalVoice::reset() {
     udu_.reset();
     active_ = false;
     released_ = true;
@@ -87,7 +87,7 @@ void ModalVoice::reset() {
     resonators_.reset();
 }
 
-void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity,
+DSP_EVENT_HOT void ModalVoice::trigger(uint8_t midiNote, float fundamentalFrequencyHz, float velocity,
                          const PreparedNote* prepared) {
     if(uduModel_) {
         midiNote_=midiNote; fundamentalFrequencyHz_=fundamentalFrequencyHz;
@@ -178,7 +178,7 @@ bool ModalVoice::prepareNote(uint8_t midiNote, float fundamentalFrequencyHz,
     return result.modeCount == resonators_.getModeCount();
 }
 
-void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
+DSP_EVENT_HOT void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
     const auto& v = voicingConfig_;
 
     float reg;
@@ -187,7 +187,7 @@ void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
     float brightness;
     {
         DSP_PROFILE_SCOPE(TriggerRegister);
-        reg = (vibraphoneTriggerCache_ || mbiraTriggerCache_) && prepared ? prepared->registerPosition : registerPosition();
+        reg = (vibraphoneTriggerCache_ || mbiraTriggerCache_ || POCKETPAN_PACKED_NOTE_CACHE) && prepared ? prepared->registerPosition : registerPosition();
         gain = v.lowRegisterGain + (v.highRegisterGain - v.lowRegisterGain) * reg;
         t60Scale = v.t60LowRegisterScale + (v.t60HighRegisterScale - v.t60LowRegisterScale) * reg;
         brightness = v.lowRegisterBrightness + (v.highRegisterBrightness - v.lowRegisterBrightness) * reg;
@@ -209,7 +209,7 @@ void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
         }
         hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) * powTerm;
 #else
-        const int velIndex = (vibraphoneTriggerCache_ || mbiraTriggerCache_) ? exactMidiVelocityIndex(velocity) : -1;
+        const int velIndex = (vibraphoneTriggerCache_ || mbiraTriggerCache_ || POCKETPAN_PACKED_NOTE_CACHE) ? exactMidiVelocityIndex(velocity) : -1;
         const float powTerm = velIndex >= 0 ? velocityPow115Table()[velIndex]
             : std::pow(std::clamp(velocity, 0.0f, 1.0f), 1.15f);
         hardness = v.strikeHardnessMin + (v.strikeHardnessMax - v.strikeHardnessMin) * powTerm;
@@ -246,6 +246,10 @@ void ModalVoice::configureStrike(float velocity, const PreparedNote* prepared) {
             exciterConfig_.velocityKneeSlope == .38f ? vibraphoneStrikePowTable() : nullptr;
         if (mbiraTriggerCache_ && exciterConfig_.velocityKnee == .90f && exciterConfig_.velocityKneeSlope == .55f)
             strikePow = mbiraStrikePowTable();
+#if POCKETPAN_PACKED_NOTE_CACHE
+        if(const float* shared=canonicalStrikePowTable(exciterConfig_.velocityKnee,exciterConfig_.velocityKneeSlope))
+            strikePow=shared;
+#endif
         exciter_.trigger(velocity, hardness, brightness, strikePow);
     }
 }

@@ -1,0 +1,26 @@
+C:/progs/ESPan/main/dsp/exciter.h:131:14:float pocketpan::dsp::Exciter::processSample()	48	static
+C:/progs/ESPan/main/dsp/udu.h:127:10:void pocketpan::dsp::UduVoice::strike(uint8_t, float, bool)	80	static
+C:/progs/ESPan/main/dsp/udu.h:161:11:float pocketpan::dsp::UduVoice::process(float)	48	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:33:6:void pocketpan::dsp::ModalVoice::setInternalSafetySaturation(bool)	48	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:59:6:void pocketpan::dsp::ModalVoice::setPanConfigsForTest(const pocketpan::dsp::ExciterConfig&, const pocketpan::dsp::PanVoicingConfig&)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:67:6:void pocketpan::dsp::ModalVoice::reset()	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:13:6:void pocketpan::dsp::ModalVoice::init(float)	48	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:39:6:void pocketpan::dsp::ModalVoice::setModelConfig(const pocketpan::dsp::InstrumentModelConfig&)	48	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:152:7:float pocketpan::dsp::ModalVoice::registerPositionFor(float) const	48	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:148:7:float pocketpan::dsp::ModalVoice::registerPosition() const	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:160:6:bool pocketpan::dsp::ModalVoice::prepareNote(uint8_t, float, pocketpan::dsp::PreparedNote&) const	832	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:181:20:void pocketpan::dsp::ModalVoice::configureStrike(float, const pocketpan::dsp::PreparedNote*)	128	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:90:20:void pocketpan::dsp::ModalVoice::trigger(uint8_t, float, float, const pocketpan::dsp::PreparedNote*)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:127:6:void pocketpan::dsp::ModalVoice::restrike(float)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:257:6:void pocketpan::dsp::ModalVoice::release()	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:262:6:void pocketpan::dsp::ModalVoice::kill()	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:266:6:void pocketpan::dsp::ModalVoice::setDamping(float)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:270:6:void pocketpan::dsp::ModalVoice::prepareSteal(float)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:277:15:float pocketpan::dsp::ModalVoice::processSample(float, float*)	48	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:342:6:void pocketpan::dsp::ModalVoice::processBlock(float*, size_t)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:349:6:bool pocketpan::dsp::ModalVoice::isAttackSafe() const	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:360:15:float pocketpan::dsp::ModalVoice::processSampleAttackStable(float, float*)	48	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:386:14:void pocketpan::dsp::ModalVoice::renderAttackBlock(float*, size_t, float)	64	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:419:6:bool pocketpan::dsp::ModalVoice::isSustainSafe() const	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:427:15:float pocketpan::dsp::ModalVoice::processSampleSustain(float, float*)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.cpp:449:14:void pocketpan::dsp::ModalVoice::renderSustainBlock(float*, size_t, float)	48	static

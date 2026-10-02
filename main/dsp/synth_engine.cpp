@@ -18,6 +18,9 @@ void SynthEngine::init(float sampleRate) {
     (void)velocityPow115Table();
     (void)vibraphoneStrikePowTable();
     (void)mbiraStrikePowTable();
+#if POCKETPAN_PACKED_NOTE_CACHE
+    prepareCanonicalStrikePow(kPanExciterConfig.velocityKnee,kPanExciterConfig.velocityKneeSlope);
+#endif
     for (unsigned note=0; note<128; ++note)
         vibraphoneMidiHz[note]=midi::MidiMapping::noteToHz(uint8_t(note));
     allocator_.init(sampleRate_);
@@ -78,7 +81,7 @@ void SynthEngine::init(float sampleRate) {
     reset();
 }
 
-void SynthEngine::reset() {
+DSP_EVENT_HOT void SynthEngine::reset() {
     mbiraBuzz_.reset();
     mbiraDcState_ = 0.0f;
     motorPhase_ = 0;
@@ -103,27 +106,27 @@ void SynthEngine::setInstrumentModel(InstrumentModel model) {
 #endif
 #if POCKETPAN_PREPARED_NOTE_CACHE
     assert(verifyPreparedNoteCanaries());
-    const PreparedNoteTable* table = &panPreparedNotes_;
+    allocator_.setPreparedNoteTable(&panPreparedNotes_);
     if (model_ == InstrumentModel::Bell) {
-        table = &bellPreparedNotes_;
+        allocator_.setPreparedNoteTable(&bellPreparedNotes_);
     } else if (model_ == InstrumentModel::Tongue) {
-        table = &tonguePreparedNotes_;
+        allocator_.setPreparedNoteTable(&tonguePreparedNotes_);
     } else if (model_ == InstrumentModel::Bowl) {
-        table = &bowlPreparedNotes_;
+        allocator_.setPreparedNoteTable(&bowlPreparedNotes_);
     } else if (model_ == InstrumentModel::Kalimba) {
-        table = &kalimbaPreparedNotes_;
+        allocator_.setPreparedNoteTable(&kalimbaPreparedNotes_);
     } else if (model_ == InstrumentModel::Glass) {
-        table = &glassPreparedNotes_;
+        allocator_.setPreparedNoteTable(&glassPreparedNotes_);
     } else if (model_ == InstrumentModel::Marimba) {
-        table = &marimbaPreparedNotes_;
+        allocator_.setPreparedNoteTable(&marimbaPreparedNotes_);
     } else if (model_ == InstrumentModel::Vibraphone) {
-        table = &vibraphonePreparedNotes_;
+        allocator_.setPreparedNoteTable(&vibraphonePreparedNotes_);
     } else if (model_ == InstrumentModel::Mbira) {
-        table = &mbiraPreparedNotes_;
+        allocator_.setPreparedNoteTable(&mbiraPreparedNotes_);
     } else if (model_ == InstrumentModel::Udu) {
-        table = nullptr; // Compact independent cavity/shell cache, no tenth full table.
+        allocator_.setPreparedNoteTable(nullptr); // UDU keeps its independent cache.
     }
-    allocator_.setPreparedNoteTable(table);
+
 #endif
     body_ = preparedBodies_[static_cast<size_t>(model_)];
     setVibraphoneMotor(true);
@@ -166,7 +169,7 @@ uint32_t SynthEngine::getModalInternalSaturationCount() const {
     return total;
 }
 
-void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
+DSP_EVENT_HOT void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
     switch (event.type) {
         case midi::MidiEventType::NoteOn: {
             if (event.data2 == 0) {
@@ -179,8 +182,15 @@ void SynthEngine::handleMidiEvent(const midi::MidiEvent& event) {
                     // Keep MIDI mapping/normalization separate from allocator
                     // and trigger work in the profile breakdown.
                     DSP_PROFILE_SCOPE(MidiDispatch);
+#if POCKETPAN_PACKED_NOTE_CACHE
+                    // M8: the existing startup MIDI-Hz table is model independent.
+                    // Reuse its exact pow() results for every canonical MIDI event.
+                    freqHz = event.data1 < 128 ? vibraphoneMidiHz[event.data1]
+                        : midi::MidiMapping::noteToHz(event.data1);
+#else
                     freqHz = (model_ == InstrumentModel::Vibraphone || model_ == InstrumentModel::Mbira || model_ == InstrumentModel::Udu) && event.data1 < 128
                         ? vibraphoneMidiHz[event.data1] : midi::MidiMapping::noteToHz(event.data1);
+#endif
                     vel = midi::MidiMapping::toNormalizedFloat(event.data2);
                 }
                 allocator_.noteOn(event.data1, vel, freqHz);

@@ -60,7 +60,7 @@ void Exciter::buildStrikePow() {
 }
 #endif
 
-void Exciter::trigger(float velocity, float hardness, float brightnessScale, const float* exactStrikePow) {
+DSP_EVENT_HOT void Exciter::trigger(float velocity, float hardness, float brightnessScale, const float* exactStrikePow) {
     const float v = std::clamp(velocity, 0.01f, 1.0f);
     const float h = std::clamp(hardness, 0.0f, 1.0f);
 

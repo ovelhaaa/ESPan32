@@ -644,6 +644,18 @@ void uiTaskLoop(void* param) {
 } // namespace
 
 extern "C" void app_main(void) {
+    // Startup ownership audit only; never called from render or event dispatch.
+    auto memoryStage=[](const char* stage) {
+#ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
+        ESP_LOGI(kTag,"[MEM_STAGE] stage=%s internal_free=%u largest_internal=%u psram_free=%u",
+            stage,(unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
+            (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL),
+            (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+#else
+        (void)stage;
+#endif
+    };
+    memoryStage("entry");
     ESP_LOGI(kTag, "===============================================");
     ESP_LOGI(kTag, "  Pocket Pan / Metal Modal Synthesizer v1.0.0");
     ESP_LOGI(kTag, "  Hardware: TENSTAR TS-ESP32-S3 (Feather TFT)");
@@ -668,6 +680,7 @@ extern "C" void app_main(void) {
 #endif
     // 1. Initialize DSP Engine (48kHz, 8 voices, PAN preset)
     sSynth.init(static_cast<float>(pocketpan::board::audio::kSampleRate));
+    memoryStage("dsp_ready");
 #if POCKETPAN_UDU_FIXED_REFERENCE && POCKETPAN_FORENSICS_M77
     pocketpan::dsp::UduConfig uduReference;
     uduReference.curve=pocketpan::dsp::UduOpeningCurve::Fixed;
@@ -727,6 +740,7 @@ extern "C" void app_main(void) {
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
     pocketpan::forensics::setAudioInstance(&sAudio);
 #endif
+    memoryStage("i2s_ready");
 
     // 4. Initialize Display (after audio claims GDMA, before BLE allocates internal RAM)
     if (!sDisplay.init()) {
@@ -740,18 +754,23 @@ extern "C" void app_main(void) {
     ESP_LOGI(kTag, "[CANARY] PreparedNote canaries OK=%d", sSynth.verifyPreparedNoteCanaries());
 #endif
 
+    memoryStage("display_ready");
     // 5. Initialize BLE MIDI Central on Core 1
     if (!sBleMidi.begin()) {
         ESP_LOGW(kTag, "BLE MIDI Central failed to start advertising/scanning");
     }
+    memoryStage("ble_ready");
 
 #ifdef CONFIG_POCKETPAN_HARDWARE_QUALIFICATION_LOG
     ESP_LOGI(kTag, "[M75_MEMORY] table_bytes=%u cache_bytes=%u synth_bytes=%u internal_free=%u largest_internal=%u",
         (unsigned)pocketpan::dsp::PreparedNoteTable::bytesPerModel(),
-        (unsigned)(pocketpan::dsp::PreparedNoteTable::bytesPerModel() * 9),
+        (unsigned)pocketpan::dsp::kInstrumentPreparedNoteTotalBytes,
         (unsigned)sizeof(sSynth), (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
         (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
-    ESP_LOGI(kTag, "[UDU_CACHE] compact_bytes=%u full_tables=9", (unsigned)sizeof(pocketpan::dsp::UduCache));
+    ESP_LOGI(kTag, "[UDU_CACHE] compact_bytes=%u modal_models=9", (unsigned)sizeof(pocketpan::dsp::UduCache));
+    ESP_LOGI(kTag, "[CACHE_LAYOUT] packed=%u storage_bytes=%u note_scratch_bytes=%u",
+        POCKETPAN_PACKED_NOTE_CACHE,(unsigned)pocketpan::dsp::kInstrumentPreparedNoteTotalBytes,
+        (unsigned)sizeof(pocketpan::dsp::PreparedNote));
     ESP_LOGI(kTag, "[UDU_STATE] voice_bytes=%u fixed_reference=%u", (unsigned)sizeof(pocketpan::dsp::UduVoice), POCKETPAN_UDU_FIXED_REFERENCE);
 #endif
 
@@ -777,5 +796,6 @@ extern "C" void app_main(void) {
                             pocketpan::board::ui::kTaskPriority, nullptr, 1);
 #endif
 
+    memoryStage("ui_ready");
     ESP_LOGI(kTag, "Pocket Pan initialization complete. Realtime audio active.");
 }

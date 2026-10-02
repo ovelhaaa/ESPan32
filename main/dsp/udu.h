@@ -5,7 +5,9 @@
 
 namespace pocketpan::dsp {
 
-// UDU is a reduced air/body model, independent of the pitched-bar bank.
+// UDU V1 FROZEN: Character B, Centered Dynamic Opening, R1 Restrike.
+// Reduced air/body model, independent of the pitched-bar bank.
+// Alternative characters/curves/R2 are historical host listening references.
 enum class UduCandidate : uint8_t { Deep, Balanced, Dry };
 enum class UduOpening : uint8_t { Open, Partial, Closed };
 enum class UduOpeningCurve : uint8_t { Fixed, Linear, Smooth, Centered };
@@ -15,7 +17,7 @@ inline float uduOpeningForVelocity(float v,UduOpeningCurve curve) {
     if(curve==UduOpeningCurve::Linear) return v;
     if(curve==UduOpeningCurve::Smooth) return v*v*(3.0f-2.0f*v);
     if(curve==UduOpeningCurve::Fixed) return .5f;
-    // Musical anchors: (0,0), (.3,.15), (.6,.5), (.8,.75), (1,1).
+    // Frozen piecewise anchors: (0,0), (.3,.15), (.6,.5), (.8,.75), (1,1).
     if(v<=.3f) return .5f*v;
     if(v<=.6f) return .15f+(v-.3f)*( .35f/.3f );
     return .5f+(v-.6f)*1.25f;
@@ -126,6 +128,8 @@ public:
         if(clear) reset();
         if(!cache_) return;
         velocity_=std::clamp(velocity,0.0f,1.0f);
+        // R1: retain live cavity poles until cavityEnergy() < 1e-9.
+        // Excitation and transient still update on every same-note restrike.
         if(!coeff_ || cache_->config.curve==UduOpeningCurve::Fixed ||
            cache_->config.restrike==UduRestrike::Update || cavityEnergy()<1e-9f) {
             coeff_=&cache_->find(note);

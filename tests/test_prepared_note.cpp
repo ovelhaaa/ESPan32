@@ -180,6 +180,7 @@ const char* modelName(InstrumentModel model) {
         case InstrumentModel::Marimba: return "MARIMBA";
         case InstrumentModel::Vibraphone: return "VIBRAPHONE";
         case InstrumentModel::Mbira: return "MBIRA";
+        case InstrumentModel::Udu: return "UDU";
         case InstrumentModel::Pan:
         default: return "PAN";
     }
@@ -190,7 +191,7 @@ void testPreparedTableCoverage() {
     for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
         pocketpan::dsp::VoiceAllocator allocator;
         allocator.init(static_cast<float>(kSampleRate));
-        pocketpan::dsp::PreparedNoteTable table{};
+        static pocketpan::dsp::PreparedNoteTable table{};
         allocator.preparePreparedNoteTable(pocketpan::dsp::getInstrumentModelConfig(model), table);
         assert(table.ready);
 
@@ -216,7 +217,7 @@ void testPreparedTableCoverage() {
 void testGrid() {
     std::cout << "[PreparedNote] PCM/FNV grid: 24--96 x 30/70/110/127...\n";
     constexpr std::array<uint8_t, 4> velocities = {30, 70, 110, 127};
-    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira}) {
+    for (const InstrumentModel model : {InstrumentModel::Pan, InstrumentModel::Bell, InstrumentModel::Tongue, InstrumentModel::Bowl, InstrumentModel::Kalimba, InstrumentModel::Glass, InstrumentModel::Marimba, InstrumentModel::Vibraphone, InstrumentModel::Mbira, InstrumentModel::Udu}) {
         uint64_t aggregate = 14695981039346656037ULL;
         size_t caseCount = 0;
         for (uint16_t note = pocketpan::dsp::kPreparedNoteFirst;
@@ -235,7 +236,8 @@ void testGrid() {
             0x9e9801244165101dULL, 0x7c2dc6f37fb99f4bULL,
             0x83f75567fb47ebafULL, 0x14772092e35bc4a7ULL,
             0xe9bcabdd0b6e3bd2ULL, 0x14e0dd6ba566e1cfULL, 0x236d684f05f5f1d2ULL,
-            0x3cea893644aa0283ULL, 0xf5ee8755af2fa270ULL}; // MBIRA V1: B + Buzz ON.
+            0x3cea893644aa0283ULL, 0xf5ee8755af2fa270ULL,
+            0x552d8d59691b008eULL}; // UDU V1: B + CENTERED + R1.
         assert(aggregate == baseline[static_cast<unsigned>(model)]);
         std::cout << "  " << modelName(model) << " " << caseCount << " exact cases, aggregate FNV 0x"
                   << std::hex << aggregate << std::dec << '\n';

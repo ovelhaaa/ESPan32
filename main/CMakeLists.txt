@@ -36,6 +36,16 @@ idf_component_register(
 )
 
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
+# Catch accidental full/packed table temporaries in every firmware DSP build.
+set_source_files_properties(dsp/synth_engine.cpp dsp/voice_allocator.cpp dsp/modal_voice.cpp
+    PROPERTIES COMPILE_OPTIONS "-Werror=frame-larger-than=2048;-fstack-usage")
+set(POCKETPAN_PACKED_NOTE_CACHE 1 CACHE STRING "M8: packed internal model-width caches (0 = diagnostic legacy rollback)")
+set(POCKETPAN_FORENSICS_M8_MODEL -1 CACHE STRING "M8: -1 disabled, 0 PAN, 1 VIBRAPHONE, 2 MBIRA, 3 UDU")
+set(POCKETPAN_FORENSICS_M8_BATCH 0 CACHE STRING "M8: 0 single/chord/cluster, 1 rapid/switch")
+target_compile_definitions(${COMPONENT_LIB} PRIVATE
+    POCKETPAN_PACKED_NOTE_CACHE=${POCKETPAN_PACKED_NOTE_CACHE}
+    POCKETPAN_FORENSICS_M8_MODEL=${POCKETPAN_FORENSICS_M8_MODEL}
+    POCKETPAN_FORENSICS_M8_BATCH=${POCKETPAN_FORENSICS_M8_BATCH})
 set(POCKETPAN_FORENSICS_M76 0 CACHE STRING "M7.6 Mbira connected qualification")
 set(POCKETPAN_FORENSICS_M77 0 CACHE STRING "M7.7 Udu connected qualification")
 set(POCKETPAN_FORENSICS_M77_BATCH 0 CACHE STRING "Udu: 0 single/chord/cluster, 1 groove/switch/rapid")

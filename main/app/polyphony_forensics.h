@@ -1,6 +1,10 @@
 #pragma once
 #include "sdkconfig.h"
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
+#ifndef POCKETPAN_FORENSICS_M8_MODEL
+#define POCKETPAN_FORENSICS_M8_MODEL -1
+#define POCKETPAN_FORENSICS_M8_BATCH 0
+#endif
 #include "dsp/synth_engine.h"
 #include "dsp/dsp_profile.h"
 #include "hardware/audio_i2s.h"
@@ -235,7 +239,9 @@ inline CallbackBlockContext sCurrentBlockContext;
 inline std::atomic<unsigned> completed{0};
 inline std::atomic<bool> ready{false};
 inline unsigned fixture = 0, block = 0;
-#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+#if POCKETPAN_FORENSICS_M8_MODEL >= 0
+inline constexpr unsigned fixtureCount = POCKETPAN_FORENSICS_M8_BATCH ? 2 : 3;
+#elif defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
 inline constexpr unsigned fixtureCount = 3;
 #elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
 // Keep diagnostic histograms at the existing three-fixture memory footprint.
@@ -259,7 +265,11 @@ inline hardware::AudioStats fixtureAudioStats[fixtureCount]{};
 inline CallbackOverheadStats gCallbackOverhead[fixtureCount]{};
 
 inline dsp::InstrumentModel modelOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+#if POCKETPAN_FORENSICS_M8_MODEL >= 0
+    constexpr dsp::InstrumentModel models[]={dsp::InstrumentModel::Pan,dsp::InstrumentModel::Vibraphone,
+        dsp::InstrumentModel::Mbira,dsp::InstrumentModel::Udu};
+    return models[id/5];
+#elif defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
     (void)id; return dsp::InstrumentModel::Udu;
 #elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
     (void)id;
@@ -284,7 +294,9 @@ inline dsp::InstrumentModel modelOf(unsigned id) {
 }
 
 inline unsigned kindOf(unsigned id) {
-#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+#if POCKETPAN_FORENSICS_M8_MODEL >= 0
+    constexpr unsigned kinds[]={1,6,5,7,1};return kinds[id%5];
+#elif defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
     constexpr unsigned kinds[]={1,6,5,1,1,7}; return kinds[id%6];
 #elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
     constexpr unsigned kinds[] = {1, 6, 5, 7, 1, 1, 1};
@@ -311,7 +323,9 @@ inline unsigned kindOf(unsigned id) {
 inline bool isPan(unsigned id) { return modelOf(id) == dsp::InstrumentModel::Pan; }
 
 inline unsigned fixtureId(unsigned index) {
-#if defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
+#if POCKETPAN_FORENSICS_M8_MODEL >= 0
+    return 5*POCKETPAN_FORENSICS_M8_MODEL+index+(POCKETPAN_FORENSICS_M8_BATCH?3:0);
+#elif defined(POCKETPAN_FORENSICS_M77) && POCKETPAN_FORENSICS_M77
     return index+3*POCKETPAN_FORENSICS_M77_BATCH;
 #elif defined(POCKETPAN_FORENSICS_M76) && POCKETPAN_FORENSICS_M76
     return index + 3 * POCKETPAN_FORENSICS_M76_BATCH;
@@ -381,7 +395,9 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     const unsigned id = fixtureId(fixture);
     const unsigned kind = kindOf(id);
     const bool roll = kind == 7;
-#if POCKETPAN_FORENSICS_M77
+#if POCKETPAN_FORENSICS_M8_MODEL >= 0
+    const bool phrase=false,switchProbe=id%5==4;
+#elif POCKETPAN_FORENSICS_M77
     const bool phrase=id==3, switchProbe=id==4;
 #elif (defined(POCKETPAN_FORENSICS_M75) && POCKETPAN_FORENSICS_M75) || POCKETPAN_FORENSICS_M76
     const bool phrase = id == 4;
@@ -391,7 +407,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
     const bool isTransition = (block == 0);
     constexpr unsigned phraseBlocks = POCKETPAN_FORENSICS_M77 ? 94 : POCKETPAN_FORENSICS_M76 ? 56 : 282;
-    constexpr unsigned rollBlocks=POCKETPAN_FORENSICS_M77?8:38;
+    constexpr unsigned rollBlocks=(POCKETPAN_FORENSICS_M77 || POCKETPAN_FORENSICS_M8_MODEL>=0)?8:38;
     const bool event = !isTransition && (roll ? ((block - 1) % rollBlocks == 0) : ((block - 1) % (phrase ? phraseBlocks : 188) == 0));
 
     ForensicsBlockClass currentClass;
@@ -464,7 +480,17 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
 #endif
         const uint32_t start = esp_cpu_get_cycle_count();
         if (event && switchProbe) {
-#if POCKETPAN_FORENSICS_M77
+#if POCKETPAN_FORENSICS_M8_MODEL >= 0
+            results[fixture].hardClamp+=synth.getHardClampCount();
+            results[fixture].modalSat+=synth.getModalInternalSaturationCount();
+            results[fixture].nonfinite+=synth.getNonfiniteCount();
+            // Step through PAN -> ... -> UDU -> PAN across successive events,
+            // returning to the measured model for a comparable render workload.
+            const auto step=static_cast<dsp::InstrumentModel>(((block-1)/188)%unsigned(dsp::InstrumentModel::Count));
+            synth.setInstrumentModel(step);
+            synth.setInstrumentModel(modelOf(id));
+            assert(synth.verifyPreparedNoteCanaries());
+#elif POCKETPAN_FORENSICS_M77
             results[fixture].hardClamp+=synth.getHardClampCount();
             results[fixture].modalSat+=synth.getModalInternalSaturationCount();
             results[fixture].nonfinite+=synth.getNonfiniteCount();
@@ -488,7 +514,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
                 note.data1 = kind == 6 ? chord[v] : counts[kind] == 1 ? 62 : cluster[v];
                 if (phrase) note.data1 = chord[((block - 1) / 282) % 4];
                 note.data2 = kind == 6 || counts[kind] == 1 ? 90 : 100;
-#if POCKETPAN_FORENSICS_M77
+#if POCKETPAN_FORENSICS_M77 || POCKETPAN_FORENSICS_M8_MODEL == 3
                 // Match the hand-percussion pack's virtual sizes and accents.
                 constexpr uint8_t potCluster[]={36,42,48,54,60,66,72,78};
                 constexpr uint8_t potChord[]={36,48,60,84};
@@ -500,6 +526,9 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
                     const unsigned step=((block-1)/phraseBlocks)%16;
                     note.data1=potNotes[step];note.data2=potVelocities[step];
                 }
+                if(roll) note.data2=((block-1)/rollBlocks)%2?127:30;
+#endif
+#if POCKETPAN_FORENSICS_M8_MODEL >= 0
                 if(roll) note.data2=((block-1)/rollBlocks)%2?127:30;
 #endif
 #if POCKETPAN_FORENSICS_M76
@@ -532,7 +561,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     // Verify the live count is bounded by the notes introduced, not permanently 4.
     // OPEN decays sooner than the fixed-PARTIAL reference. In UDU steady
     // tails, fewer live voices are natural; event/attack counts remain exact.
-    const bool naturalUduTail=POCKETPAN_FORENSICS_M77 && currentClass==ForensicsBlockClass::TrueSteady;
+    const bool naturalUduTail=modelOf(id)==dsp::InstrumentModel::Udu && currentClass==ForensicsBlockClass::TrueSteady;
     if (!isTransition && (phrase ? (observedVoices == 0 || observedVoices > expectedVoices)
                                  : naturalUduTail ? observedVoices > expectedVoices
                                                   : observedVoices != expectedVoices)) ++r.badVoices;

@@ -1,0 +1,255 @@
+-- Configuring done (0.2s)
+-- Generating done (0.6s)
+-- Build files have been written to: C:/progs/ESPan/build-host-p6off
+[  2%] Built target test_ble_midi_parser
+[  3%] Building CXX object CMakeFiles/test_dsp.dir/test_dsp.cpp.obj
+[  4%] Building CXX object CMakeFiles/test_prepared_note.dir/test_prepared_note.cpp.obj
+[  6%] Built target test_telemetry
+[  7%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[  8%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[  9%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 12%] Built target test_modal_kernel
+[ 13%] Building CXX object CMakeFiles/test_fastpath.dir/test_fastpath.cpp.obj
+[ 14%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 17%] Built target test_exciter_fastpath
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 18%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 19%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+C:\progs\ESPan\tests\test_dsp.cpp: In function 'void testM74MarimbaModel()':
+C:\progs\ESPan\tests\test_dsp.cpp:2826:36: warning: narrowing conversion of 'frame' from 'size_t' {aka 'long long unsigned int'} to 'uint32_t' {aka 'unsigned int'} [-Wnarrowing]
+ 2826 |             roll.events.push_back({frame,note(62, varying ? uint8_t(40+(i%4)*25) : 90)});
+      |                                    ^~~~~
+C:\progs\ESPan\tests\test_fastpath.cpp: In function 'int main()':
+C:\progs\ESPan\tests\test_fastpath.cpp:124:63: warning: narrowing conversion of 't' from 'size_t' {aka 'long long unsigned int'} to 'uint32_t' {aka 'unsigned int'} [-Wnarrowing]
+  124 |         for (size_t t=4800;t<48000;t+=4800) events.push_back({t,midi::MidiEventType::NoteOn,62,110});
+      |                                                               ^
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 20%] Building CXX object CMakeFiles/test_m635_fastpath.dir/test_m635_fastpath.cpp.obj
+[ 21%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 22%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 23%] Building CXX object CMakeFiles/test_m637_trigger.dir/test_m637_trigger.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 24%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 25%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 26%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 27%] Linking CXX executable test_prepared_note.exe
+[ 28%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 29%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/test_vibraphone_runtime.cpp.obj
+[ 29%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 30%] Linking CXX executable test_m637_trigger.exe
+[ 31%] Building CXX object CMakeFiles/test_mbira.dir/test_mbira.cpp.obj
+[ 35%] Built target test_prepared_note
+[ 35%] Linking CXX executable test_fastpath.exe
+[ 35%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 36%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 39%] Built target test_m637_trigger
+[ 40%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In file included from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/x86_64-w64-mingw32/bits/c++allocator.h:33,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/allocator.h:46,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/string:43,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/locale_classes.h:40,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/ios_base.h:41,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/ios:44,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/ostream:40,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/iostream:41,
+                 from C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:7:
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:66:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:38:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:66:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:38:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+[ 45%] Built target test_fastpath
+[ 46%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 47%] Linking CXX executable test_m635_fastpath.exe
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 48%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 49%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 50%] Building CXX object CMakeFiles/test_udu.dir/test_udu.cpp.obj
+[ 56%] Built target test_m635_fastpath
+[ 57%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 58%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 59%] Building CXX object CMakeFiles/test_udu_dynamic.dir/test_udu_dynamic.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 60%] Linking CXX executable test_vibraphone_runtime.exe
+[ 61%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 62%] Building CXX object CMakeFiles/test_udu_frozen.dir/test_udu_frozen.cpp.obj
+[ 63%] Linking CXX executable test_mbira.exe
+[ 69%] Built target test_vibraphone_runtime
+[ 70%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 74%] Built target test_mbira
+[ 74%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 74%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+In file included from C:\progs\ESPan\tests\test_udu_frozen.cpp:3:
+C:\progs\ESPan\tests\test_udu.cpp:113:15: warning: 'double difference(const Result&, const Result&)' defined but not used [-Wunused-function]
+  113 | static double difference(const Result& a,const Result& b) {
+      |               ^~~~~~~~~~
+C:\progs\ESPan\tests\test_udu.cpp:26:15: warning: 'Result render(const pocketpan::dsp::UduConfig&, const std::vector<Event>&, size_t, bool)' defined but not used [-Wunused-function]
+   26 | static Result render(const dsp::UduConfig& config,const std::vector<Event>& events,
+      |               ^~~~~~
+[ 75%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 76%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 77%] Linking CXX executable test_udu.exe
+[ 78%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 79%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 80%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 81%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 85%] Built target test_udu
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:391:22: warning: unused variable 'split' [-Wunused-variable]
+  391 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:518:22: warning: unused variable 'split' [-Wunused-variable]
+  518 |         const size_t split = frames;
+      |                      ^~~~~
+[ 86%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 86%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 87%] Linking CXX executable test_udu_dynamic.exe
+[ 88%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 94%] Built target test_udu_dynamic
+[ 95%] Linking CXX executable test_udu_frozen.exe
+[ 95%] Built target test_udu_frozen
+[ 95%] Linking CXX executable test_dsp.exe
+[100%] Built target test_dsp

@@ -93,6 +93,10 @@ jobs:
           cp build/pocket_pan.bin build/pocket_pan.elf build/pocket_pan.map ESPan32-firmware/
           cp build/flash_args ESPan32-firmware/
           test -f build/project_description.json && cp build/project_description.json ESPan32-firmware/
+      - name: Verify target cache and SRAM budget
+        shell: bash
+        run: |
+          python tests/report_cache_memory.py build/pocket_pan.elf ESPan32-firmware/memory.json --verify-packed
       - uses: actions/upload-artifact@v4
         with:
           name: ESPan32-firmware

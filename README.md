@@ -4,6 +4,11 @@ Firmware de sintetizador físico/modal para a placa **TENSTAR TS-ESP32-S3** (clo
 
 [![Build & Tests](https://github.com/ovelhaaa/ESPan32/actions/workflows/ci.yml/badge.svg)](https://github.com/ovelhaaa/ESPan32/actions/workflows/ci.yml)
 
+Os dez instrumentos têm regressões congeladas. **UDU V1 = B + CENTERED + R1**:
+[parâmetros, hashes e qualificação M7.7.2](docs/m772_udu_v1_freeze.md).
+O [M8](docs/m8_cache_memory.md) mantém o áudio exato e compacta os caches por
+quantidade de modos, com coeficientes em SRAM interna e preparação no boot.
+
 ---
 
 ## 1. Conexões de Hardware & Pinout Validado

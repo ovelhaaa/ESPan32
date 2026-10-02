@@ -1,0 +1,355 @@
+{
+  "complete": true,
+  "architecture": "aligned model-width SoA in internal BSS; boot prepared; bounded note copy",
+  "prepared_note_before": 86760,
+  "prepared_note_after": 60552,
+  "udu_cache_bytes": 5928,
+  "synth_before": 107848,
+  "synth_after": 81668,
+  "synth_saving_bytes": 26180,
+  "internal_free_before": 37715,
+  "internal_free_after": 58531,
+  "largest_internal_before": 20480,
+  "largest_internal_after": 31744,
+  "psram_heap_used_before": 2624,
+  "psram_heap_used_after": 2624,
+  "rodata_before": 131268,
+  "rodata_after": 132532,
+  "bss_before": 121672,
+  "bss_after": 96016,
+  "iram_before": 125947,
+  "iram_after": 130971,
+  "net_static_internal_saving": 20632,
+  "firmware_before": 687136,
+  "firmware_after": 693440,
+  "firmware_sha256": "a5f70ec9908ca5bb941aa9ed616a9bfbd428a968bc0fd56655b15c240a92aa12",
+  "aggregate_fnv64": {
+    "PAN": "9e9801244165101d",
+    "BELL": "7c2dc6f37fb99f4b",
+    "TONGUE": "83f75567fb47ebaf",
+    "BOWL": "14772092e35bc4a7",
+    "KALIMBA": "e9bcabdd0b6e3bd2",
+    "GLASS": "14e0dd6ba566e1cf",
+    "MARIMBA": "236d684f05f5f1d2",
+    "VIBRAPHONE": "3cea893644aa0283",
+    "MBIRA": "f5ee8755af2fa270",
+    "UDU": "552d8d59691b008e"
+  },
+  "stack_usage": [
+    {
+      "function": "C:/progs/ESPan/main/dsp/exciter.h:131:14:float pocketpan::dsp::Exciter::processSample()",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/udu.h:127:10:void pocketpan::dsp::UduVoice::strike(uint8_t, float, bool)",
+      "frame_bytes": 80,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/udu.h:161:11:float pocketpan::dsp::UduVoice::process(float)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:33:6:void pocketpan::dsp::ModalVoice::setInternalSafetySaturation(bool)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:59:6:void pocketpan::dsp::ModalVoice::setPanConfigsForTest(const pocketpan::dsp::ExciterConfig&, const pocketpan::dsp::PanVoicingConfig&)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:67:20:void pocketpan::dsp::ModalVoice::reset()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:13:6:void pocketpan::dsp::ModalVoice::init(float)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:39:6:void pocketpan::dsp::ModalVoice::setModelConfig(const pocketpan::dsp::InstrumentModelConfig&)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:152:7:float pocketpan::dsp::ModalVoice::registerPositionFor(float) const",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:148:7:float pocketpan::dsp::ModalVoice::registerPosition() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:160:6:bool pocketpan::dsp::ModalVoice::prepareNote(uint8_t, float, pocketpan::dsp::PreparedNote&) const",
+      "frame_bytes": 832,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:181:20:void pocketpan::dsp::ModalVoice::configureStrike(float, const pocketpan::dsp::PreparedNote*)",
+      "frame_bytes": 128,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:90:20:void pocketpan::dsp::ModalVoice::trigger(uint8_t, float, float, const pocketpan::dsp::PreparedNote*)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:127:6:void pocketpan::dsp::ModalVoice::restrike(float)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:257:6:void pocketpan::dsp::ModalVoice::release()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:262:6:void pocketpan::dsp::ModalVoice::kill()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:266:6:void pocketpan::dsp::ModalVoice::setDamping(float)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:270:6:void pocketpan::dsp::ModalVoice::prepareSteal(float)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:277:15:float pocketpan::dsp::ModalVoice::processSample(float, float*)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:342:6:void pocketpan::dsp::ModalVoice::processBlock(float*, size_t)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:349:6:bool pocketpan::dsp::ModalVoice::isAttackSafe() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:360:15:float pocketpan::dsp::ModalVoice::processSampleAttackStable(float, float*)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:386:14:void pocketpan::dsp::ModalVoice::renderAttackBlock(float*, size_t, float)",
+      "frame_bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:419:6:bool pocketpan::dsp::ModalVoice::isSustainSafe() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:427:15:float pocketpan::dsp::ModalVoice::processSampleSustain(float, float*)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.cpp:449:14:void pocketpan::dsp::ModalVoice::renderSustainBlock(float*, size_t, float)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.h:177:10:bool pocketpan::dsp::SynthEngine::verifyPreparedNoteCanaries() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:84:20:void pocketpan::dsp::SynthEngine::reset()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:14:6:void pocketpan::dsp::SynthEngine::init(float)",
+      "frame_bytes": 128,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:99:6:void pocketpan::dsp::SynthEngine::setInstrumentModel(pocketpan::dsp::InstrumentModel)",
+      "frame_bytes": 112,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:138:6:void pocketpan::dsp::SynthEngine::setVibraphoneMotor(bool, float, float)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:145:6:void pocketpan::dsp::SynthEngine::resetDiagnostics()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:153:6:void pocketpan::dsp::SynthEngine::setMasterVolume(float)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:157:6:void pocketpan::dsp::SynthEngine::setSympatheticEnabled(bool)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:166:10:uint32_t pocketpan::dsp::SynthEngine::getModalInternalSaturationCount() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:172:20:void pocketpan::dsp::SynthEngine::handleMidiEvent(const pocketpan::midi::MidiEvent&)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/synth_engine.cpp:224:27:void pocketpan::dsp::SynthEngine::renderBlock(int32_t*, size_t)",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/udu.h:54:10:void pocketpan::dsp::UduCache::prepare(float, const pocketpan::dsp::UduConfig&)",
+      "frame_bytes": 128,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:11:6:void pocketpan::dsp::VoiceAllocator::init(float)",
+      "frame_bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:24:20:void pocketpan::dsp::VoiceAllocator::reset()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:44:5:int pocketpan::dsp::VoiceAllocator::findVoiceToSteal() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:73:20:void pocketpan::dsp::VoiceAllocator::noteOn(uint8_t, float, float)",
+      "frame_bytes": 192,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:141:6:void pocketpan::dsp::VoiceAllocator::noteOff(uint8_t)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:149:6:void pocketpan::dsp::VoiceAllocator::setPolyPressure(uint8_t, float)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:157:6:void pocketpan::dsp::VoiceAllocator::setChannelPressure(float)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:165:14:void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t)",
+      "frame_bytes": 64,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:208:46:void pocketpan::dsp::VoiceAllocator::renderVibraphoneBlock(float*, size_t, const float*, float, float)",
+      "frame_bytes": 304,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:310:8:size_t pocketpan::dsp::VoiceAllocator::getActiveStealTailCount() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:316:10:uint32_t pocketpan::dsp::VoiceAllocator::getInternalSaturationCount() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:322:6:void pocketpan::dsp::VoiceAllocator::resetSympatheticState()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:327:6:void pocketpan::dsp::VoiceAllocator::resetSympatheticDiagnostics()",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:466:14:void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)",
+      "frame_bytes": 112,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:604:6:void pocketpan::dsp::VoiceAllocator::setInternalSafetySaturation(bool)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:608:6:void pocketpan::dsp::VoiceAllocator::setModelConfig(const pocketpan::dsp::InstrumentModelConfig&)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:613:6:bool pocketpan::dsp::VoiceAllocator::steady8(const bool*) const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:625:6:bool pocketpan::dsp::VoiceAllocator::attackStable8() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:332:14:void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)",
+      "frame_bytes": 96,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:636:6:void pocketpan::dsp::VoiceAllocator::setSympatheticConfig(const pocketpan::dsp::SympatheticConfig&)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:643:6:void pocketpan::dsp::VoiceAllocator::setPanConfigsForTest(const pocketpan::dsp::ExciterConfig&, const pocketpan::dsp::PanVoicingConfig&)",
+      "frame_bytes": 32,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/modal_voice.h:15:5:constexpr pocketpan::dsp::ModalVoice::ModalVoice()",
+      "frame_bytes": 48,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:653:6:bool pocketpan::dsp::VoiceAllocator::preparePackedNotes(const pocketpan::dsp::InstrumentModelConfig&, pocketpan::dsp::PackedNoteHeader*, float*, float*, float*, size_t) const",
+      "frame_bytes": 1328,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:671:6:void pocketpan::dsp::VoiceAllocator::preparePreparedNoteTable(const pocketpan::dsp::InstrumentModelConfig&, pocketpan::dsp::PreparedNoteTable&) const",
+      "frame_bytes": 1152,
+      "kind": "static"
+    },
+    {
+      "function": "C:/progs/ESPan/main/dsp/voice_allocator.cpp:688:8:size_t pocketpan::dsp::VoiceAllocator::getActiveVoiceCount() const",
+      "frame_bytes": 32,
+      "kind": "static"
+    }
+  ]
+}

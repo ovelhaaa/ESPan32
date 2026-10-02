@@ -1,0 +1,140 @@
+Executing action: flash
+Running ninja in directory C:\progs\ESPan\build-m8-qual
+Executing "ninja flash"...
+[1/5] cmd.exe /C "cd /D C:\progs\ESPan\build-m8-qual\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/progs/ESPan/build-m8-qual/partition_table/partition-table.bin C:/progs/ESPan/build-m8-qual/pocket_pan.bin"
+
+pocket_pan.bin binary size 0xab170 bytes. Smallest app partition is 0x100000 bytes. 0x54e90 bytes (33%) free.
+
+
+[2/5] Performing build step for 'bootloader'
+
+[1/1] cmd.exe /C "cd /D C:\progs\ESPan\build-m8-qual\bootloader\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 C:/progs/ESPan/build-m8-qual/bootloader/bootloader.bin"
+
+
+Bootloader binary size 0x5260 bytes. 0x2da0 bytes (36%) free.
+
+
+
+[2/3] cmd.exe /C "cd /D C:\Users\devx\esp\esp-idf\components\esptool_py && C:\Users\devx\.espressif\tools\cmake\3.24.0\bin\cmaesptool.py --chip esp32s3 -p COM10 -b 460800 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 4MB 0x0 bootloader/bootloader.bin 0x10000 pocket_pan.bin 0x8000 partition_table/partition-table.bin
+
+esptool.py v4.12.0
+
+Serial port COM10
+
+Connecting...
+
+Chip is ESP32-S3 (QFN56) (revision v0.2)
+
+Features: WiFi, BLE, Embedded Flash 4MB (XMC), Embedded PSRAM 2MB (AP_3v3)
+
+Crystal is 40MHz
+
+USB mode: USB-Serial/JTAG
+
+MAC: b4:3a:45:ae:6f:28
+
+Uploading stub...
+
+Running stub...
+
+Stub running...
+
+Changing baud rate to 460800
+
+Changed.
+
+Configuring flash size...
+
+Flash will be erased from 0x00000000 to 0x00005fff...
+
+Flash will be erased from 0x00010000 to 0x000bbfff...
+
+Flash will be erased from 0x00008000 to 0x00008fff...
+
+SHA digest in image updated
+
+Compressed 21088 bytes to 13057...
+
+Writing at 0x00000000... (100 %)
+
+Wrote 21088 bytes (13057 compressed) at 0x00000000 in 0.4 seconds (effective 414.5 kbit/s)...
+
+Hash of data verified.
+
+Compressed 700784 bytes to 431602...
+
+Writing at 0x00010000... (3 %)
+
+Writing at 0x0001d796... (7 %)
+
+Writing at 0x00028072... (11 %)
+
+Writing at 0x0002cb65... (14 %)
+
+Writing at 0x00035264... (18 %)
+
+Writing at 0x0003bacf... (22 %)
+
+Writing at 0x00042a03... (25 %)
+
+Writing at 0x00048267... (29 %)
+
+Writing at 0x0004da21... (33 %)
+
+Writing at 0x0005336e... (37 %)
+
+Writing at 0x00059275... (40 %)
+
+Writing at 0x0005e939... (44 %)
+
+Writing at 0x00064213... (48 %)
+
+Writing at 0x00069ab3... (51 %)
+
+Writing at 0x0006f514... (55 %)
+
+Writing at 0x00075289... (59 %)
+
+Writing at 0x0007a88b... (62 %)
+
+Writing at 0x000802be... (66 %)
+
+Writing at 0x0008597f... (70 %)
+
+Writing at 0x0008b585... (74 %)
+
+Writing at 0x000909bd... (77 %)
+
+Writing at 0x000969ed... (81 %)
+
+Writing at 0x000a1f34... (85 %)
+
+Writing at 0x000a8029... (88 %)
+
+Writing at 0x000ad306... (92 %)
+
+Writing at 0x000b2e32... (96 %)
+
+Writing at 0x000b8d28... (100 %)
+
+Wrote 700784 bytes (431602 compressed) at 0x00010000 in 6.4 seconds (effective 878.7 kbit/s)...
+
+Hash of data verified.
+
+Compressed 3072 bytes to 103...
+
+Writing at 0x00008000... (100 %)
+
+Wrote 3072 bytes (103 compressed) at 0x00008000 in 0.1 seconds (effective 303.4 kbit/s)...
+
+Hash of data verified.
+
+
+
+Leaving...
+
+Hard resetting via RTS pin...
+
+ke.exe -D IDF_PATH=C:/Users/devx/esp/esp-idf -D SERIAL_TOOL=C:/Users/devx/.espressif/python_env/idf5.3_py3.14_env/Scripts/python.exe;;C:/Users/devx/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3 -D SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args -D WORKING_DIRECTORY=C:/progs/ESPan/build-m8-qual -P C:/Users/devx/esp/esp-idf/components/esptool_py/run_serial_tool.cmake"
+
+Done
