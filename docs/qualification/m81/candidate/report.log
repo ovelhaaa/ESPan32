@@ -1,0 +1,5 @@
+0 {'model': 'PAN', 'fixture': '0', 'avg_us': '513', 'p99_us': '700', 'max_us': '863', 'cpu_pct': '19.24', 'deadline': '0', 'timeouts': '0', 'tx_errors': '0', 'short_writes': '0', 'p95_us': 655}
+1 {'model': 'PAN', 'fixture': '1', 'avg_us': '1156', 'p99_us': '1400', 'max_us': '1810', 'cpu_pct': '43.34', 'deadline': '0', 'timeouts': '0', 'tx_errors': '0', 'short_writes': '0', 'p95_us': 1205}
+2 {'model': 'PAN', 'fixture': '2', 'avg_us': '1676', 'p99_us': '2025', 'max_us': '2635', 'cpu_pct': '62.84', 'deadline': '0', 'timeouts': '0', 'tx_errors': '0', 'short_writes': '0', 'p95_us': 1730}
+3 {'model': 'PAN', 'fixture': '3', 'avg_us': '721', 'p99_us': '950', 'max_us': '1191', 'cpu_pct': '27.03', 'deadline': '0', 'timeouts': '0', 'tx_errors': '0', 'short_writes': '0', 'p95_us': 875}
+4 {'model': 'PAN', 'fixture': '4', 'avg_us': '518', 'p99_us': '600', 'max_us': '1176', 'cpu_pct': '19.42', 'deadline': '0', 'timeouts': '0', 'tx_errors': '0', 'short_writes': '0', 'p95_us': 545}

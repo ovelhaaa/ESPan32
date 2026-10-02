@@ -1,0 +1,8 @@
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:18:6:void pocketpan::dsp::PeakLimiter::reset()	32	static
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:26:6:void pocketpan::dsp::PeakLimiter::resetDiagnostics()	32	static
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:39:6:void pocketpan::dsp::PeakLimiter::setConfig(const pocketpan::dsp::LimiterConfig&)	48	static
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:12:6:void pocketpan::dsp::PeakLimiter::init(float)	32	static
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:49:24:float pocketpan::dsp::PeakLimiter::processSample(float)	48	static
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:115:7:float pocketpan::dsp::PeakLimiter::getCurrentGainReductionDb() const	32	static
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:116:7:float pocketpan::dsp::PeakLimiter::getMaxGainReductionDb() const	32	static
+C:/progs/ESPan/main/dsp/peak_limiter.cpp:117:7:float pocketpan::dsp::PeakLimiter::getAverageGainReductionDb() const	32	static

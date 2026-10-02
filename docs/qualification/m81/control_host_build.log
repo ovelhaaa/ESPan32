@@ -1,0 +1,15 @@
+[  2%] Built target test_ble_midi_parser
+[ 11%] Built target test_dsp
+[ 20%] Built target test_prepared_note
+[ 21%] Built target test_telemetry
+[ 23%] Built target test_modal_kernel
+[ 32%] Built target test_fastpath
+[ 34%] Built target test_exciter_fastpath
+[ 43%] Built target test_m635_fastpath
+[ 48%] Built target test_m637_trigger
+[ 57%] Built target test_vibraphone_runtime
+[ 66%] Built target test_mbira
+[ 75%] Built target test_udu
+[ 83%] Built target test_udu_dynamic
+[ 92%] Built target test_udu_frozen
+[100%] Built target test_cache_layout

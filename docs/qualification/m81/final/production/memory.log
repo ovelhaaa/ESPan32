@@ -1,0 +1,40 @@
+{
+  "sections": {
+    ".iram0.text": {
+      "bytes": 132519,
+      "address": "0x40374404"
+    },
+    ".dram0.data": {
+      "bytes": 17664,
+      "address": "0x3fca4a00"
+    },
+    ".dram0.bss": {
+      "bytes": 96016,
+      "address": "0x3fca8f00"
+    },
+    ".flash.text": {
+      "bytes": 410876,
+      "address": "0x42000020"
+    },
+    ".flash.rodata": {
+      "bytes": 132532,
+      "address": "0x3c070120"
+    },
+    ".ext_ram.bss": {
+      "bytes": 0,
+      "address": "0x3c0a0000"
+    }
+  },
+  "types": {
+    "PreparedNote": 132,
+    "PreparedNoteTable": 9640,
+    "BodyResonator": 224,
+    "InstrumentModelConfig": 316,
+    "UduCache": 5928,
+    "UduVoice": 124,
+    "ModalVoice": 1108,
+    "VoiceAllocator": 15012,
+    "SynthEngine": 81668,
+    "CanonicalStrikePowCache": 524
+  }
+}

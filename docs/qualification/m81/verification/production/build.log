@@ -1,0 +1,27 @@
+Executing action: all (aliases: build)
+Running ninja in directory C:\progs\ESPan\build-ci-prod
+Executing "ninja all"...
+[1/4] cmd.exe /C "cd /D C:\progs\ESPan\build-ci-prod\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/progs/ESPan/build-ci-prod/partition_table/partition-table.bin C:/progs/ESPan/build-ci-prod/pocket_pan.bin"
+
+pocket_pan.bin binary size 0xa9ac0 bytes. Smallest app partition is 0x100000 bytes. 0x56540 bytes (34%) free.
+
+
+[2/4] Performing build step for 'bootloader'
+
+[1/1] cmd.exe /C "cd /D C:\progs\ESPan\build-ci-prod\bootloader\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 C:/progs/ESPan/build-ci-prod/bootloader/bootloader.bin"
+
+
+Bootloader binary size 0x5260 bytes. 0x2da0 bytes (36%) free.
+
+
+
+
+
+Project build complete. To flash, run:
+ idf.py flash
+or
+ idf.py -p PORT flash
+or
+ python -m esptool --chip esp32s3 -b 460800 --before default_reset --after hard_reset write_flash --flash_mode dio --flash_size 4MB --flash_freq 80m 0x0 build-ci-prod\bootloader\bootloader.bin 0x8000 build-ci-prod\partition_table\partition-table.bin 0x10000 build-ci-prod\pocket_pan.bin
+or from the "C:\progs\ESPan\build-ci-prod" directory
+ python -m esptool --chip esp32s3 -b 460800 --before default_reset --after hard_reset write_flash "@flash_args"

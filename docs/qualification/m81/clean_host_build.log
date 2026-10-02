@@ -1,0 +1,301 @@
+-- Configuring done (0.1s)
+-- Generating done (0.5s)
+-- Build files have been written to: C:/progs/ESPan/build-host-m81
+[  1%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[  2%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[  3%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[  4%] Building CXX object CMakeFiles/test_modal_kernel.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[  5%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[  7%] Built target test_ble_midi_parser
+[  8%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 10%] Built target test_telemetry
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 11%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 14%] Built target test_exciter_fastpath
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+[ 15%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 15%] Linking CXX executable test_modal_kernel.exe
+[ 16%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 17%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 18%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 19%] Built target test_modal_kernel
+[ 20%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 21%] Linking CXX executable test_m637_trigger.exe
+[ 22%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 22%] Linking CXX executable test_dsp.exe
+[ 22%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 26%] Built target test_m637_trigger
+[ 26%] Linking CXX executable test_prepared_note.exe
+[ 27%] Linking CXX executable test_fastpath.exe
+[ 28%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+[ 33%] Built target test_dsp
+[ 34%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 35%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 41%] Built target test_prepared_note
+[ 46%] Built target test_fastpath
+[ 46%] Linking CXX executable test_m635_fastpath.exe
+[ 47%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+[ 48%] Linking CXX executable test_vibraphone_runtime.exe
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+[ 49%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 50%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 55%] Built target test_m635_fastpath
+[ 56%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 61%] Built target test_vibraphone_runtime
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 62%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 62%] Building CXX object CMakeFiles/test_m81.dir/test_m81.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+[ 62%] Linking CXX executable test_mbira.exe
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+[ 63%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 64%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:397:22: warning: unused variable 'split' [-Wunused-variable]
+  397 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:538:22: warning: unused variable 'split' [-Wunused-variable]
+  538 |         const size_t split = frames;
+      |                      ^~~~~
+[ 70%] Built target test_mbira
+[ 71%] Linking CXX executable test_udu.exe
+[ 72%] Linking CXX executable test_udu_dynamic.exe
+[ 78%] Built target test_udu
+[ 83%] Built target test_udu_dynamic
+[ 84%] Linking CXX executable test_udu_frozen.exe
+[ 85%] Linking CXX executable test_cache_layout.exe
+[ 85%] Linking CXX executable test_m81.exe
+[ 90%] Built target test_udu_frozen
+[ 95%] Built target test_cache_layout
+[100%] Built target test_m81

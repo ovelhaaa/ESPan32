@@ -1,0 +1,26 @@
+C:/progs/ESPan/main/dsp/udu.h:54:10:void pocketpan::dsp::UduCache::prepare(float, const pocketpan::dsp::UduConfig&)	128	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:11:6:void pocketpan::dsp::VoiceAllocator::init(float)	64	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:24:20:void pocketpan::dsp::VoiceAllocator::reset()	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:44:5:int pocketpan::dsp::VoiceAllocator::findVoiceToSteal() const	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:73:20:void pocketpan::dsp::VoiceAllocator::noteOn(uint8_t, float, float)	192	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:141:6:void pocketpan::dsp::VoiceAllocator::noteOff(uint8_t)	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:149:6:void pocketpan::dsp::VoiceAllocator::setPolyPressure(uint8_t, float)	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:157:6:void pocketpan::dsp::VoiceAllocator::setChannelPressure(float)	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:165:14:void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t)	64	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:208:46:void pocketpan::dsp::VoiceAllocator::renderVibraphoneBlock(float*, size_t, const float*, float, float)	304	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:310:8:size_t pocketpan::dsp::VoiceAllocator::getActiveStealTailCount() const	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:316:10:uint32_t pocketpan::dsp::VoiceAllocator::getInternalSaturationCount() const	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:322:6:void pocketpan::dsp::VoiceAllocator::resetSympatheticState()	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:327:6:void pocketpan::dsp::VoiceAllocator::resetSympatheticDiagnostics()	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:475:14:void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)	128	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:661:6:void pocketpan::dsp::VoiceAllocator::setInternalSafetySaturation(bool)	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:665:6:void pocketpan::dsp::VoiceAllocator::setModelConfig(const pocketpan::dsp::InstrumentModelConfig&)	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:670:6:bool pocketpan::dsp::VoiceAllocator::steady8(const bool*) const	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:682:6:bool pocketpan::dsp::VoiceAllocator::attackStable8() const	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:332:14:void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)	96	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:693:6:void pocketpan::dsp::VoiceAllocator::setSympatheticConfig(const pocketpan::dsp::SympatheticConfig&)	32	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:700:6:void pocketpan::dsp::VoiceAllocator::setPanConfigsForTest(const pocketpan::dsp::ExciterConfig&, const pocketpan::dsp::PanVoicingConfig&)	32	static
+C:/progs/ESPan/main/dsp/modal_voice.h:15:5:constexpr pocketpan::dsp::ModalVoice::ModalVoice()	48	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:710:6:bool pocketpan::dsp::VoiceAllocator::preparePackedNotes(const pocketpan::dsp::InstrumentModelConfig&, pocketpan::dsp::PackedNoteHeader*, float*, float*, float*, size_t) const	1328	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:728:6:void pocketpan::dsp::VoiceAllocator::preparePreparedNoteTable(const pocketpan::dsp::InstrumentModelConfig&, pocketpan::dsp::PreparedNoteTable&) const	1152	static
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:745:8:size_t pocketpan::dsp::VoiceAllocator::getActiveVoiceCount() const	32	static

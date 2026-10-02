@@ -1,0 +1,15 @@
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:51:20:void pocketpan::dsp::ModalResonatorBank::reset()	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:58:6:void pocketpan::dsp::ModalResonatorBank::setConfig(const pocketpan::dsp::ResonatorConfig&)	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:67:20:void pocketpan::dsp::ModalResonatorBank::setExcitationCoupling(const float*, size_t)	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:76:20:void pocketpan::dsp::ModalResonatorBank::setRegisterBehavior(float, float, bool)	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:176:6:void pocketpan::dsp::ModalResonatorBank::capturePreparedNote(pocketpan::dsp::PreparedNote&) const	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:247:20:void pocketpan::dsp::ModalResonatorBank::refreshMicroKernel()	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:90:6:void pocketpan::dsp::ModalResonatorBank::updatePitchAndDamping(float, float)	96	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:82:6:void pocketpan::dsp::ModalResonatorBank::setPreset(const pocketpan::dsp::ModalPreset&, bool)	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:43:6:void pocketpan::dsp::ModalResonatorBank::init(float)	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:189:20:bool pocketpan::dsp::ModalResonatorBank::applyPreparedNote(const pocketpan::dsp::PreparedNote&)	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:314:15:float pocketpan::dsp::ModalResonatorBank::processSampleSixSafety(float)	64	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:352:7:float pocketpan::dsp::ModalResonatorBank::processSampleReference(float)	64	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:323:15:float pocketpan::dsp::ModalResonatorBank::processSample(float)	64	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:381:6:void pocketpan::dsp::ModalResonatorBank::processBlock(const float*, float*, size_t)	32	static
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:387:21:float pocketpan::dsp::ModalResonatorBank::getEnergy() const	32	static

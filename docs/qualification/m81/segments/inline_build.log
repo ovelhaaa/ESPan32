@@ -1,0 +1,72 @@
+Executing action: all (aliases: build)
+Running ninja in directory C:\progs\ESPan\build-m81-profile
+Executing "ninja all"...
+[1/9] Performing build step for 'bootloader'
+
+[1/1] cmd.exe /C "cd /D C:\progs\ESPan\build-m81-profile\bootloader\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 C:/progs/ESPan/build-m81-profile/bootloader/bootloader.bin"
+
+
+Bootloader binary size 0x5260 bytes. 0x2da0 bytes (36%) free.
+
+
+
+[2/7] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/voice_allocator.cpp.obj
+C:/progs/ESPan/main/dsp/voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:/progs/ESPan/main/dsp/voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:546:22: warning: unused variable 'split' [-Wunused-variable]
+  546 |         const size_t split = frames;
+      |                      ^~~~~
+In file included from C:/progs/ESPan/main/dsp/modal_voice.h:6,
+                 from C:/progs/ESPan/main/dsp/voice_allocator.h:7,
+                 from C:/progs/ESPan/main/dsp/voice_allocator.cpp:1:
+C:/progs/ESPan/main/dsp/modal_resonator.h: At global scope:
+C:/progs/ESPan/main/dsp/modal_resonator.h:131:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  131 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:130:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  130 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
+
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+
+C:/progs/ESPan/main/dsp/modal_resonator.h:128:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+
+  128 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro6(float excitation);
+
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+
+[3/7] Linking C static library esp-idf\main\libmain.a
+[4/7] Generating ld/sections.ld
+info: INFO: Symbol IDF_TARGET_LINUX defined in multiple locations (see below). Please check if this is a correct behavior or a random name match:
+
+    C:\Users\devx\esp\esp-idf\Kconfig:162
+
+    C:\Users\devx\esp\esp-idf\Kconfig:78
+
+[5/7] Linking CXX executable pocket_pan.elf
+[6/7] Generating binary image from built executable
+esptool.py v4.12.0
+
+Creating esp32s3 image...
+
+Merged 2 ELF sections
+
+Successfully created esp32s3 image.
+
+Generated C:/progs/ESPan/build-m81-profile/pocket_pan.bin
+[7/7] cmd.exe /C "cd /D C:\progs\ESPan\build-m81-profile\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/progs/ESPan/build-m81-profile/partition_table/partition-table.bin C:/progs/ESPan/build-m81-profile/pocket_pan.bin"
+pocket_pan.bin binary size 0xacbd0 bytes. Smallest app partition is 0x100000 bytes. 0x53430 bytes (33%) free.
+
+
+
+
+Project build complete. To flash, run:
+ idf.py flash
+or
+ idf.py -p PORT flash
+or
+ python -m esptool --chip esp32s3 -b 460800 --before default_reset --after hard_reset write_flash --flash_mode dio --flash_size 4MB --flash_freq 80m 0x0 build-m81-profile\bootloader\bootloader.bin 0x8000 build-m81-profile\partition_table\partition-table.bin 0x10000 build-m81-profile\pocket_pan.bin
+or from the "C:\progs\ESPan\build-m81-profile" directory
+ python -m esptool --chip esp32s3 -b 460800 --before default_reset --after hard_reset write_flash "@flash_args"

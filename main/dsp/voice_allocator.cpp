@@ -361,12 +361,15 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
             sum+=voices_[5].processSampleSustain(external);
             sum+=voices_[6].processSampleSustain(external);
             sum+=voices_[7].processSampleSustain(external);
-            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
-            float next=sympatheticFilterState_*config.feedbackGain;
-            const float limit=std::max(0.0f,config.maxBusLevel);
-            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
-            sympatheticPreviousBus_=next; outBuffer[i]=sum;
-            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            {
+                DSP_PROFILE_SCOPE(Sympathetic);
+                sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+                float next=sympatheticFilterState_*config.feedbackGain;
+                const float limit=std::max(0.0f,config.maxBusLevel);
+                if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+                sympatheticPreviousBus_=next; outBuffer[i]=sum;
+                sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            }
         }
         return;
     }
@@ -426,12 +429,15 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
             sum+=voices_[6].processSampleAttackStable(external);
             sum+=voices_[7].processSampleAttackStable(external);
 #endif
-            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
-            float next=sympatheticFilterState_*config.feedbackGain;
-            const float limit=std::max(0.0f,config.maxBusLevel);
-            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
-            sympatheticPreviousBus_=next; outBuffer[i]=sum;
-            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            {
+                DSP_PROFILE_SCOPE(Sympathetic);
+                sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+                float next=sympatheticFilterState_*config.feedbackGain;
+                const float limit=std::max(0.0f,config.maxBusLevel);
+                if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+                sympatheticPreviousBus_=next; outBuffer[i]=sum;
+                sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            }
         }
         return;
     }
@@ -449,12 +455,15 @@ DSP_HOT void VoiceAllocator::renderBlock(float* outBuffer, size_t frames, const 
             sum+=voices_[v].processSample(external);
         }
         for(auto& tail:stealTails_) if(tail.active && tail.samplesLeft) { sum+=tail.currentSample; tail.currentSample-=tail.step; if(--tail.samplesLeft==0) tail.active=false; }
-        sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
-        float next=sympatheticFilterState_*config.feedbackGain;
-        const float limit=std::max(0.0f,config.maxBusLevel);
-        if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
-        sympatheticPreviousBus_=next; outBuffer[i]=sum;
-        sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+        {
+            DSP_PROFILE_SCOPE(Sympathetic);
+            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+            float next=sympatheticFilterState_*config.feedbackGain;
+            const float limit=std::max(0.0f,config.maxBusLevel);
+            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+            sympatheticPreviousBus_=next; outBuffer[i]=sum;
+            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+        }
     }
 }
 
@@ -498,12 +507,15 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
             sum += voices_[5].processSampleSustain(external);
             sum += voices_[6].processSampleSustain(external);
             sum += voices_[7].processSampleSustain(external);
-            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
-            float next=sympatheticFilterState_*config.feedbackGain;
-            const float limit=std::max(0.0f,config.maxBusLevel);
-            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
-            sympatheticPreviousBus_=next;
-            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            {
+                DSP_PROFILE_SCOPE(Sympathetic);
+                sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+                float next=sympatheticFilterState_*config.feedbackGain;
+                const float limit=std::max(0.0f,config.maxBusLevel);
+                if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+                sympatheticPreviousBus_=next;
+                sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            }
             outBuffer[i]=sum;
         }
         return;
@@ -524,6 +536,45 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
         const size_t split = (equal && remaining < frames) ? remaining : frames;
 #else
         const size_t split = frames;
+#endif
+#if POCKETPAN_COMMON_NOISE
+        // Equality is checked once at the block boundary. PRNG/filter state and
+        // impulse envelopes remain independent; only an identical expression is reused.
+        bool sharedNoise = voices_[0].modalPreset_ == &kPresetPan;
+        for (size_t v=1; v<kMaxVoices && sharedNoise; ++v)
+            sharedNoise = voices_[0].exciter_.sharesNoiseEnvelope(voices_[v].exciter_);
+        if (sharedNoise) {
+#if POCKETPAN_COMMON_NOISE_PROBES
+            ++m81::sharedNoiseBlocks;
+#endif
+            for (size_t i=0; i<frames; ++i) {
+                const float envelopeSquared = voices_[0].exciter_.noiseEnvelopeSquared();
+                const float external = sympathetic ? sympatheticPreviousBus_*config.inputGain : 0.0f;
+                float sum=0.0f, strikes=0.0f, strike=0.0f;
+                sum += voices_[0].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                sum += voices_[1].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                sum += voices_[2].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                sum += voices_[3].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                sum += voices_[4].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                sum += voices_[5].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                sum += voices_[6].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                sum += voices_[7].processSampleAttackStableSharedNoise(external, &strike, envelopeSquared); strikes += strike;
+                if (sympathetic) {
+                {
+                    DSP_PROFILE_SCOPE(Sympathetic);
+                    sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+                    float next=sympatheticFilterState_*config.feedbackGain;
+                    const float limit=std::max(0.0f,config.maxBusLevel);
+                    if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+                    sympatheticPreviousBus_=next;
+                    sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+                }
+                }
+                outBuffer[i]=sum;
+                strikeBuffer[i]=strikes;
+            }
+            return;
+        }
 #endif
         for (size_t i=0; i<frames; ++i) {
             const float external = sympathetic ? sympatheticPreviousBus_*config.inputGain : 0.0f;
@@ -559,12 +610,15 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
             sum += voices_[7].processSampleAttackStable(external, &strike); strikes += strike;
 #endif
             if (sympathetic) {
+            {
+                DSP_PROFILE_SCOPE(Sympathetic);
                 sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
                 float next=sympatheticFilterState_*config.feedbackGain;
                 const float limit=std::max(0.0f,config.maxBusLevel);
                 if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
                 sympatheticPreviousBus_=next;
                 sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            }
             }
             outBuffer[i]=sum;
             strikeBuffer[i]=strikes;
@@ -589,12 +643,15 @@ DSP_HOT void VoiceAllocator::renderBlockWithStrikeBus(float* outBuffer, float* s
             if(--tail.samplesLeft==0) tail.active=false;
         }
         if (sympathetic) {
-            sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
-            float next=sympatheticFilterState_*config.feedbackGain;
-            const float limit=std::max(0.0f,config.maxBusLevel);
-            if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
-            sympatheticPreviousBus_=next;
-            sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            {
+                DSP_PROFILE_SCOPE(Sympathetic);
+                sympatheticFilterState_=(1.0f-sympatheticLowpassCoefficient_)*sum+sympatheticLowpassCoefficient_*sympatheticFilterState_;
+                float next=sympatheticFilterState_*config.feedbackGain;
+                const float limit=std::max(0.0f,config.maxBusLevel);
+                if(limit>0.0f && std::abs(next)>limit) { next=std::copysign(limit,next); ++sympatheticSafetyCount_; }
+                sympatheticPreviousBus_=next;
+                sympatheticBusPeak_=std::max(sympatheticBusPeak_,std::abs(next)); sympatheticBusSumSquares_+=next*next; ++sympatheticBusSamples_;
+            }
         }
         outBuffer[i]=sum;
         strikeBuffer[i]=strikes;

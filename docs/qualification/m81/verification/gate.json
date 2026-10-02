@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "gate": "preferred",
+  "deadline_us": 2666.6666666666665,
+  "maximum_us": 2318,
+  "margin_us": 348.6666666666665,
+  "p99_us": 1850
+}

@@ -1,0 +1,457 @@
+[0;32mI (744) heap_inESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x15 (USB_UART_CHIP_RESET),boot:0x8 (SPI_FAST_FLASH_BOOT)
+Saved PC:0x40048839
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2810,len:0x178c
+load:0x403c8700,len:0x4
+load:0x403c8704,len:0xcb8
+load:0x403cb700,len:0x2db0
+entry 0x403c8914
+[0;32mI (26) boot: ESP-IDF v5.3-dirty 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Oct  1 2026 19:28:03[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (30) boot: chip revision: v0.2[0m
+[0;32mI (34) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (39) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (43) boot.esp32s3: SPI Flash Size : 4MB[0m
+[0;32mI (48) boot: Enabling RNG early entropy source...[0m
+[0;32mI (54) boot: Partition Table:[0m
+[0;32mI (57) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (64) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (72) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (79) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (87) boot: End of partition table[0m
+[0;32mI (91) esp_image: segment 0: paddr=00010020 vaddr=3c070020 size=20ed4h (134868) map[0m
+[0;32mI (124) esp_image: segment 1: paddr=00030efc vaddr=3fca4a00 size=04500h ( 17664) load[0m
+[0;32mI (128) esp_image: segment 2: paddr=00035404 vaddr=40374000 size=0ac14h ( 44052) load[0m
+[0;32mI (139) esp_image: segment 3: paddr=00040020 vaddr=42000020 size=65fc4h (417732) map[0m
+[0;32mI (214) esp_image: segment 4: paddr=000a5fec vaddr=4037ec14 size=15dcch ( 89548) load[0m
+[0;32mI (247) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (248) boot: Disabling RNG early entropy source...[0m
+[0;32mI (260) esp_psram: Found 2MB PSRAM device[0m
+[0;32mI (260) esp_psram: Speed: 40MHz[0m
+[0;32mI (260) cpu_start: Multicore app[0m
+[0;32mI (680) esp_psram: SPI SRAM memory test OK[0m
+[0;32mI (689) cpu_start: Pro cpu start user code[0m
+[0;32mI (689) cpu_start: cpu freq: 240000000 Hz[0m
+[0;32mI (689) app_init: Application information:[0m
+[0;32mI (692) app_init: Project name:     pocket_pan[0m
+[0;32mI (697) app_init: App version:      f7f89e4-dirty[0m
+[0;32mI (702) app_init: Compile time:     Oct  2 2026 14:18:32[0m
+[0;32mI (708) app_init: ELF file SHA256:  f42bbea87...[0m
+[0;32mI (713) app_init: ESP-IDF:          v5.3-dirty[0m
+[0;32mI (719) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (723) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (728) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (733) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (740) heap_init: At 3FCCABF8 len 0001EB18 (122 KiB): RAM[0m
+[0;32mI (746) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (753) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (759) heap_init: At 600FE100 len 00001EE8 (7 KiB): RTCRAM[0m
+[0;32mI (765) esp_psram: Adding pool of 2048K of PSRAM memory to heap allocator[0m
+[0;32mI (773) spi_flash: detected chip: generic[0m
+[0;32mI (777) spi_flash: flash io: dio[0m
+[0;32mI (782) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (788) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (795) coexist: coex firmware version: dab85ae96[0m
+[0;32mI (800) coexist: coexist rom version e7ae62f[0m
+[0;32mI (806) main_task: Started on CPU0[0m
+[0;32mI (816) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations[0m
+[0;32mI (816) main_task: Calling app_main()[0m
+[0;32mI (826) pocket_pan_main: [MEM_STAGE] stage=entry internal_free=162243 largest_internal=65536 psram_free=2094528[0m
+[0;32mI (836) pocket_pan_main: ===============================================[0m
+[0;32mI (836) pocket_pan_main:   Pocket Pan / Metal Modal Synthesizer v1.0.0[0m
+[0;32mI (846) pocket_pan_main:   Hardware: TENSTAR TS-ESP32-S3 (Feather TFT)[0m
+[0;32mI (856) pocket_pan_main: ===============================================[0m
+[0;32mI (866) pocket_pan_main: [FORENSICS] candidate=25 profile=0 cpu_mhz=240 optimization_perf=1 process6=1 fine_bins=5 critical_only=0[0m
+[0;32mI (896) pocket_pan_main: [MEM_STAGE] stage=dsp_ready internal_free=162243 largest_internal=65536 psram_free=2094528[0m
+[0;32mI (896) gpio: GPIO[10]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 1| Intr:0 [0m
+[0;32mI (906) AudioI2S: I2S TX initialized (48kHz, 32-bit slot, stereo, 6x128 frames DMA = 1024 bytes/buf)[0m
+[0;32mI (926) AudioI2S: Audio task started on Core 0 at priority 12[0m
+[0;32mI (926) pocket_pan_main: [MEM_STAGE] stage=i2s_ready internal_free=147511 largest_internal=53248 psram_free=2094528[0m
+[0;32mI (936) Display: [DISP_MEM_PRE] before: int_free=147511 int_largest=53248 psram_free=2094528[0m
+[0;33mW (946) Display: Internal SRAM (64800 B) exhausted; falling back to PSRAM[0m
+[0;32mI (956) Display: [DISP_MEM] framebuffer=0x3c0a0a44 (size=64800, align=4, internal=0, dma=0, psram=1)[0m
+[0;32mI (966) Display: [DISP_MEM] scratch=0x3fcdc2cc (size=9600, align=12, internal=1, dma=1)[0m
+[0;32mI (966) Display: [DISP_MEM] before: int_free=147511 int_largest=53248 psram_free=2094528[0m
+[0;32mI (976) Display: [DISP_MEM] after:  int_free=137907 int_largest=43008 psram_free=2029724[0m
+[0;32mI (986) gpio: GPIO[39]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (996) gpio: GPIO[40]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (1006) gpio: GPIO[21]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;32mI (1236) gpio: GPIO[45]| InputEn: 0| OutputEn: 1| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 [0m
+[0;31mE (1246) lcd_panel.io.spi: panel_io_spi_tx_color(390): spi transmit (queue) color failed[0m
+[0;31mE (1246) lcd_panel.st7789: panel_st7789_draw_bitmap(223): io tx color failed[0m
+[0;32mI (1246) Display: ST7789 240x135 display initialized successfully (SPI 40MHz, GDMA callback armed)[0m
+[0;32mI (1256) pocket_pan_main: [CANARY] PreparedNote canaries OK=1[0m
+[0;32mI (1266) pocket_pan_main: [MEM_STAGE] stage=display_ready internal_free=102771 largest_internal=31744 psram_free=2029724[0m
+[0;32mI (1276) BLE_INIT: BT controller compile version [ba3b3e3][0m
+[0;32mI (1286) BLE_INIT: Bluetooth MAC: b4:3a:45:ae:6f:2a[0m
+[0;32mI (1286) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10[0m
+[0;32mI (1326) BleMidi: NimBLE BLE MIDI Central initialized and pinned to Core 1[0m
+[0;32mI (1326) BleMidi: NimBLE Host task running on Core 1[0m
+[0;32mI (1326) pocket_pan_main: [MEM_STAGE] stage=ble_ready internal_free=42471 largest_internal=31744 psram_free=2029724[0m
+[0;32mI (1336) NimBLE: Failed to restore IRKs from store; status=8
+[0m
+[0;32mI (1346) pocket_pan_main: [M75_MEMORY] table_bytes=9640 cache_bytes=60552 synth_bytes=81668 internal_free=42435 largest_internal=31744[0m
+[0;32mI (1346) NimBLE: GAP procedure initiated: discovery; [0m
+[0;32mI (1366) pocket_pan_main: [UDU_CACHE] compact_bytes=5928 modal_models=9[0m
+[0;32mI (1366) NimBLE: own_addr_type=0 filter_policy=0 passive=0 limited=0 filter_duplicates=1 [0m
+[0;32mI (1376) pocket_pan_main: [CACHE_LAYOUT] packed=1 storage_bytes=60552 note_scratch_bytes=132[0m
+[0;32mI (1386) NimBLE: duration=forever[0m
+[0;32mI (1396) pocket_pan_main: [UDU_STATE] voice_bytes=124 fixed_reference=0[0m
+[0;32mI (1396) NimBLE: 
+[0m
+[0;32mI (1406) pocket_pan_main: [MEM_STAGE] stage=ui_ready internal_free=37991 largest_internal=27648 psram_free=2029724[0m
+[0;32mI (1406) BleMidi: Scanning for BLE MIDI devices...[0m
+[0;32mI (1406) gpio: GPIO[0]| InputEn: 1| OutputEn: 0| OpenDrain: 0| Pullup: 1| Pulldown: 0| Intr:0 [0m
+[0;32mI (1416) pocket_pan_main: Pocket Pan initialization complete. Realtime audio active.[0m
+[0;32mI (1446) main_task: Returned from app_main()[0m
+[0;31mE (1446) lcd_panel.io.spi: panel_io_spi_tx_color(390): spi transmit (queue) color failed[0m
+[0;31mE (1456) lcd_panel.st7789: panel_st7789_draw_bitmap(223): io tx color failed[0m
+[0;32mI (1506) BleMidi: BLE MIDI device found (59:FB:B6:B7:BF:0F); connecting[0m
+[0;32mI (1506) NimBLE: GAP procedure initiated: connect; [0m
+[0;32mI (1506) NimBLE: peer_addr_type=0 peer_addr=[0m
+[0;32mI (1506) NimBLE: 59:fb:b6:b7:bf:0f[0m
+[0;32mI (1516) NimBLE:  scan_itvl=16 scan_window=16 itvl_min=24 itvl_max=40 latency=0 supervision_timeout=256 min_ce_len=0 max_ce_len=0 own_addr_type=0[0m
+[0;32mI (1526) NimBLE: 
+[0m
+[0;32mI (1616) BleMidi: BLE Connected! conn_handle=1[0m
+[0;32mI (1616) NimBLE: GAP procedure initiated: [0m
+[0;32mI (1616) NimBLE: connection parameter update; conn_handle=1 itvl_min=6 itvl_max=12 latency=0 supervision_timeout=200 min_ce_len=0 max_ce_len=0[0m
+[0;32mI (1626) NimBLE: 
+[0m
+[0;32mI (1626) BleMidi: Requested connection params 7.5-15ms latency=0 timeout=2s rc=0[0m
+[0;32mI (1636) NimBLE: GATT procedure initiated: discover all services
+[0m
+[0;32mI (1936) BleMidi: Found BLE MIDI Service! start_handle=112 end_handle=115[0m
+[0;32mI (1936) NimBLE: GATT procedure initiated: discover all characteristics; [0m
+[0;32mI (1936) NimBLE: start_handle=112 end_handle=115
+[0m
+[0;32mI (2036) BleMidi: Found BLE MIDI Characteristic! def_handle=113 val_handle=114 props=0x16[0m
+[0;32mI (2036) NimBLE: GATT procedure initiated: discover all descriptors; [0m
+[0;32mI (2036) NimBLE: chr_val_handle=114 end_handle=115
+[0m
+[0;32mI (2136) BleMidi: Discovered CCCD (0x2902) handle=115[0m
+[0;32mI (2136) NimBLE: GATT procedure initiated: write; [0m
+[0;32mI (2136) NimBLE: att_handle=115 len=2
+[0m
+[0;32mI (2196) BleMidi: Negotiated params interval=7.50ms latency=0 timeout=2000ms[0m
+[0;32mI (2206) BleMidi: CCCD subscription successful; BLE MIDI ready[0m
+[0;32mI (2206) NimBLE: GAP procedure initiated: [0m
+[0;32mI (2206) NimBLE: connection parameter update; conn_handle=1 itvl_min=6 itvl_max=9 latency=0 supervision_timeout=100 min_ce_len=0 max_ce_len=0[0m
+[0;32mI (2226) NimBLE: 
+[0m
+[0;32mI (2306) BleMidi: Negotiated params interval=11.25ms latency=0 timeout=1000ms[0m
+[0;32mI (5826) pocket_pan_main: [AUDIO] model=PAN blocks=1838 avg_us=485 p99_us=0 max_us=1147 cpu_load=18.2 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (5826) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (5836) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-63 reconnects=0 last_disconnect=0[0m
+[0;32mI (5846) pocket_pan_main: [MEM] internal_free=75539 largest_internal=32768[0m
+[0;32mI (5856) pocket_pan_main: [UICORR] >1733(tot=0 draw=0 lcd=0 both=0 none=0) >2000(tot=0 draw=0 lcd=0 both=0 none=0)[0m
+[0;32mI (5866) pocket_pan_main: [UIMETRIC] arch=0 field_updates=15 total_transfers=8 total_pixels=123840 last_sub_us=261 last_dma_us=1050[0m
+[0;32mI (5876) pocket_pan_main: [UIREDRAW] urgent=7 telemetry=14 skip=124[0m
+[0;32mI (10836) pocket_pan_main: [AUDIO] model=PAN blocks=3718 avg_us=486 p99_us=750 max_us=1147 cpu_load=18.2 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (10836) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (10846) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-61 reconnects=0 last_disconnect=0[0m
+[0;32mI (10856) pocket_pan_main: [MEM] internal_free=75539 largest_internal=32768[0m
+[0;32mI (10866) pocket_pan_main: [UICORR] >1733(tot=0 draw=0 lcd=0 both=0 none=0) >2000(tot=0 draw=0 lcd=0 both=0 none=0)[0m
+[0;32mI (10876) pocket_pan_main: [UIMETRIC] arch=0 field_updates=17 total_transfers=10 total_pixels=127680 last_sub_us=258 last_dma_us=1046[0m
+[0;32mI (10886) pocket_pan_main: [UIREDRAW] urgent=7 telemetry=35 skip=268[0m
+[0;32mI (13176) forensics: [SAFETY] fixture=13 hard=0 sat=0 nonfinite=0 ble_lost=0[0m
+[0;32mI (13176) forensics: [EVENT_ONLY] fixture=13 n=512 avg_us=118.69 max_us=398[0m
+[0;32mI (13176) forensics: [FIXTURE_IO] model=MBIRA fixture=13 avg_us=483 p99_us=750 max_us=1147 cpu_pct=18.11 deadline=0 timeouts=0 tx_errors=0 short_writes=0[0m
+[0;32mI (13196) forensics: [CURVE] model=MBIRA fixture=13 voices=1 class=true_steady n=3583 avg_us=445.78 p95_us=455 p99_us=470 p995_us=475 p999_us=485 max_us=494 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (13216) forensics: [HIST] fixture=13 class=true_steady lower_us=420 n=6[0m
+[0;32mI (13226) forensics: [HIST] fixture=13 class=true_steady lower_us=425 n=1[0m
+[0;32mI (13236) forensics: [HIST] fixture=13 class=true_steady lower_us=445 n=3306[0m
+[0;32mI (13236) forensics: [HIST] fixture=13 class=true_steady lower_us=450 n=171[0m
+[0;32mI (13246) forensics: [HIST] fixture=13 class=true_steady lower_us=455 n=47[0m
+[0;32mI (13256) forensics: [HIST] fixture=13 class=true_steady lower_us=460 n=14[0m
+[0;32mI (13266) forensics: [HIST] fixture=13 class=true_steady lower_us=465 n=9[0m
+[0;32mI (13266) forensics: [HIST] fixture=13 class=true_steady lower_us=470 n=12[0m
+[0;32mI (13276) forensics: [HIST] fixture=13 class=true_steady lower_us=475 n=8[0m
+[0;32mI (13286) forensics: [HIST] fixture=13 class=true_steady lower_us=480 n=6[0m
+[0;32mI (13296) forensics: [HIST] fixture=13 class=true_steady lower_us=485 n=2[0m
+[0;32mI (13296) forensics: [HIST] fixture=13 class=true_steady lower_us=490 n=1[0m
+[0;32mI (13306) forensics: [CALLBACK_CURVE] model=MBIRA fixture=13 voices=1 class=true_steady n=3582 avg_us=466.40 p95_us=505 p99_us=565 p995_us=610 p999_us=675 max_us=705 deadline=0 overhead_avg_us=20.62[0m
+[0;32mI (13326) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=430 n=4[0m
+[0;32mI (13336) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=440 n=1[0m
+[0;32mI (13346) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=450 n=1373[0m
+[0;32mI (13346) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=455 n=683[0m
+[0;32mI (13356) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=460 n=276[0m
+[0;32mI (13366) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=465 n=299[0m
+[0;32mI (13376) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=470 n=156[0m
+[0;32mI (13386) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=475 n=132[0m
+[0;32mI (13396) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=480 n=113[0m
+[0;32mI (13396) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=485 n=121[0m
+[0;32mI (13406) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=490 n=138[0m
+[0;32mI (13416) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=495 n=82[0m
+[0;32mI (13426) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=500 n=40[0m
+[0;32mI (13436) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=505 n=24[0m
+[0;32mI (13446) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=510 n=28[0m
+[0;32mI (13456) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=515 n=23[0m
+[0;32mI (13456) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=520 n=18[0m
+[0;32mI (13466) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=525 n=11[0m
+[0;32mI (13476) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=530 n=5[0m
+[0;32mI (13486) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=535 n=4[0m
+[0;32mI (13496) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=540 n=5[0m
+[0;32mI (13496) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=545 n=1[0m
+[0;32mI (13506) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=550 n=6[0m
+[0;32mI (13516) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=555 n=3[0m
+[0;32mI (13526) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=560 n=3[0m
+[0;32mI (13536) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=565 n=1[0m
+[0;32mI (13546) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=570 n=2[0m
+[0;32mI (13546) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=575 n=4[0m
+[0;32mI (13556) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=580 n=1[0m
+[0;32mI (13566) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=585 n=3[0m
+[0;32mI (13576) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=590 n=1[0m
+[0;32mI (13586) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=595 n=1[0m
+[0;32mI (13596) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=600 n=2[0m
+[0;32mI (13596) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=605 n=1[0m
+[0;32mI (13606) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=610 n=2[0m
+[0;32mI (13616) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=620 n=3[0m
+[0;32mI (13626) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=630 n=4[0m
+[0;32mI (13636) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=635 n=2[0m
+[0;32mI (13646) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=640 n=2[0m
+[0;32mI (13646) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=670 n=1[0m
+[0;32mI (13656) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=675 n=1[0m
+[0;32mI (13666) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=690 n=1[0m
+[0;32mI (13676) forensics: [CALLBACK_HIST] fixture=13 class=true_steady lower_us=705 n=1[0m
+[0;32mI (13686) forensics: [CURVE] model=MBIRA fixture=13 voices=1 class=attack_tail n=0 avg_us=0.00 p95_us=0 p99_us=0 p995_us=0 p999_us=0 max_us=0 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (13706) forensics: [CALLBACK_CURVE] model=MBIRA fixture=13 voices=1 class=attack_tail n=0 avg_us=0.00 p95_us=0 p99_us=0 p995_us=0 p999_us=0 max_us=0 deadline=0 overhead_avg_us=0.00[0m
+[0;32mI (13716) forensics: [CURVE] model=MBIRA fixture=13 voices=1 class=event n=512 avg_us=624.10 p95_us=765 p99_us=790 p995_us=805 p999_us=970 max_us=966 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (13736) forensics: [HIST] fixture=13 class=event lower_us=530 n=5[0m
+[0;32mI (13746) forensics: [HIST] fixture=13 class=event lower_us=535 n=6[0m
+[0;32mI (13756) forensics: [HIST] fixture=13 class=event lower_us=540 n=7[0m
+[0;32mI (13766) forensics: [HIST] fixture=13 class=event lower_us=545 n=11[0m
+[0;32mI (13766) forensics: [HIST] fixture=13 class=event lower_us=550 n=8[0m
+[0;32mI (13776) forensics: [HIST] fixture=13 class=event lower_us=555 n=25[0m
+[0;32mI (13786) forensics: [HIST] fixture=13 class=event lower_us=560 n=19[0m
+[0;32mI (13786) forensics: [HIST] fixture=13 class=event lower_us=565 n=12[0m
+[0;32mI (13796) forensics: [HIST] fixture=13 class=event lower_us=570 n=14[0m
+[0;32mI (13806) forensics: [HIST] fixture=13 class=event lower_us=575 n=11[0m
+[0;32mI (13806) forensics: [HIST] fixture=13 class=event lower_us=580 n=8[0m
+[0;32mI (13816) forensics: [HIST] fixture=13 class=event lower_us=585 n=8[0m
+[0;32mI (13826) forensics: [HIST] fixture=13 class=event lower_us=590 n=10[0m
+[0;32mI (13836) forensics: [HIST] fixture=13 class=event lower_us=595 n=12[0m
+[0;32mI (13836) forensics: [HIST] fixture=13 class=event lower_us=600 n=21[0m
+[0;32mI (13846) forensics: [HIST] fixture=13 class=event lower_us=605 n=15[0m
+[0;32mI (13856) forensics: [HIST] fixture=13 class=event lower_us=610 n=21[0m
+[0;32mI (13856) forensics: [HIST] fixture=13 class=event lower_us=615 n=26[0m
+[0;32mI (13866) forensics: [HIST] fixture=13 class=event lower_us=620 n=29[0m
+[0;32mI (13876) forensics: [HIST] fixture=13 class=event lower_us=625 n=39[0m
+[0;32mI (13876) forensics: [HIST] fixture=13 class=event lower_us=630 n=27[0m
+[0;32mI (13886) forensics: [HIST] fixture=13 class=event lower_us=635 n=33[0m
+[0;32mI (13896) forensics: [HIST] fixture=13 class=event lower_us=640 n=21[0m
+[0;32mI (13906) forensics: [HIST] fixture=13 class=event lower_us=645 n=30[0m
+[0;32mI (13906) forensics: [HIST] fixture=13 class=event lower_us=650 n=20[0m
+[0;32mI (13916) forensics: [HIST] fixture=13 class=event lower_us=655 n=9[0m
+[0;32mI (13926) forensics: [HIST] fixture=13 class=event lower_us=660 n=5[0m
+[0;32mI (13926) forensics: [HIST] fixture=13 class=event lower_us=665 n=1[0m
+[0;32mI (13936) forensics: [HIST] fixture=13 class=event lower_us=670 n=1[0m
+[0;32mI (13946) forensics: [HIST] fixture=13 class=event lower_us=675 n=2[0m
+[0;32mI (13946) forensics: [HIST] fixture=13 class=event lower_us=680 n=2[0m
+[0;32mI (13956) forensics: [HIST] fixture=13 class=event lower_us=695 n=2[0m
+[0;32mI (13966) forensics: [HIST] fixture=13 class=event lower_us=700 n=1[0m
+[0;32mI (13976) forensics: [HIST] fixture=13 class=event lower_us=710 n=2[0m
+[0;32mI (13976) forensics: [HIST] fixture=13 class=event lower_us=715 n=2[0m
+[0;32mI (13986) forensics: [HIST] fixture=13 class=event lower_us=720 n=1[0m
+[0;32mI (13996) forensics: [HIST] fixture=13 class=event lower_us=730 n=2[0m
+[0;32mI (13996) forensics: [HIST] fixture=13 class=event lower_us=740 n=4[0m
+[0;32mI (14006) forensics: [HIST] fixture=13 class=event lower_us=745 n=2[0m
+[0;32mI (14016) forensics: [HIST] fixture=13 class=event lower_us=750 n=4[0m
+[0;32mI (14016) forensics: [HIST] fixture=13 class=event lower_us=755 n=7[0m
+[0;32mI (14026) forensics: [HIST] fixture=13 class=event lower_us=760 n=5[0m
+[0;32mI (14036) forensics: [HIST] fixture=13 class=event lower_us=765 n=5[0m
+[0;32mI (14036) forensics: [HIST] fixture=13 class=event lower_us=770 n=6[0m
+[0;32mI (14046) forensics: [HIST] fixture=13 class=event lower_us=775 n=2[0m
+[0;32mI (14056) forensics: [HIST] fixture=13 class=event lower_us=780 n=3[0m
+[0;32mI (14066) forensics: [HIST] fixture=13 class=event lower_us=785 n=2[0m
+[0;32mI (14066) forensics: [HIST] fixture=13 class=event lower_us=790 n=1[0m
+[0;32mI (14076) forensics: [HIST] fixture=13 class=event lower_us=800 n=1[0m
+[0;32mI (14086) forensics: [HIST] fixture=13 class=event lower_us=855 n=1[0m
+[0;32mI (14086) forensics: [HIST] fixture=13 class=event lower_us=965 n=1[0m
+[0;32mI (14096) forensics: [CALLBACK_CURVE] model=MBIRA fixture=13 voices=1 class=event n=512 avg_us=645.87 p95_us=790 p99_us=860 p995_us=880 p999_us=1150 max_us=1147 deadline=0 overhead_avg_us=21.77[0m
+[0;32mI (14116) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=540 n=3[0m
+[0;32mI (14126) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=545 n=6[0m
+[0;32mI (14126) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=550 n=3[0m
+[0;32mI (14136) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=555 n=9[0m
+[0;32mI (14146) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=560 n=7[0m
+[0;32mI (14156) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=565 n=21[0m
+[0;32mI (14156) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=570 n=15[0m
+[0;32mI (14166) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=575 n=9[0m
+[0;32mI (14176) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=580 n=14[0m
+[0;32mI (14186) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=585 n=12[0m
+[0;32mI (14196) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=590 n=10[0m
+[0;32mI (14196) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=595 n=7[0m
+[0;32mI (14206) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=600 n=8[0m
+[0;32mI (14216) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=605 n=7[0m
+[0;32mI (14226) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=610 n=12[0m
+[0;32mI (14226) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=615 n=10[0m
+[0;32mI (14236) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=620 n=25[0m
+[0;32mI (14246) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=625 n=21[0m
+[0;32mI (14256) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=630 n=21[0m
+[0;32mI (14266) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=635 n=27[0m
+[0;32mI (14266) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=640 n=27[0m
+[0;32mI (14276) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=645 n=33[0m
+[0;32mI (14286) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=650 n=24[0m
+[0;32mI (14296) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=655 n=29[0m
+[0;32mI (14296) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=660 n=17[0m
+[0;32mI (14306) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=665 n=29[0m
+[0;32mI (14316) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=670 n=23[0m
+[0;32mI (14326) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=675 n=13[0m
+[0;32mI (14336) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=680 n=6[0m
+[0;32mI (14336) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=685 n=2[0m
+[0;32mI (14346) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=690 n=4[0m
+[0;32mI (14356) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=700 n=1[0m
+[0;32mI (14366) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=705 n=2[0m
+[0;32mI (14366) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=710 n=2[0m
+[0;32mI (14376) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=715 n=2[0m
+[0;32mI (14386) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=725 n=1[0m
+[0;32mI (14396) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=730 n=2[0m
+[0;32mI (14406) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=745 n=2[0m
+[0;32mI (14406) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=755 n=1[0m
+[0;32mI (14416) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=760 n=1[0m
+[0;32mI (14426) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=765 n=4[0m
+[0;32mI (14436) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=770 n=5[0m
+[0;32mI (14436) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=775 n=4[0m
+[0;32mI (14446) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=780 n=5[0m
+[0;32mI (14456) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=785 n=5[0m
+[0;32mI (14466) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=790 n=3[0m
+[0;32mI (14466) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=795 n=2[0m
+[0;32mI (14476) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=800 n=1[0m
+[0;32mI (14486) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=805 n=1[0m
+[0;32mI (14496) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=810 n=1[0m
+[0;32mI (14506) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=830 n=1[0m
+[0;32mI (14506) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=835 n=1[0m
+[0;32mI (14516) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=840 n=1[0m
+[0;32mI (14526) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=845 n=1[0m
+[0;32mI (14536) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=850 n=1[0m
+[0;32mI (14536) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=855 n=3[0m
+[0;32mI (14546) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=860 n=2[0m
+[0;32mI (14556) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=875 n=1[0m
+[0;32mI (14566) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=985 n=1[0m
+[0;32mI (14576) forensics: [CALLBACK_HIST] fixture=13 class=event lower_us=1145 n=1[0m
+[0;32mI (14576) forensics: [CURVE] model=MBIRA fixture=13 voices=1 class=fixture_transition n=1 avg_us=671.92 p95_us=675 p99_us=675 p995_us=675 p999_us=675 max_us=672 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (14606) forensics: [HIST] fixture=13 class=fixture_transition lower_us=670 n=1[0m
+[0;32mI (14606) forensics: [CALLBACK_CURVE] model=MBIRA fixture=13 voices=1 class=fixture_transition n=1 avg_us=798.00 p95_us=800 p99_us=800 p995_us=800 p999_us=800 max_us=798 deadline=0 overhead_avg_us=126.08[0m
+[0;32mI (14626) forensics: [CALLBACK_HIST] fixture=13 class=fixture_transition lower_us=795 n=1[0m
+[0;32mI (14636) forensics: [FASTPATH] fixture=13 stable8=0 attack=0 sustain=3583 shared_noise=0[0m
+[0;32mI (14646) forensics: [OVERHEAD] fixture=13 blocks=4585 model_reset_avg_us=1.68 model_reset_max_us=99 queue_avg_us=2.97 queue_max_us=40 render_avg_us=425.41 telem_avg_us=5.49 telem_max_us=148 telem_publishes=573[0m
+[0;32mI (15836) pocket_pan_main: [AUDIO] model=PAN blocks=5592 avg_us=463 p99_us=0 max_us=1083 cpu_load=17.4 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (15836) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (15846) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-67 reconnects=0 last_disconnect=0[0m
+[0;32mI (15856) pocket_pan_main: [MEM] internal_free=75387 largest_internal=32768[0m
+[0;32mI (15866) pocket_pan_main: [UICORR] >1733(tot=0 draw=0 lcd=0 both=0 none=0) >2000(tot=0 draw=0 lcd=0 both=0 none=0)[0m
+[0;32mI (15876) pocket_pan_main: [UIMETRIC] arch=0 field_updates=22 total_transfers=15 total_pixels=137280 last_sub_us=294 last_dma_us=1086[0m
+[0;32mI (15886) pocket_pan_main: [UIREDRAW] urgent=7 telemetry=51 skip=367[0m
+[0;32mI (20846) pocket_pan_main: [AUDIO] model=PAN blocks=7470 avg_us=458 p99_us=550 max_us=1113 cpu_load=17.2 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (20846) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (20856) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-68 reconnects=0 last_disconnect=0[0m
+[0;32mI (20866) pocket_pan_main: [MEM] internal_free=75387 largest_internal=32768[0m
+[0;32mI (20876) pocket_pan_main: [UICORR] >1733(tot=0 draw=0 lcd=0 both=0 none=0) >2000(tot=0 draw=0 lcd=0 both=0 none=0)[0m
+[0;32mI (20886) pocket_pan_main: [UIMETRIC] arch=0 field_updates=22 total_transfers=15 total_pixels=137280 last_sub_us=294 last_dma_us=1086[0m
+[0;32mI (20896) pocket_pan_main: [UIREDRAW] urgent=7 telemetry=74 skip=509[0m
+[0;32mI (24086) forensics: [SAFETY] fixture=14 hard=0 sat=0 nonfinite=0 ble_lost=0[0m
+[0;32mI (24086) forensics: [EVENT_ONLY] fixture=14 n=22 avg_us=418.11 max_us=512[0m
+[0;32mI (24086) forensics: [FIXTURE_IO] model=MBIRA fixture=14 avg_us=460 p99_us=550 max_us=1113 cpu_pct=17.25 deadline=0 timeouts=0 tx_errors=0 short_writes=0[0m
+[0;32mI (24096) forensics: [CURVE] model=MBIRA fixture=14 voices=1 class=true_steady n=4073 avg_us=443.04 p95_us=450 p99_us=465 p995_us=465 p999_us=480 max_us=490 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (24126) forensics: [HIST] fixture=14 class=true_steady lower_us=420 n=346[0m
+[0;32mI (24126) forensics: [HIST] fixture=14 class=true_steady lower_us=425 n=42[0m
+[0;32mI (24136) forensics: [HIST] fixture=14 class=true_steady lower_us=430 n=21[0m
+[0;32mI (24146) forensics: [HIST] fixture=14 class=true_steady lower_us=435 n=10[0m
+[0;32mI (24156) forensics: [HIST] fixture=14 class=true_steady lower_us=445 n=3531[0m
+[0;32mI (24156) forensics: [HIST] fixture=14 class=true_steady lower_us=450 n=48[0m
+[0;32mI (24166) forensics: [HIST] fixture=14 class=true_steady lower_us=455 n=34[0m
+[0;32mI (24176) forensics: [HIST] fixture=14 class=true_steady lower_us=460 n=21[0m
+[0;32mI (24186) forensics: [HIST] fixture=14 class=true_steady lower_us=465 n=7[0m
+[0;32mI (24186) forensics: [HIST] fixture=14 class=true_steady lower_us=470 n=5[0m
+[0;32mI (24196) forensics: [HIST] fixture=14 class=true_steady lower_us=475 n=5[0m
+[0;32mI (24206) forensics: [HIST] fixture=14 class=true_steady lower_us=480 n=1[0m
+[0;32mI (24216) forensics: [HIST] fixture=14 class=true_steady lower_us=485 n=1[0m
+[0;32mI (24216) forensics: [HIST] fixture=14 class=true_steady lower_us=490 n=1[0m
+[0;32mI (24226) forensics: [CALLBACK_CURVE] model=MBIRA fixture=14 voices=1 class=true_steady n=4073 avg_us=458.29 p95_us=490 p99_us=540 p995_us=570 p999_us=610 max_us=668 deadline=0 overhead_avg_us=15.25[0m
+[0;32mI (24246) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=430 n=269[0m
+[0;32mI (24256) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=435 n=43[0m
+[0;32mI (24266) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=440 n=17[0m
+[0;32mI (24266) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=445 n=28[0m
+[0;32mI (24276) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=450 n=2017[0m
+[0;32mI (24286) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=455 n=789[0m
+[0;32mI (24296) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=460 n=151[0m
+[0;32mI (24306) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=465 n=264[0m
+[0;32mI (24316) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=470 n=129[0m
+[0;32mI (24326) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=475 n=120[0m
+[0;32mI (24326) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=480 n=41[0m
+[0;32mI (24336) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=485 n=30[0m
+[0;32mI (24346) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=490 n=31[0m
+[0;32mI (24356) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=495 n=15[0m
+[0;32mI (24366) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=500 n=21[0m
+[0;32mI (24376) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=505 n=20[0m
+[0;32mI (24376) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=510 n=13[0m
+[0;32mI (24386) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=515 n=7[0m
+[0;32mI (24396) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=520 n=10[0m
+[0;32mI (24406) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=525 n=7[0m
+[0;32mI (24416) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=530 n=6[0m
+[0;32mI (24426) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=535 n=11[0m
+[0;32mI (24426) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=540 n=3[0m
+[0;32mI (24436) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=545 n=2[0m
+[0;32mI (24446) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=555 n=5[0m
+[0;32mI (24456) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=560 n=3[0m
+[0;32mI (24466) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=565 n=1[0m
+[0;32mI (24466) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=570 n=1[0m
+[0;32mI (24476) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=575 n=1[0m
+[0;32mI (24486) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=580 n=2[0m
+[0;32mI (24496) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=585 n=2[0m
+[0;32mI (24506) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=590 n=5[0m
+[0;32mI (24516) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=595 n=4[0m
+[0;32mI (24516) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=605 n=2[0m
+[0;32mI (24526) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=620 n=1[0m
+[0;32mI (24536) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=625 n=1[0m
+[0;32mI (24546) forensics: [CALLBACK_HIST] fixture=14 class=true_steady lower_us=665 n=1[0m
+[0;32mI (24556) forensics: [CURVE] model=MBIRA fixture=14 voices=1 class=attack_tail n=0 avg_us=0.00 p95_us=0 p99_us=0 p995_us=0 p999_us=0 max_us=0 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (24576) forensics: [CALLBACK_CURVE] model=MBIRA fixture=14 voices=1 class=attack_tail n=0 avg_us=0.00 p95_us=0 p99_us=0 p995_us=0 p999_us=0 max_us=0 deadline=0 overhead_avg_us=0.00[0m
+[0;32mI (24586) forensics: [CURVE] model=MBIRA fixture=14 voices=1 class=event n=22 avg_us=947.42 p95_us=1005 p99_us=1070 p995_us=1070 p999_us=1070 max_us=1065 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (24616) forensics: [HIST] fixture=14 class=event lower_us=720 n=1[0m
+[0;32mI (24616) forensics: [HIST] fixture=14 class=event lower_us=930 n=1[0m
+[0;32mI (24626) forensics: [HIST] fixture=14 class=event lower_us=935 n=5[0m
+[0;32mI (24636) forensics: [HIST] fixture=14 class=event lower_us=940 n=2[0m
+[0;32mI (24636) forensics: [HIST] fixture=14 class=event lower_us=945 n=2[0m
+[0;32mI (24646) forensics: [HIST] fixture=14 class=event lower_us=950 n=4[0m
+[0;32mI (24656) forensics: [HIST] fixture=14 class=event lower_us=955 n=1[0m
+[0;32mI (24656) forensics: [HIST] fixture=14 class=event lower_us=960 n=1[0m
+[0;32mI (24666) forensics: [HIST] fixture=14 class=event lower_us=965 n=1[0m
+[0;32mI (24676) forensics: [HIST] fixture=14 class=event lower_us=980 n=1[0m
+[0;32mI (24686) forensics: [HIST] fixture=14 class=event lower_us=990 n=1[0m
+[0;32mI (24686) forensics: [HIST] fixture=14 class=event lower_us=1000 n=1[0m
+[0;32mI (24696) forensics: [HIST] fixture=14 class=event lower_us=1065 n=1[0m
+[0;32mI (24706) forensics: [CALLBACK_CURVE] model=MBIRA fixture=14 voices=1 class=event n=22 avg_us=997.73 p95_us=1085 p99_us=1115 p995_us=1115 p999_us=1115 max_us=1113 deadline=0 overhead_avg_us=50.30[0m
+[0;32mI (24716) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=745 n=1[0m
+[0;32mI (24726) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=955 n=2[0m
+[0;32mI (24736) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=960 n=2[0m
+[0;32mI (24746) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=970 n=1[0m
+[0;32mI (24746) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=975 n=2[0m
+[0;32mI (24756) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=980 n=2[0m
+[0;32mI (24766) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1000 n=1[0m
+[0;32mI (24776) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1005 n=2[0m
+[0;32mI (24786) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1015 n=3[0m
+[0;32mI (24786) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1020 n=1[0m
+[0;32mI (24796) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1050 n=1[0m
+[0;32mI (24806) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1060 n=1[0m
+[0;32mI (24816) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1070 n=1[0m
+[0;32mI (24826) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1080 n=1[0m
+[0;32mI (24826) forensics: [CALLBACK_HIST] fixture=14 class=event lower_us=1110 n=1[0m
+[0;32mI (24836) forensics: [CURVE] model=MBIRA fixture=14 voices=1 class=fixture_transition n=1 avg_us=605.09 p95_us=610 p99_us=610 p995_us=610 p999_us=610 max_us=606 deadline=0 bad_voices=0 ble_lost=0 hard=0 sat=0 bin_us=5 max_observed_voices=1[0m
+[0;32mI (24856) forensics: [HIST] fixture=14 class=fixture_transition lower_us=605 n=1[0m
+[0;32mI (24866) forensics: [CALLBACK_CURVE] model=MBIRA fixture=14 voices=1 class=fixture_transition n=1 avg_us=629.00 p95_us=630 p99_us=630 p995_us=630 p999_us=630 max_us=629 deadline=0 overhead_avg_us=23.91[0m
+[0;32mI (24886) forensics: [CALLBACK_HIST] fixture=14 class=fixture_transition lower_us=625 n=1[0m
+[0;32mI (24896) forensics: [FASTPATH] fixture=14 stable8=0 attack=0 sustain=4073 shared_noise=0[0m
+[0;32mI (24906) forensics: [OVERHEAD] fixture=14 blocks=4096 model_reset_avg_us=1.55 model_reset_max_us=20 queue_avg_us=2.08 queue_max_us=37 render_avg_us=451.46 telem_avg_us=3.37 telem_max_us=77 telem_publishes=512[0m
+[0;32mI (25856) pocket_pan_main: [AUDIO] model=PAN blocks=9350 avg_us=9 p99_us=575 max_us=1113 cpu_load=0.3 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (25856) pocket_pan_main: [MIDI] push=0 pop=0 drop=0 hwm=0 last=(n=62 v=0 t=78 hex=000000)[0m
+[0;32mI (25866) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-63 reconnects=0 last_disconnect=0[0m
+[0;32mI (25876) pocket_pan_main: [MEM] internal_free=75387 largest_internal=32768[0m
+[0;32mI (25886) pocket_pan_main: [UICORR] >1733(tot=0 draw=0 lcd=0 both=0 none=0) >2000(tot=0 draw=0 lcd=0 both=0 none=0)[0m
+[0;32mI (25896) pocket_pan_main: [UIMETRIC] arch=0 field_updates=23 total_transfers=16 total_pixels=139200 last_sub_us=262 last_dma_us=1053[0m
+[0;32mI (25906) pocket_pan_main: [UIREDRAW] urgent=7 telemetry=92 skip=628[0m
+[0;32mI (30866) pocket_pan_main: [AUDIO] model=PAN blocks=11229 avg_us=8 p99_us=25 max_us=1113 cpu_load=0.3 deadline=0 timeout=0 tx_error=0 short=0[0m

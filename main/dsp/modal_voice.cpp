@@ -372,6 +372,7 @@ DSP_HOT float ModalVoice::processSampleAttackStable(float externalExcitation, fl
     const float output = resonators_.processSample(exc);
 
     if ((age_ & 0x7F) == 0) {
+        DSP_PROFILE_SCOPE(Energy);
         estimatedEnergy_ = resonators_.getEnergy();
         if (!exciter_.isActive() && estimatedEnergy_ < voicingConfig_.silenceThreshold) {
             active_ = false;
@@ -382,6 +383,35 @@ DSP_HOT float ModalVoice::processSampleAttackStable(float externalExcitation, fl
     lastSample_ = output;
     return output;
 }
+
+#if POCKETPAN_COMMON_NOISE
+DSP_HOT float ModalVoice::processSampleAttackStableSharedNoise(float externalExcitation, float* strikeTap, float envelopeSquared) {
+    if (!active_) return 0.0f;
+
+    // Mirror of processSample() with the provably no-op damping-smoothing and
+    // steal-crossfade branches removed.  The exciter, modal kernel, exact
+    // age-aligned lifetime check and lastSample_ are unchanged.
+    age_++;
+
+    float localStrike;
+    { DSP_PROFILE_SCOPE(Exciter); localStrike = exciter_.processSampleSharedNoise(envelopeSquared); }
+    if (strikeTap) *strikeTap = localStrike;
+    const float exc = localStrike + externalExcitation;
+    const float output = resonators_.processSample(exc);
+
+    if ((age_ & 0x7F) == 0) {
+        DSP_PROFILE_SCOPE(Energy);
+        estimatedEnergy_ = resonators_.getEnergy();
+        if (!exciter_.isActive() && estimatedEnergy_ < voicingConfig_.silenceThreshold) {
+            active_ = false;
+            estimatedEnergy_ = 0.0f;
+        }
+    }
+
+    lastSample_ = output;
+    return output;
+}
+#endif
 
 DSP_HOT void ModalVoice::renderAttackBlock(float* outBuffer, size_t frames,
                                            float externalExcitation) {
@@ -435,6 +465,7 @@ DSP_HOT float ModalVoice::processSampleSustain(float externalExcitation, float* 
     const float output = resonators_.processSample(externalExcitation);
 
     if ((age_ & 0x7F) == 0) {
+        DSP_PROFILE_SCOPE(Energy);
         estimatedEnergy_ = resonators_.getEnergy();
         if (estimatedEnergy_ < voicingConfig_.silenceThreshold) {
             active_ = false;
@@ -464,6 +495,7 @@ DSP_HOT void ModalVoice::renderSustainBlock(float* outBuffer, size_t frames,
         lastSample_ = last;
         done += segment;
         if ((age_ & 0x7Fu) == 0u) {
+            DSP_PROFILE_SCOPE(Energy);
             estimatedEnergy_ = resonators_.getEnergy();
             if (estimatedEnergy_ < voicingConfig_.silenceThreshold) {
                 active_ = false;

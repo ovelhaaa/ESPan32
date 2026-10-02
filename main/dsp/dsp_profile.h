@@ -5,6 +5,10 @@
 #ifndef POCKETPAN_PACKED_NOTE_CACHE
 #define POCKETPAN_PACKED_NOTE_CACHE 1
 #endif
+#ifndef POCKETPAN_COMMON_NOISE
+#define POCKETPAN_COMMON_NOISE 1
+#endif
+
 #ifndef POCKETPAN_FORENSICS_CRITICAL_ONLY
 #define POCKETPAN_FORENSICS_CRITICAL_ONLY 0
 #endif
@@ -161,6 +165,14 @@
 #ifdef ESP_PLATFORM
 #include "sdkconfig.h"
 #endif
+// Diagnostic-only hit count; no production storage or per-block work.
+#if defined(CONFIG_POCKETPAN_POLYPHONY_FORENSICS) || defined(POCKETPAN_COMMON_NOISE_DIFFERENTIAL_TEST)
+#define POCKETPAN_COMMON_NOISE_PROBES 1
+namespace pocketpan::dsp::m81 { inline unsigned sharedNoiseBlocks = 0; }
+#else
+#define POCKETPAN_COMMON_NOISE_PROBES 0
+#endif
+
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
 #include "esp_cpu.h"
 #include <cstdint>
@@ -171,10 +183,13 @@ namespace pocketpan::dsp::profile {
 enum Phase {
     Allocator, Modal, Exciter, Damping, Energy, Body, Mix, Limiter, Pcm,
     MidiDispatch, VoiceAllocation, TriggerRegister, TriggerCoefficients,
-    TriggerCoupling, TriggerExciter, PreparedLookup, TriggerOther, Count
+    TriggerCoupling, TriggerExciter, PreparedLookup, TriggerOther, Sympathetic, Count
 };
 inline uint64_t cycles[Count]{}; // Audio-core owned; copied only at block boundaries.
 inline bool enabled = false;
+enum Kernel { Scalar, Six, Eight, Ten, KernelCount };
+inline uint32_t kernelCalls[KernelCount]{};
+inline void hit(Kernel kernel) { if (enabled) ++kernelCalls[kernel]; }
 class Scope {
     Phase phase_;
     uint32_t start_;
@@ -185,6 +200,8 @@ public:
 };
 }
 #define DSP_PROFILE_SCOPE(phase) pocketpan::dsp::profile::Scope dspProfileScope(pocketpan::dsp::profile::phase)
+#define DSP_PROFILE_KERNEL(kernel) pocketpan::dsp::profile::hit(pocketpan::dsp::profile::kernel)
 #else
 #define DSP_PROFILE_SCOPE(phase)
+#define DSP_PROFILE_KERNEL(kernel)
 #endif

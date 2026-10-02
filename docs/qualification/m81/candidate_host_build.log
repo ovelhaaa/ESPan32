@@ -1,0 +1,507 @@
+[  0%] Building CXX object CMakeFiles/test_ble_midi_parser.dir/test_ble_midi_parser.cpp.obj
+[  1%] Building CXX object CMakeFiles/test_telemetry.dir/test_telemetry.cpp.obj
+[  2%] Building CXX object CMakeFiles/test_dsp.dir/test_dsp.cpp.obj
+[  3%] Building CXX object CMakeFiles/test_modal_kernel.dir/test_modal_kernel.cpp.obj
+[  4%] Building CXX object CMakeFiles/test_prepared_note.dir/test_prepared_note.cpp.obj
+[  5%] Building CXX object CMakeFiles/test_fastpath.dir/test_fastpath.cpp.obj
+C:\progs\ESPan\tests\test_fastpath.cpp: In function 'int main()':
+C:\progs\ESPan\tests\test_fastpath.cpp:129:63: warning: narrowing conversion of 't' from 'size_t' {aka 'long long unsigned int'} to 'uint32_t' {aka 'unsigned int'} [-Wnarrowing]
+  129 |         for (size_t t=4800;t<48000;t+=4800) events.push_back({t,midi::MidiEventType::NoteOn,62,110});
+      |                                                               ^
+[  7%] Building CXX object CMakeFiles/test_ble_midi_parser.dir/C_/progs/ESPan/main/midi/midi_parser.cpp.obj
+[  7%] Linking CXX executable test_telemetry.exe
+[  8%] Linking CXX executable test_ble_midi_parser.exe
+[  9%] Building CXX object CMakeFiles/test_modal_kernel.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+C:\progs\ESPan\tests\test_dsp.cpp: In function 'void testM74MarimbaModel()':
+C:\progs\ESPan\tests\test_dsp.cpp:2826:36: warning: narrowing conversion of 'frame' from 'size_t' {aka 'long long unsigned int'} to 'uint32_t' {aka 'unsigned int'} [-Wnarrowing]
+ 2826 |             roll.events.push_back({frame,note(62, varying ? uint8_t(40+(i%4)*25) : 90)});
+      |                                    ^~~~~
+[ 10%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 10%] Built target test_telemetry
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 11%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 11%] Built target test_ble_midi_parser
+[ 12%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 12%] Linking CXX executable test_modal_kernel.exe
+[ 12%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 13%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 14%] Building CXX object CMakeFiles/test_exciter_fastpath.dir/test_exciter_fastpath.cpp.obj
+[ 14%] Built target test_modal_kernel
+[ 14%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 14%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 15%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 16%] Building CXX object CMakeFiles/test_exciter_fastpath.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 17%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 17%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 18%] Building CXX object CMakeFiles/test_m635_fastpath.dir/test_m635_fastpath.cpp.obj
+[ 18%] Linking CXX executable test_exciter_fastpath.exe
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 19%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 20%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 20%] Built target test_exciter_fastpath
+[ 20%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 21%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 22%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 23%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 24%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 24%] Building CXX object CMakeFiles/test_m637_trigger.dir/test_m637_trigger.cpp.obj
+[ 25%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 26%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 26%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 27%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 28%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 28%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 28%] Building CXX object CMakeFiles/test_fastpath.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 29%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 30%] Linking CXX executable test_fastpath.exe
+[ 31%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 31%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/test_vibraphone_runtime.cpp.obj
+[ 32%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 33%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 34%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 34%] Built target test_fastpath
+[ 35%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 35%] Building CXX object CMakeFiles/test_prepared_note.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 35%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In file included from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/x86_64-w64-mingw32/bits/c++allocator.h:33,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/allocator.h:46,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/string:43,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/locale_classes.h:40,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/ios_base.h:41,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/ios:44,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/ostream:40,
+                 from C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/iostream:41,
+                 from C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:7:
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:66:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:38:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:66:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+In function 'void operator delete(void*, size_t)',
+    inlined from 'void std::__new_allocator<_Tp>::deallocate(_Tp*, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:172:26,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::deallocate(allocator_type&, pointer, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:513:23,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_deallocate(pointer, std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:389:19,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:368:15,
+    inlined from 'std::vector<_Tp, _Alloc>::~vector() [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:738:7,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:175:1:
+C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:19:59: warning: 'void free(void*)' called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]
+   19 | void operator delete(void* p, size_t) noexcept { std::free(p); }
+      |                                                  ~~~~~~~~~^~~
+In member function '_Tp* std::__new_allocator<_Tp>::allocate(size_type, const void*) [with _Tp = int]',
+    inlined from 'static _Tp* std::allocator_traits<std::allocator<_CharT> >::allocate(allocator_type&, size_type) [with _Tp = int]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/alloc_traits.h:478:28,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::pointer std::_Vector_base<_Tp, _Alloc>::_M_allocate(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:380:33,
+    inlined from 'void std::_Vector_base<_Tp, _Alloc>::_M_create_storage(std::size_t) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:398:44,
+    inlined from 'std::_Vector_base<_Tp, _Alloc>::_Vector_base(std::size_t, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:334:26,
+    inlined from 'std::vector<_Tp, _Alloc>::vector(size_type, const allocator_type&) [with _Tp = int; _Alloc = std::allocator<int>]' at C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/stl_vector.h:557:47,
+    inlined from 'int main()' at C:\progs\ESPan\tests\test_vibraphone_runtime.cpp:132:38:
+C:/Users/devx/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT.LLVM_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/include/c++/14.2.0/bits/new_allocator.h:151:55: note: returned from 'void* operator new(size_t)'
+  151 |         return static_cast<_Tp*>(_GLIBCXX_OPERATOR_NEW(__n * sizeof(_Tp)));
+      |                                                       ^
+[ 36%] Linking CXX executable test_prepared_note.exe
+[ 37%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 38%] Building CXX object CMakeFiles/test_m637_trigger.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 39%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 40%] Linking CXX executable test_m637_trigger.exe
+[ 40%] Built target test_prepared_note
+[ 40%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 41%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 42%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 42%] Built target test_m637_trigger
+[ 42%] Building CXX object CMakeFiles/test_mbira.dir/test_mbira.cpp.obj
+[ 43%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 44%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 44%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 44%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 45%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 45%] Building CXX object CMakeFiles/test_udu.dir/test_udu.cpp.obj
+[ 46%] Building CXX object CMakeFiles/test_m635_fastpath.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 47%] Linking CXX executable test_m635_fastpath.exe
+[ 48%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 49%] Building CXX object CMakeFiles/test_udu_dynamic.dir/test_udu_dynamic.cpp.obj
+[ 49%] Built target test_m635_fastpath
+[ 50%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 51%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 52%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 53%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 53%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 54%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 55%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 56%] Building CXX object CMakeFiles/test_udu_frozen.dir/test_udu_frozen.cpp.obj
+[ 56%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 56%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 57%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 58%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 59%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+In file included from C:\progs\ESPan\tests\test_udu_frozen.cpp:3:
+C:\progs\ESPan\tests\test_udu.cpp:113:15: warning: 'double difference(const Result&, const Result&)' defined but not used [-Wunused-function]
+  113 | static double difference(const Result& a,const Result& b) {
+      |               ^~~~~~~~~~
+C:\progs\ESPan\tests\test_udu.cpp:26:15: warning: 'Result render(const pocketpan::dsp::UduConfig&, const std::vector<Event>&, size_t, bool)' defined but not used [-Wunused-function]
+   26 | static Result render(const dsp::UduConfig& config,const std::vector<Event>& events,
+      |               ^~~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 60%] Building CXX object CMakeFiles/test_vibraphone_runtime.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 61%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 62%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 63%] Linking CXX executable test_vibraphone_runtime.exe
+[ 63%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 63%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 63%] Built target test_vibraphone_runtime
+[ 63%] Building CXX object CMakeFiles/test_dsp.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 63%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 64%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 65%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 65%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 66%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 67%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 68%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 69%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 69%] Building CXX object CMakeFiles/test_cache_layout.dir/test_cache_layout.cpp.obj
+[ 70%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 71%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 71%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 72%] Building CXX object CMakeFiles/test_mbira.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 73%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 73%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 73%] Linking CXX executable test_mbira.exe
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 74%] Building CXX object CMakeFiles/test_udu.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 75%] Linking CXX executable test_dsp.exe
+[ 75%] Built target test_mbira
+[ 76%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 77%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 77%] Linking CXX executable test_udu.exe
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 77%] Built target test_dsp
+[ 78%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 78%] Built target test_udu
+[ 79%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 80%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 81%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 81%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 81%] Building CXX object CMakeFiles/test_m81.dir/test_m81.cpp.obj
+[ 82%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 83%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 83%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 84%] Building CXX object CMakeFiles/test_m81_limiter.dir/test_m81_limiter.cpp.obj
+[ 85%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/modal_resonator.cpp.obj
+[ 85%] Building CXX object CMakeFiles/test_udu_dynamic.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:\progs\ESPan\main\dsp\modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable unless also declared 'inline' [-Wattributes]
+[ 86%] Building CXX object CMakeFiles/test_udu_frozen.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 87%] Building CXX object CMakeFiles/test_m81_limiter.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 88%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 89%] Linking CXX executable test_udu_dynamic.exe
+[ 90%] Linking CXX executable test_udu_frozen.exe
+[ 91%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 92%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/body_resonator.cpp.obj
+[ 93%] Linking CXX executable test_m81_limiter.exe
+[ 93%] Built target test_udu_dynamic
+[ 93%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+[ 93%] Built target test_udu_frozen
+[ 93%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/exciter.cpp.obj
+[ 94%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[ 94%] Built target test_m81_limiter
+[ 95%] Building CXX object CMakeFiles/test_cache_layout.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[ 96%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/modal_voice.cpp.obj
+[ 97%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/voice_allocator.cpp.obj
+[ 98%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/synth_engine.cpp.obj
+[ 98%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/instrument_model.cpp.obj
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:\progs\ESPan\main\dsp\voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:\progs\ESPan\main\dsp\voice_allocator.cpp:534:22: warning: unused variable 'split' [-Wunused-variable]
+  534 |         const size_t split = frames;
+      |                      ^~~~~
+[ 99%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/dsp/peak_limiter.cpp.obj
+[100%] Building CXX object CMakeFiles/test_m81.dir/C_/progs/ESPan/main/midi/midi_mapping.cpp.obj
+[100%] Linking CXX executable test_cache_layout.exe
+[100%] Built target test_cache_layout
+[100%] Linking CXX executable test_m81.exe
+[100%] Built target test_m81

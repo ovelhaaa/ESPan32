@@ -63,6 +63,9 @@ public:
     // block, so the sample path can be specialized without any musical change.
     bool isAttackSafe() const;
     float processSampleAttackStable(float externalExcitation = 0.0f, float* strikeTap = nullptr);
+#if POCKETPAN_COMMON_NOISE
+    float processSampleAttackStableSharedNoise(float externalExcitation, float* strikeTap, float envelopeSquared);
+#endif
     void renderAttackBlock(float* outBuffer, size_t frames, float externalExcitation = 0.0f);
 #if POCKETPAN_ATTACK_SEGMENT
     // M6.3.6 (§22): exact sample at which the exciter body ends, so the attack

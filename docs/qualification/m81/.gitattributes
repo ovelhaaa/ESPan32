@@ -1,0 +1,3 @@
+# Preserve qualification evidence bytes, including UART and linker whitespace.
+* -text -whitespace
+*.md text whitespace

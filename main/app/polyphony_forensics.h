@@ -1,4 +1,10 @@
 #pragma once
+#ifndef POCKETPAN_FORENSICS_RELEASE_PROBE
+#define POCKETPAN_FORENSICS_RELEASE_PROBE 0
+#endif
+#ifndef POCKETPAN_FORENSICS_OUTLIER_US
+#define POCKETPAN_FORENSICS_OUTLIER_US 2667
+#endif
 #include "sdkconfig.h"
 #ifdef CONFIG_POCKETPAN_POLYPHONY_FORENSICS
 #ifndef POCKETPAN_FORENSICS_M8_MODEL
@@ -41,7 +47,8 @@ enum class ForensicsBlockClass : uint8_t {
     FixtureTransition = 1,
     Event = 2,
     AttackTail = 3,
-    TrueSteady = 4
+    TrueSteady = 4,
+    ReleaseTail = 5
 };
 
 inline std::atomic<ForensicsBlockClass> sCurrentBlockClass{ForensicsBlockClass::Idle};
@@ -49,7 +56,7 @@ inline ForensicsBlockClass getCurrentBlockClass() {
     return sCurrentBlockClass.load(std::memory_order_relaxed);
 }
 
-inline constexpr unsigned kClassCount = 4;
+inline constexpr unsigned kClassCount = POCKETPAN_FORENSICS_RELEASE_PROBE ? 5 : 4;
 // Class 0: true_steady
 // Class 1: attack_tail
 // Class 2: event
@@ -59,6 +66,9 @@ inline constexpr const char* kForensicsClassNames[kClassCount] = {
     "attack_tail",
     "event",
     "fixture_transition"
+#if POCKETPAN_FORENSICS_RELEASE_PROBE
+    , "release_tail"
+#endif
 };
 
 inline unsigned classToIndex(ForensicsBlockClass cls) {
@@ -67,6 +77,7 @@ inline unsigned classToIndex(ForensicsBlockClass cls) {
         case ForensicsBlockClass::AttackTail: return 1;
         case ForensicsBlockClass::Event: return 2;
         case ForensicsBlockClass::FixtureTransition: return 3;
+        case ForensicsBlockClass::ReleaseTail: return 4;
         default: return 0;
     }
 }
@@ -74,6 +85,7 @@ inline unsigned classToIndex(ForensicsBlockClass cls) {
 inline const char* classToName(ForensicsBlockClass cls) {
     switch (cls) {
         case ForensicsBlockClass::TrueSteady: return "true_steady";
+        case ForensicsBlockClass::ReleaseTail: return "release_tail";
         case ForensicsBlockClass::AttackTail: return "attack_tail";
         case ForensicsBlockClass::Event: return "event";
         case ForensicsBlockClass::FixtureTransition: return "fixture_transition";
@@ -128,7 +140,7 @@ struct Result {
     uint32_t eventCount = 0,eventMaxUs = 0;
     // Diagnostic counters for the M6.3.5 fast paths.  Read from the allocator at
     // fixture completion only; never touched by DSP processing.
-    uint32_t stable8 = 0, attack = 0;
+    uint32_t stable8 = 0, attack = 0, sustain = 0, sharedNoise = 0;
 
     Timing& timing(unsigned c) { return innerTiming[c]; }
     const Timing& timing(unsigned c) const { return innerTiming[c]; }
@@ -138,6 +150,9 @@ struct Result {
 #ifdef CONFIG_POCKETPAN_DSP_PROFILE
     struct Profile {
         uint64_t phases[dsp::profile::Count]{};
+        uint64_t kernels[dsp::profile::KernelCount]{};
+        uint64_t maximumPhases[dsp::profile::Count]{};
+        uint32_t maximum = 0;
         uint64_t total = 0;
         uint32_t count = 0;
     } profileData[kClassCount];
@@ -367,7 +382,7 @@ inline void onCallbackComplete(uint32_t processTimeUs, uint32_t blockSequence) {
     const unsigned classIdx = classToIndex(cls);
     results[fixture].callback(classIdx).addUs(processTimeUs);
 
-    if (processTimeUs >= 2667) {
+    if (processTimeUs >= POCKETPAN_FORENSICS_OUTLIER_US) {
         OverrunRecord rec;
         rec.blockSequence = blockSequence;
         rec.fullCallbackUs = processTimeUs;
@@ -406,15 +421,19 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     const bool phrase = false, switchProbe = false;
 #endif
     const bool isTransition = (block == 0);
+    constexpr bool releaseProbe = POCKETPAN_FORENSICS_RELEASE_PROBE;
     constexpr unsigned phraseBlocks = POCKETPAN_FORENSICS_M77 ? 94 : POCKETPAN_FORENSICS_M76 ? 56 : 282;
     constexpr unsigned rollBlocks=(POCKETPAN_FORENSICS_M77 || POCKETPAN_FORENSICS_M8_MODEL>=0)?8:38;
-    const bool event = !isTransition && (roll ? ((block - 1) % rollBlocks == 0) : ((block - 1) % (phrase ? phraseBlocks : 188) == 0));
+    const bool event = !isTransition && (releaseProbe ? (block == 1 || block == 64) :
+        (roll ? ((block - 1) % rollBlocks == 0) : ((block - 1) % (phrase ? phraseBlocks : 188) == 0)));
 
     ForensicsBlockClass currentClass;
     if (isTransition) {
         currentClass = ForensicsBlockClass::FixtureTransition;
     } else if (event) {
         currentClass = ForensicsBlockClass::Event;
+    } else if (releaseProbe && block > 64) {
+        currentClass = ForensicsBlockClass::ReleaseTail;
     } else if (synth.hasActiveExciter()) {
         currentClass = ForensicsBlockClass::AttackTail;
     } else {
@@ -440,7 +459,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         // M7.5.1: single OFF, chord/cluster/phrase/switch/single ON.
         synth.setVibraphoneMotor(id != 0);
 #endif
-#ifdef CONFIG_POCKETPAN_DSP_PROFILE
+#if defined(CONFIG_POCKETPAN_DSP_PROFILE) && POCKETPAN_FORENSICS_M8_MODEL < 0
         if (id == 16) synth.setBodyEnabled(false); // Diagnostic PAN isolation only.
         if (id >= 17) {
             static dsp::ModalPreset preset;
@@ -464,7 +483,7 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         synth.renderBlock(output, frames);
         elapsed = esp_cpu_get_cycle_count() - start;
     } else {
-        if (event && !roll && !phrase && !switchProbe) {
+        if (event && !roll && !phrase && !switchProbe && (!releaseProbe || block == 1)) {
             results[fixture].hardClamp += synth.getHardClampCount();
             results[fixture].modalSat += synth.getModalInternalSaturationCount();
             results[fixture].nonfinite += synth.getNonfiniteCount();
@@ -474,9 +493,13 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         // Sample steady render blocks sparsely to limit probe perturbation, but
         // profile every event block: normally none of the 188-block event
         // cadence coincides with the old modulo-32 sampling point.
-        profiled = event || block % 32 == 1;
+        // The second attack block never meets modulo-32 == 1 on the 188-block
+        // strike cadence. Sample attacks explicitly instead of silently losing
+        // the entire attack_tail class; steady sustain remains sparse.
+        profiled = event || synth.hasActiveExciter() || block % 32 == 1;
         dsp::profile::enabled = profiled;
         std::fill(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), 0);
+        std::fill(std::begin(dsp::profile::kernelCalls), std::end(dsp::profile::kernelCalls), 0);
 #endif
         const uint32_t start = esp_cpu_get_cycle_count();
         if (event && switchProbe) {
@@ -510,7 +533,8 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         }
         if (event) {
             for (unsigned v = 0; v < (phrase ? 1u : counts[kind]); ++v) {
-                midi::MidiEvent note{}; note.type = midi::MidiEventType::NoteOn;
+                midi::MidiEvent note{};
+                note.type = releaseProbe && block == 64 ? midi::MidiEventType::NoteOff : midi::MidiEventType::NoteOn;
                 note.data1 = kind == 6 ? chord[v] : counts[kind] == 1 ? 62 : cluster[v];
                 if (phrase) note.data1 = chord[((block - 1) / 282) % 4];
                 note.data2 = kind == 6 || counts[kind] == 1 ? 90 : 100;
@@ -547,8 +571,32 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
             auto& result=results[fixture];result.eventCycles+=cycles;++result.eventCount;
             result.eventMaxUs=std::max(result.eventMaxUs,(cycles+239)/240);
         }
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+        const auto stableBefore = synth.getVoiceAllocator().getPanStable8BlocksForTest();
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+        const auto attackBefore = synth.getVoiceAllocator().getAttackFastPathBlocksForTest();
+#endif
+#if POCKETPAN_SUSTAIN_FASTPATH
+        const auto sustainBefore = synth.getVoiceAllocator().getSustainFastPathBlocksForTest();
+#endif
+#if POCKETPAN_COMMON_NOISE_PROBES
+        const auto sharedBefore = dsp::m81::sharedNoiseBlocks;
+#endif
         synth.renderBlock(output, frames);
+#if POCKETPAN_COMMON_NOISE_PROBES
+        results[fixture].sharedNoise += dsp::m81::sharedNoiseBlocks - sharedBefore;
+#endif
         elapsed = esp_cpu_get_cycle_count() - start;
+#if POCKETPAN_PAN_STABLE8_FASTPATH
+        results[fixture].stable8 += synth.getVoiceAllocator().getPanStable8BlocksForTest() - stableBefore;
+#endif
+#if POCKETPAN_ATTACK_VOICE_FASTPATH
+        results[fixture].attack += synth.getVoiceAllocator().getAttackFastPathBlocksForTest() - attackBefore;
+#endif
+#if POCKETPAN_SUSTAIN_FASTPATH
+        results[fixture].sustain += synth.getVoiceAllocator().getSustainFastPathBlocksForTest() - sustainBefore;
+#endif
     }
 
     auto& r = results[fixture];
@@ -561,7 +609,8 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
     // Verify the live count is bounded by the notes introduced, not permanently 4.
     // OPEN decays sooner than the fixed-PARTIAL reference. In UDU steady
     // tails, fewer live voices are natural; event/attack counts remain exact.
-    const bool naturalUduTail=modelOf(id)==dsp::InstrumentModel::Udu && currentClass==ForensicsBlockClass::TrueSteady;
+    const bool naturalUduTail=(modelOf(id)==dsp::InstrumentModel::Udu && currentClass==ForensicsBlockClass::TrueSteady)
+        || (releaseProbe && block >= 64);
     if (!isTransition && (phrase ? (observedVoices == 0 || observedVoices > expectedVoices)
                                  : naturalUduTail ? observedVoices > expectedVoices
                                                   : observedVoices != expectedVoices)) ++r.badVoices;
@@ -579,6 +628,11 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         auto& prof = r.profile(timingClass);
         prof.total += elapsed;
         for (unsigned i = 0; i < dsp::profile::Count; ++i) prof.phases[i] += dsp::profile::cycles[i];
+        for (unsigned i = 0; i < dsp::profile::KernelCount; ++i) prof.kernels[i] += dsp::profile::kernelCalls[i];
+        if (elapsed > prof.maximum) {
+            prof.maximum = elapsed;
+            std::copy(std::begin(dsp::profile::cycles), std::end(dsp::profile::cycles), prof.maximumPhases);
+        }
         ++prof.count;
     }
     dsp::profile::enabled = false;
@@ -588,10 +642,10 @@ inline void render(dsp::SynthEngine& synth, int32_t* output, size_t frames) {
         r.hardClamp += synth.getHardClampCount(); r.modalSat += synth.getModalInternalSaturationCount();
         r.nonfinite += synth.getNonfiniteCount();
 #if POCKETPAN_PAN_STABLE8_FASTPATH
-        r.stable8 = synth.getVoiceAllocator().getPanStable8BlocksForTest();
+        // Fixture totals include every reset cycle (accumulated above).
 #endif
 #if POCKETPAN_ATTACK_VOICE_FASTPATH
-        r.attack = synth.getVoiceAllocator().getAttackFastPathBlocksForTest();
+        // Fixture totals include every reset cycle (accumulated above).
 #endif
         if (sAudioInstance) fixtureAudioStats[fixture] = sAudioInstance->getStats();
         completed.store(++fixture, std::memory_order_release); block = 0;
@@ -669,8 +723,8 @@ inline void logCompleted() {
 #else
             const unsigned attack = 0;
 #endif
-            ESP_LOGI("forensics", "[FASTPATH] fixture=%u stable8=%u attack=%u",
-                     id, stable8, attack);
+            ESP_LOGI("forensics", "[FASTPATH] fixture=%u stable8=%u attack=%u sustain=%u shared_noise=%u",
+                     id, stable8, attack, (unsigned)r.sustain, (unsigned)r.sharedNoise);
         }
         // Callback overhead breakdown
         const auto& oh = gCallbackOverhead[logged];
@@ -696,6 +750,12 @@ inline void logCompleted() {
                 ESP_LOGI("forensics", "[PHASE] fixture=%u class=%s phase=%u cycles_per_block=%.2f n=%u", id,
                     profileClass, i, double(prof.phases[i]) / prof.count,
                     (unsigned)prof.count);
+            for (unsigned i = 0; i < dsp::profile::KernelCount; ++i)
+                ESP_LOGI("forensics", "[KERNEL] fixture=%u class=%s kernel=%u calls=%llu", id, profileClass, i,
+                         (unsigned long long)prof.kernels[i]);
+            for (unsigned i = 0; i < dsp::profile::Count; ++i)
+                ESP_LOGI("forensics", "[PROFILE_MAX] fixture=%u class=%s phase=%u cycles=%llu total=%u", id,
+                         profileClass, i, (unsigned long long)prof.maximumPhases[i], (unsigned)prof.maximum);
         }
 #endif
         ++logged;

@@ -314,6 +314,7 @@ __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMi
 DSP_HOT float ModalResonatorBank::processSampleSixSafety(float excitation) {
 #if POCKETPAN_MODAL_MICROKERNEL && POCKETPAN_PROCESS6_MICROKERNEL
     DSP_PROFILE_SCOPE(Modal);
+    DSP_PROFILE_KERNEL(Six);
     return processSampleMicro6<true>(excitation);
 #else
     return processSample(excitation);
@@ -328,13 +329,13 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
     // routed to the original indexed fallback below.
     switch (microKernel_) {
 #if POCKETPAN_PROCESS6_MICROKERNEL
-        case MicroKernel::Process6Safety: return processSampleMicro6<true>(excitation);
-        case MicroKernel::Process6Normal: return processSampleMicro6<false>(excitation);
+        case MicroKernel::Process6Safety: DSP_PROFILE_KERNEL(Six); return processSampleMicro6<true>(excitation);
+        case MicroKernel::Process6Normal: DSP_PROFILE_KERNEL(Six); return processSampleMicro6<false>(excitation);
 #endif
-        case MicroKernel::Process8Safety: return processSampleMicro8<true>(excitation);
-        case MicroKernel::Process8Normal: return processSampleMicro8<false>(excitation);
-        case MicroKernel::Process10Safety: return processSampleMicro10<true>(excitation);
-        case MicroKernel::Process10Normal: return processSampleMicro10<false>(excitation);
+        case MicroKernel::Process8Safety: DSP_PROFILE_KERNEL(Eight); return processSampleMicro8<true>(excitation);
+        case MicroKernel::Process8Normal: DSP_PROFILE_KERNEL(Eight); return processSampleMicro8<false>(excitation);
+        case MicroKernel::Process10Safety: DSP_PROFILE_KERNEL(Ten); return processSampleMicro10<true>(excitation);
+        case MicroKernel::Process10Normal: DSP_PROFILE_KERNEL(Ten); return processSampleMicro10<false>(excitation);
         case MicroKernel::Generic: break;
     }
 #elif POCKETPAN_FIXED_MODAL_KERNEL
@@ -346,6 +347,7 @@ DSP_HOT float ModalResonatorBank::processSample(float excitation) {
         if (modeCount_ == 10) return processSampleFixed<10>(excitation);
     }
 #endif
+    DSP_PROFILE_KERNEL(Scalar);
     return processSampleReference(excitation);
 }
 

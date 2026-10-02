@@ -1,0 +1,225 @@
+Executing action: all (aliases: build)
+Running cmake in directory C:\progs\ESPan\build-ci-prod
+Executing "cmake -G Ninja -DPYTHON_DEPS_CHECKED=1 -DPYTHON=C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe -DESP_PLATFORM=1 -DPOCKETPAN_PACKED_NOTE_CACHE=1 -DPOCKETPAN_FORENSICS_PHASE_PROBES=OFF -DPOCKETPAN_UI_AUDIO_CORRELATION=0 -DPOCKETPAN_FORENSICS_RELEASE_PROBE=0 -DPOCKETPAN_LIMITER_LOG_CACHE=0 -DPOCKETPAN_PAN_SEGMENTS=0 -DPOCKETPAN_FORENSICS_M8_MODEL=-1 -DPOCKETPAN_DSP_CANDIDATE=25 -DCCACHE_ENABLE=1 C:\progs\ESPan"...
+-- ccache will be used for faster recompilation
+-- Building ESP-IDF components for target esp32s3
+-- Project sdkconfig file C:/progs/ESPan/sdkconfig
+info: INFO: Symbol IDF_TARGET_LINUX defined in multiple locations (see below). Please check if this is a correct behavior or a random name match:
+
+    C:\Users\devx\esp\esp-idf\Kconfig:162
+
+    C:\Users\devx\esp\esp-idf\Kconfig:78
+
+Loading defaults file C:/progs/ESPan/sdkconfig.defaults...
+
+-- Compiler supported targets: xtensa-esp-elf
+-- App "pocket_pan" version: f7f89e4-dirty
+-- Adding linker script C:/progs/ESPan/build-ci-prod/esp-idf/esp_system/ld/memory.ld
+-- Adding linker script C:/progs/ESPan/build-ci-prod/esp-idf/esp_system/ld/sections.ld.in
+-- Adding linker script C:/Users/devx/esp/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.ld
+-- Adding linker script C:/Users/devx/esp/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.api.ld
+-- Adding linker script C:/Users/devx/esp/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.libgcc.ld
+-- Adding linker script C:/Users/devx/esp/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.wdt.ld
+-- Adding linker script C:/Users/devx/esp/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.version.ld
+-- Adding linker script C:/Users/devx/esp/esp-idf/components/esp_rom/esp32s3/ld/esp32s3.rom.newlib.ld
+-- Adding linker script C:/Users/devx/esp/esp-idf/components/soc/esp32s3/ld/esp32s3.peripherals.ld
+-- Components: app_trace app_update bootloader bootloader_support bt cmock console cxx driver efuse esp-tls esp_adc esp_app_format esp_bootloader_format esp_coex esp_common esp_driver_ana_cmpr esp_driver_cam esp_driver_dac esp_driver_gpio esp_driver_gptimer esp_driver_i2c esp_driver_i2s esp_driver_isp esp_driver_jpeg esp_driver_ledc esp_driver_mcpwm esp_driver_parlio esp_driver_pcnt esp_driver_ppa esp_driver_rmt esp_driver_sdio esp_driver_sdm esp_driver_sdmmc esp_driver_sdspi esp_driver_spi esp_driver_tsens esp_driver_uart esp_driver_usb_serial_jtag esp_eth esp_event esp_gdbstub esp_hid esp_http_client esp_http_server esp_https_ota esp_https_server esp_hw_support esp_lcd esp_local_ctrl esp_mm esp_netif esp_netif_stack esp_partition esp_phy esp_pm esp_psram esp_ringbuf esp_rom esp_system esp_timer esp_vfs_console esp_wifi espcoredump esptool_py fatfs freertos hal heap http_parser idf_test ieee802154 json log lwip main mbedtls mqtt newlib nvs_flash nvs_sec_provider openthread partition_table perfmon protobuf-c protocomm pthread sdmmc soc spi_flash spiffs tcp_transport touch_element ulp unity usb vfs wear_levelling wifi_provisioning wpa_supplicant xtensa
+-- Component paths: C:/Users/devx/esp/esp-idf/components/app_trace C:/Users/devx/esp/esp-idf/components/app_update C:/Users/devx/esp/esp-idf/components/bootloader C:/Users/devx/esp/esp-idf/components/bootloader_support C:/Users/devx/esp/esp-idf/components/bt C:/Users/devx/esp/esp-idf/components/cmock C:/Users/devx/esp/esp-idf/components/console C:/Users/devx/esp/esp-idf/components/cxx C:/Users/devx/esp/esp-idf/components/driver C:/Users/devx/esp/esp-idf/components/efuse C:/Users/devx/esp/esp-idf/components/esp-tls C:/Users/devx/esp/esp-idf/components/esp_adc C:/Users/devx/esp/esp-idf/components/esp_app_format C:/Users/devx/esp/esp-idf/components/esp_bootloader_format C:/Users/devx/esp/esp-idf/components/esp_coex C:/Users/devx/esp/esp-idf/components/esp_common C:/Users/devx/esp/esp-idf/components/esp_driver_ana_cmpr C:/Users/devx/esp/esp-idf/components/esp_driver_cam C:/Users/devx/esp/esp-idf/components/esp_driver_dac C:/Users/devx/esp/esp-idf/components/esp_driver_gpio C:/Users/devx/esp/esp-idf/components/esp_driver_gptimer C:/Users/devx/esp/esp-idf/components/esp_driver_i2c C:/Users/devx/esp/esp-idf/components/esp_driver_i2s C:/Users/devx/esp/esp-idf/components/esp_driver_isp C:/Users/devx/esp/esp-idf/components/esp_driver_jpeg C:/Users/devx/esp/esp-idf/components/esp_driver_ledc C:/Users/devx/esp/esp-idf/components/esp_driver_mcpwm C:/Users/devx/esp/esp-idf/components/esp_driver_parlio C:/Users/devx/esp/esp-idf/components/esp_driver_pcnt C:/Users/devx/esp/esp-idf/components/esp_driver_ppa C:/Users/devx/esp/esp-idf/components/esp_driver_rmt C:/Users/devx/esp/esp-idf/components/esp_driver_sdio C:/Users/devx/esp/esp-idf/components/esp_driver_sdm C:/Users/devx/esp/esp-idf/components/esp_driver_sdmmc C:/Users/devx/esp/esp-idf/components/esp_driver_sdspi C:/Users/devx/esp/esp-idf/components/esp_driver_spi C:/Users/devx/esp/esp-idf/components/esp_driver_tsens C:/Users/devx/esp/esp-idf/components/esp_driver_uart C:/Users/devx/esp/esp-idf/components/esp_driver_usb_serial_jtag C:/Users/devx/esp/esp-idf/components/esp_eth C:/Users/devx/esp/esp-idf/components/esp_event C:/Users/devx/esp/esp-idf/components/esp_gdbstub C:/Users/devx/esp/esp-idf/components/esp_hid C:/Users/devx/esp/esp-idf/components/esp_http_client C:/Users/devx/esp/esp-idf/components/esp_http_server C:/Users/devx/esp/esp-idf/components/esp_https_ota C:/Users/devx/esp/esp-idf/components/esp_https_server C:/Users/devx/esp/esp-idf/components/esp_hw_support C:/Users/devx/esp/esp-idf/components/esp_lcd C:/Users/devx/esp/esp-idf/components/esp_local_ctrl C:/Users/devx/esp/esp-idf/components/esp_mm C:/Users/devx/esp/esp-idf/components/esp_netif C:/Users/devx/esp/esp-idf/components/esp_netif_stack C:/Users/devx/esp/esp-idf/components/esp_partition C:/Users/devx/esp/esp-idf/components/esp_phy C:/Users/devx/esp/esp-idf/components/esp_pm C:/Users/devx/esp/esp-idf/components/esp_psram C:/Users/devx/esp/esp-idf/components/esp_ringbuf C:/Users/devx/esp/esp-idf/components/esp_rom C:/Users/devx/esp/esp-idf/components/esp_system C:/Users/devx/esp/esp-idf/components/esp_timer C:/Users/devx/esp/esp-idf/components/esp_vfs_console C:/Users/devx/esp/esp-idf/components/esp_wifi C:/Users/devx/esp/esp-idf/components/espcoredump C:/Users/devx/esp/esp-idf/components/esptool_py C:/Users/devx/esp/esp-idf/components/fatfs C:/Users/devx/esp/esp-idf/components/freertos C:/Users/devx/esp/esp-idf/components/hal C:/Users/devx/esp/esp-idf/components/heap C:/Users/devx/esp/esp-idf/components/http_parser C:/Users/devx/esp/esp-idf/components/idf_test C:/Users/devx/esp/esp-idf/components/ieee802154 C:/Users/devx/esp/esp-idf/components/json C:/Users/devx/esp/esp-idf/components/log C:/Users/devx/esp/esp-idf/components/lwip C:/progs/ESPan/main C:/Users/devx/esp/esp-idf/components/mbedtls C:/Users/devx/esp/esp-idf/components/mqtt C:/Users/devx/esp/esp-idf/components/newlib C:/Users/devx/esp/esp-idf/components/nvs_flash C:/Users/devx/esp/esp-idf/components/nvs_sec_provider C:/Users/devx/esp/esp-idf/components/openthread C:/Users/devx/esp/esp-idf/components/partition_table C:/Users/devx/esp/esp-idf/components/perfmon C:/Users/devx/esp/esp-idf/components/protobuf-c C:/Users/devx/esp/esp-idf/components/protocomm C:/Users/devx/esp/esp-idf/components/pthread C:/Users/devx/esp/esp-idf/components/sdmmc C:/Users/devx/esp/esp-idf/components/soc C:/Users/devx/esp/esp-idf/components/spi_flash C:/Users/devx/esp/esp-idf/components/spiffs C:/Users/devx/esp/esp-idf/components/tcp_transport C:/Users/devx/esp/esp-idf/components/touch_element C:/Users/devx/esp/esp-idf/components/ulp C:/Users/devx/esp/esp-idf/components/unity C:/Users/devx/esp/esp-idf/components/usb C:/Users/devx/esp/esp-idf/components/vfs C:/Users/devx/esp/esp-idf/components/wear_levelling C:/Users/devx/esp/esp-idf/components/wifi_provisioning C:/Users/devx/esp/esp-idf/components/wpa_supplicant C:/Users/devx/esp/esp-idf/components/xtensa
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/progs/ESPan/build-ci-prod
+Running ninja in directory C:\progs\ESPan\build-ci-prod
+Executing "ninja all"...
+[1/23] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/hardware/display.cpp.obj
+[2/23] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/hardware/ble_midi.cpp.obj
+[3/23] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D C:\progs\ESPan\build-ci-prod\bootloader\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 C:/progs/ESPan/build-ci-prod/bootloader/bootloader.bin"
+
+
+Bootloader binary size 0x5260 bytes. 0x2da0 bytes (36%) free.
+
+
+
+[4/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/hardware/audio_i2s.cpp.obj
+
+C:/progs/ESPan/main/hardware/audio_i2s.cpp: In member function 'void pocketpan::hardware::AudioI2S::audioTaskLoop()':
+
+C:/progs/ESPan/main/hardware/audio_i2s.cpp:347:17: warning: unused variable 'tWrite0' [-Wunused-variable]
+
+  347 |         int64_t tWrite0 = 0;
+
+      |                 ^~~~~~~
+
+[5/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/midi/midi_parser.cpp.obj
+[6/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/midi/midi_mapping.cpp.obj
+[7/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/body_resonator.cpp.obj
+[8/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/exciter.cpp.obj
+[9/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/modal_resonator.cpp.obj
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:297:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  297 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro10(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:282:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  282 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro8(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.cpp:268:46: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  268 | __attribute__((always_inline)) DSP_HOT float ModalResonatorBank::processSampleMicro6(float excitation) {
+      |                                              ^~~~~~~~~~~~~~~~~~
+[10/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/ui/ui_renderer.cpp.obj
+C:/progs/ESPan/main/ui/ui_renderer.cpp:22:20: warning: 'pocketpan::ui::{anonymous}::sTileDline' defined but not used [-Wunused-variable]
+   22 | alignas(4) uint8_t sTileDline[80 * 12 * 2] = {0};
+      |                    ^~~~~~~~~~
+C:/progs/ESPan/main/ui/ui_renderer.cpp:21:20: warning: 'pocketpan::ui::{anonymous}::sTileCpu' defined but not used [-Wunused-variable]
+   21 | alignas(4) uint8_t sTileCpu[80 * 12 * 2] = {0};
+      |                    ^~~~~~~~
+C:/progs/ESPan/main/ui/ui_renderer.cpp:20:20: warning: 'pocketpan::ui::{anonymous}::sTileVoices' defined but not used [-Wunused-variable]
+   20 | alignas(4) uint8_t sTileVoices[80 * 12 * 2] = {0};
+      |                    ^~~~~~~~~~~
+C:/progs/ESPan/main/ui/ui_renderer.cpp:19:20: warning: 'pocketpan::ui::{anonymous}::sTileRoot' defined but not used [-Wunused-variable]
+   19 | alignas(4) uint8_t sTileRoot[50 * 18 * 2] = {0};
+      |                    ^~~~~~~~~
+C:/progs/ESPan/main/ui/ui_renderer.cpp:18:20: warning: 'pocketpan::ui::{anonymous}::sTilePreset' defined but not used [-Wunused-variable]
+   18 | alignas(4) uint8_t sTilePreset[124 * 18 * 2] = {0};
+      |                    ^~~~~~~~~~~
+C:/progs/ESPan/main/ui/ui_renderer.cpp:17:20: warning: 'pocketpan::ui::{anonymous}::sTileBle' defined but not used [-Wunused-variable]
+   17 | alignas(4) uint8_t sTileBle[60 * 12 * 2] = {0};
+      |                    ^~~~~~~~
+[11/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/peak_limiter.cpp.obj
+[12/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/modal_voice.cpp.obj
+In file included from C:/progs/ESPan/main/dsp/modal_voice.h:6,
+                 from C:/progs/ESPan/main/dsp/modal_voice.cpp:1:
+C:/progs/ESPan/main/dsp/modal_resonator.h:131:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  131 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:130:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  130 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:128:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  128 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro6(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+[13/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/instrument_model.cpp.obj
+In file included from C:/progs/ESPan/main/dsp/instrument_model.h:6,
+                 from C:/progs/ESPan/main/dsp/instrument_model.cpp:1:
+C:/progs/ESPan/main/dsp/modal_resonator.h:131:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  131 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:130:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  130 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:128:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  128 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro6(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+[14/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/app/app_main.cpp.obj
+C:/progs/ESPan/main/app/app_main.cpp: In function 'void {anonymous}::uiTaskLoop(void*)':
+C:/progs/ESPan/main/app/app_main.cpp:317:14: warning: unused variable 'renderTick' [-Wunused-variable]
+  317 |     uint32_t renderTick = 0;
+      |              ^~~~~~~~~~
+In file included from C:/progs/ESPan/main/dsp/modal_voice.h:6,
+                 from C:/progs/ESPan/main/dsp/voice_allocator.h:7,
+                 from C:/progs/ESPan/main/dsp/synth_engine.h:6,
+                 from C:/progs/ESPan/main/app/app_main.cpp:15:
+C:/progs/ESPan/main/dsp/modal_resonator.h: At global scope:
+C:/progs/ESPan/main/dsp/modal_resonator.h:131:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  131 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:130:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  130 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:128:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  128 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro6(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+[15/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/synth_engine.cpp.obj
+In file included from C:/progs/ESPan/main/dsp/modal_voice.h:6,
+                 from C:/progs/ESPan/main/dsp/voice_allocator.h:7,
+                 from C:/progs/ESPan/main/dsp/synth_engine.h:6,
+                 from C:/progs/ESPan/main/dsp/synth_engine.cpp:1:
+C:/progs/ESPan/main/dsp/modal_resonator.h:131:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  131 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:130:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  130 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:128:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  128 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro6(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+[16/21] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/dsp/voice_allocator.cpp.obj
+C:/progs/ESPan/main/dsp/voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlock(float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:396:22: warning: unused variable 'split' [-Wunused-variable]
+  396 |         const size_t split = frames;
+      |                      ^~~~~
+C:/progs/ESPan/main/dsp/voice_allocator.cpp: In member function 'void pocketpan::dsp::VoiceAllocator::renderBlockWithStrikeBus(float*, float*, size_t, const pocketpan::dsp::SympatheticConfig&)':
+C:/progs/ESPan/main/dsp/voice_allocator.cpp:546:22: warning: unused variable 'split' [-Wunused-variable]
+  546 |         const size_t split = frames;
+      |                      ^~~~~
+In file included from C:/progs/ESPan/main/dsp/modal_voice.h:6,
+                 from C:/progs/ESPan/main/dsp/voice_allocator.h:7,
+                 from C:/progs/ESPan/main/dsp/voice_allocator.cpp:1:
+C:/progs/ESPan/main/dsp/modal_resonator.h: At global scope:
+C:/progs/ESPan/main/dsp/modal_resonator.h:131:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  131 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro10(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:130:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  130 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro8(float excitation);
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+C:/progs/ESPan/main/dsp/modal_resonator.h:128:72: warning: 'always_inline' function might not be inlinable [-Wattributes]
+  128 |     template<bool Safety> DSP_HOT __attribute__((always_inline)) float processSampleMicro6(float excitation);
+
+      |                                                                        ^~~~~~~~~~~~~~~~~~~
+
+[17/21] Linking C static library esp-idf\main\libmain.a
+
+[18/21] Generating ld/sections.ld
+
+info: INFO: Symbol IDF_TARGET_LINUX defined in multiple locations (see below). Please check if this is a correct behavior or a random name match:
+
+
+    C:\Users\devx\esp\esp-idf\Kconfig:78
+
+
+    C:\Users\devx\esp\esp-idf\Kconfig:162
+
+
+[19/21] Linking CXX executable pocket_pan.elf
+
+[20/21] Generating binary image from built executable
+
+esptool.py v4.12.0
+
+
+Creating esp32s3 image...
+
+
+Merged 2 ELF sections
+
+
+Successfully created esp32s3 image.
+
+
+Generated C:/progs/ESPan/build-ci-prod/pocket_pan.bin
+
+[21/21] cmd.exe /C "cd /D C:\progs\ESPan\build-ci-prod\esp-idf\esptool_py && C:\Users\devx\.espressif\python_env\idf5.3_py3.14_env\Scripts\python.exe C:/Users/devx/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/progs/ESPan/build-ci-prod/partition_table/partition-table.bin C:/progs/ESPan/build-ci-prod/pocket_pan.bin"
+
+pocket_pan.bin binary size 0xa94c0 bytes. Smallest app partition is 0x100000 bytes. 0x56b40 bytes (34%) free.
+
+
+
+
+Project build complete. To flash, run:
+ idf.py flash
+or
+ idf.py -p PORT flash
+or
+ python -m esptool --chip esp32s3 -b 460800 --before default_reset --after hard_reset write_flash --flash_mode dio --flash_size 4MB --flash_freq 80m 0x0 build-ci-prod\bootloader\bootloader.bin 0x8000 build-ci-prod\partition_table\partition-table.bin 0x10000 build-ci-prod\pocket_pan.bin
+or from the "C:\progs\ESPan\build-ci-prod" directory
+ python -m esptool --chip esp32s3 -b 460800 --before default_reset --after hard_reset write_flash "@flash_args"

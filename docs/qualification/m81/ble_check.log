@@ -1,0 +1,5 @@
+[0;32mI (321926) pocket_pan_main: [AUDIO] model=PAN blocks=120378 avg_us=345 p99_us=375 max_us=1121 cpu_load=12.9 deadline=0 timeout=0 tx_error=0 short=0[0m
+[0;32mI (321926) pocket_pan_main: [MIDI] push=40 pop=40 drop=0 hwm=1 last=(n=69 v=75 t=78 hex=90454B)[0m
+[0;32mI (321936) pocket_pan_main: [BLE] state=8 interval_ms=11.25 latency=0 rssi=-64 reconnects=0 last_disconnect=0[0m
+[0;32mI (321946) pocket_pan_main: [MEM] internal_free=58531 largest_internal=31744[0m
+[0;32mI (321956) pocket_pan_main: [UIREDRAW] urgent=86 telemetry=941 skip=9577[0m

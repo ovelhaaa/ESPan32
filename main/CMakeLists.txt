@@ -38,12 +38,23 @@ idf_component_register(
 target_compile_features(${COMPONENT_LIB} PUBLIC cxx_std_17)
 # Catch accidental full/packed table temporaries in every firmware DSP build.
 set_source_files_properties(dsp/synth_engine.cpp dsp/voice_allocator.cpp dsp/modal_voice.cpp
+    dsp/peak_limiter.cpp dsp/modal_resonator.cpp
     PROPERTIES COMPILE_OPTIONS "-Werror=frame-larger-than=2048;-fstack-usage")
+set(POCKETPAN_COMMON_NOISE 1 CACHE STRING "Exact synchronized PAN noise envelope reuse")
 set(POCKETPAN_PACKED_NOTE_CACHE 1 CACHE STRING "M8: packed internal model-width caches (0 = diagnostic legacy rollback)")
 set(POCKETPAN_FORENSICS_M8_MODEL -1 CACHE STRING "M8: -1 disabled, 0 PAN, 1 VIBRAPHONE, 2 MBIRA, 3 UDU")
 set(POCKETPAN_FORENSICS_M8_BATCH 0 CACHE STRING "M8: 0 single/chord/cluster, 1 rapid/switch")
+set(POCKETPAN_FORENSICS_OUTLIER_US 2667 CACHE STRING "Diagnostic callback capture threshold; deadline remains 2667 us")
+option(POCKETPAN_FORENSICS_PHASE_PROBES "Main-component-only diagnostic phase probes (forensics firmware)" OFF)
+set(POCKETPAN_FORENSICS_RELEASE_PROBE 0 CACHE STRING "Diagnostic one strike / release / natural tail per fixture")
+if(POCKETPAN_FORENSICS_PHASE_PROBES)
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_POCKETPAN_DSP_PROFILE=1)
+endif()
 target_compile_definitions(${COMPONENT_LIB} PRIVATE
     POCKETPAN_PACKED_NOTE_CACHE=${POCKETPAN_PACKED_NOTE_CACHE}
+    POCKETPAN_COMMON_NOISE=${POCKETPAN_COMMON_NOISE}
+    POCKETPAN_FORENSICS_OUTLIER_US=${POCKETPAN_FORENSICS_OUTLIER_US}
+    POCKETPAN_FORENSICS_RELEASE_PROBE=${POCKETPAN_FORENSICS_RELEASE_PROBE}
     POCKETPAN_FORENSICS_M8_MODEL=${POCKETPAN_FORENSICS_M8_MODEL}
     POCKETPAN_FORENSICS_M8_BATCH=${POCKETPAN_FORENSICS_M8_BATCH})
 set(POCKETPAN_FORENSICS_M76 0 CACHE STRING "M7.6 Mbira connected qualification")

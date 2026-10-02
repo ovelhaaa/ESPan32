@@ -41,6 +41,17 @@ public:
     // the exciter into the IRAM-resident voice kernel; the sample stream and
     // active_ transition are bit-identical to the reference.
     float processSample();
+#if POCKETPAN_COMMON_NOISE && POCKETPAN_ATTACK_FASTPATH
+    bool sharesNoiseEnvelope(const Exciter& other) const {
+        return sampleIndex_ == other.sampleIndex_ && noiseSamples_ == other.noiseSamples_;
+    }
+    float noiseEnvelopeSquared() const {
+        if (sampleIndex_ >= noiseSamples_) return 0.0f;
+        const float env = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(noiseSamples_));
+        return env * env;
+    }
+    __attribute__((always_inline)) inline float processSampleSharedNoise(float envelopeSquared);
+#endif
 
     // Exact scalar reference: the historical body, compiled only when the
     // differential harness requests it.  It is the definition of correctness
@@ -177,6 +188,56 @@ inline float Exciter::processSample() {
 
     return output;
 }
+#if POCKETPAN_COMMON_NOISE
+__attribute__((always_inline)) inline float Exciter::processSampleSharedNoise(float envelopeSquared) {
+    if (!active_) return 0.0f;
+
+    float output = 0.0f;
+
+    if (config_.shape == ExciterShape::Pluck) {
+        // 1. Asymmetric displacement release pulse
+        if (sampleIndex_ < impulseSamples_) {
+            const float p = 1.0f - (static_cast<float>(sampleIndex_) / static_cast<float>(impulseSamples_));
+            output += strikeAmplitude_ * (p * p) * impulseNorm_;
+        }
+
+        // 2. Filtered noise click with fast decay
+        if (sampleIndex_ < noiseSamples_) {
+            const float rawNoise = nextNoise();
+            filterState_ += filterCoeff_ * (rawNoise - filterState_);
+
+            output += filterState_ * noiseGain_ * envelopeSquared;
+        }
+    } else {
+        // 1. Shaped impulse component.  The segment below runs only for the first
+        // impulseSamples_ samples; window is a table lookup, norm is hoisted.  The
+        // multiplication order (strikeAmplitude_ * window) * norm is preserved.
+        if (sampleIndex_ < impulseSamples_) {
+            const float window = (impulseSamples_ >= 3u && impulseSamples_ <= kExciterMaxImpulseSamples)
+                ? windowTable_[impulseSamples_][sampleIndex_]
+                : std::sin((kExciterPi * (sampleIndex_ + 0.5f)) / static_cast<float>(impulseSamples_));
+            output += strikeAmplitude_ * window * impulseNorm_;
+        }
+
+        // 2. Filtered noise burst component with decay.  The PRNG is inlined and
+        // the envelope expression is unchanged (no iterative subtraction).
+        if (sampleIndex_ < noiseSamples_) {
+            const float rawNoise = nextNoise();
+            filterState_ += filterCoeff_ * (rawNoise - filterState_);
+
+            output += filterState_ * noiseGain_ * envelopeSquared;
+        }
+    }
+
+    sampleIndex_++;
+    if (sampleIndex_ >= noiseSamples_ && sampleIndex_ >= impulseSamples_) {
+        active_ = false;
+    }
+
+    return output;
+}
+#endif
+
 #endif
 
 } // namespace pocketpan::dsp
